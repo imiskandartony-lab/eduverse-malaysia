@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ED0FF"/><stop offset="1" stop-color="#BDE7FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="110" fill="url(#sky)"/>
+  <!-- floating island -->
+  <ellipse cx="256" cy="330" rx="150" ry="46" fill="#35C48D"/>
+  <path d="M130 340 Q256 430 382 340 L360 380 Q256 440 152 380 Z" fill="#9C6B3F"/>
+  <!-- winding trail -->
+  <path d="M180 330 Q256 300 330 330" stroke="#FFC93C" stroke-width="10" stroke-dasharray="2 18" stroke-linecap="round" fill="none"/>
+  <!-- kancil head -->
+  <circle cx="256" cy="200" r="86" fill="#C98A5B"/>
+  <circle cx="226" cy="190" r="12" fill="#1E2A4A"/>
+  <circle cx="286" cy="190" r="12" fill="#1E2A4A"/>
+  <ellipse cx="256" cy="232" rx="26" ry="18" fill="#F3D9C3"/>
+  <circle cx="256" cy="226" r="8" fill="#1E2A4A"/>
+  <ellipse cx="188" cy="130" rx="22" ry="34" fill="#C98A5B" transform="rotate(-25 188 130)"/>
+  <ellipse cx="324" cy="130" rx="22" ry="34" fill="#C98A5B" transform="rotate(25 324 130)"/>
+  <!-- graduation star -->
+  <path d="M256 74 l10 22 24 3 -17 17 4 24 -21 -11 -21 11 4 -24 -17 -17 24 -3 Z" fill="#FFC93C"/>
+</svg>

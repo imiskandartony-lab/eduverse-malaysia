@@ -1,0 +1,18 @@
+{
+  "name": "EduVerse Malaysia",
+  "short_name": "EduVerse",
+  "description": "Gamified KSSR learning adventure for Year 5 & 6 — BM, English and Mathematics.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#BDE7FF",
+  "theme_color": "#7ED0FF",
+  "lang": "ms",
+  "categories": ["education", "kids", "games"],
+  "icons": [
+    { "src": "assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

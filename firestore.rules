@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function role() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function isTeacher() { return signedIn() && role() == 'teacher'; }
+    function isAdmin() { return signedIn() && role() == 'admin'; }
+    function isParentOf(uid) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/parents/$(request.auth.uid)) &&
+        uid in get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.children;
+    }
+
+    // Student profiles: owner read/write; parents & teachers read; role is immutable by owner.
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isParentOf(uid) || isTeacher() || isAdmin();
+      allow create: if isSelf(uid)
+        && request.resource.data.role in ['student', 'parent', 'teacher']
+        && request.resource.data.xp == 0 && request.resource.data.coins <= 100;
+      allow update: if (isSelf(uid) && request.resource.data.role == resource.data.role)
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /parents/{uid} {
+      allow read, write: if isSelf(uid) || isAdmin();
+    }
+
+    match /teachers/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+      allow write: if isAdmin();
+      match /classes/{classId} {
+        allow read, write: if isSelf(uid) || isAdmin();
+      }
+    }
+
+    // Curriculum content: readable by all signed-in users, writable by admin only.
+    match /lessons/{id}   { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /quizzes/{id}   { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /worlds/{id}    { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /rewards/{id}   { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /missions/{id}  { allow read: if signedIn(); allow write: if isAdmin(); }
+
+    // Leaderboards: read-only to clients; written by trusted tooling/admin.
+    match /leaderboards/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+
+    // Assignments: teacher creates, assigned students read.
+    match /assignments/{id} {
+      allow read: if signedIn();
+      allow create, update, delete: if isTeacher() || isAdmin();
+    }
+
+    // Analytics events: students append their own; teachers/admin read.
+    match /analytics/{id} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow read: if isTeacher() || isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

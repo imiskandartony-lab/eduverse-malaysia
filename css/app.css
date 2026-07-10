@@ -1,0 +1,298 @@
+/* EduVerse Malaysia — application styles */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--sky-hi), var(--sky-lo) 60%);
+  min-height: 100vh;
+}
+h1, h2, h3, .display { font-family: var(--font-display); }
+button { font-family: inherit; cursor: pointer; }
+a { color: var(--ocean); }
+:focus-visible { outline: 3px solid var(--magic); outline-offset: 2px; border-radius: 6px; }
+
+.app { max-width: 1100px; margin: 0 auto; padding-bottom: 84px; }
+.view { padding: var(--sp-3); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: .5rem; justify-content: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.05rem;
+  color: #fff; background: var(--sunset); border: none;
+  border-radius: var(--r-btn); padding: .8rem 1.6rem;
+  box-shadow: 0 5px 0 var(--sunset-deep);
+  transition: transform var(--t-fast) var(--ease-bounce), box-shadow var(--t-fast);
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--sunset-deep); }
+.btn-green { background: var(--jungle); box-shadow: 0 5px 0 var(--jungle-deep); }
+.btn-purple { background: var(--magic); box-shadow: 0 5px 0 var(--magic-deep); }
+.btn-gold { background: var(--gold); color: var(--ink); box-shadow: 0 5px 0 var(--gold-deep); }
+.btn-ghost { background: var(--card); color: var(--ink); box-shadow: 0 5px 0 var(--line); }
+.btn[disabled] { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-sm { padding: .45rem 1rem; font-size: .9rem; border-radius: 12px; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--card); border-radius: var(--r-card);
+  box-shadow: var(--shadow); padding: var(--sp-4); margin-bottom: var(--sp-3);
+}
+.card-tint { background: var(--card-tint); }
+
+/* ---------- HUD (top stats bar) ---------- */
+.hud { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: center; padding: var(--sp-2) 0 var(--sp-3); }
+.hud .spacer { flex: 1; }
+.pill {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--card); border-radius: var(--r-pill);
+  padding: .35rem .8rem; font-weight: 800; font-size: var(--fs-small);
+  box-shadow: var(--shadow);
+}
+.pill .ico { font-size: 1rem; }
+
+/* XP bar */
+.xpbar { position: relative; height: 14px; background: var(--line); border-radius: var(--r-pill); overflow: hidden; }
+.xpbar > span { position: absolute; inset: 0; width: 0; background: linear-gradient(90deg, var(--magic), var(--ocean)); border-radius: var(--r-pill); transition: width .6s var(--ease-bounce); }
+
+/* ---------- World map trail (signature) ---------- */
+.worldmap { position: relative; padding: var(--sp-3) 0; }
+.trail-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.trail-svg path { fill: none; stroke: var(--gold-deep); stroke-width: 4; stroke-dasharray: 2 12; stroke-linecap: round; opacity: .7; }
+.world-node {
+  position: relative; display: flex; align-items: center; gap: var(--sp-3);
+  background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow);
+  padding: var(--sp-3); margin: var(--sp-4) 0; width: min(420px, 92%);
+  border: 3px solid transparent; text-align: left;
+  transition: transform var(--t-med) var(--ease-bounce);
+}
+.world-node:hover:not(.locked) { transform: scale(1.03) rotate(-.5deg); }
+.world-node:nth-child(even) { margin-left: auto; }
+.world-node .w-emoji { font-size: 2.4rem; filter: drop-shadow(0 3px 2px rgba(0,0,0,.15)); }
+.world-node .w-title { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; }
+.world-node .w-sub { color: var(--ink-soft); font-size: var(--fs-small); }
+.world-node.done { border-color: var(--jungle); }
+.world-node.current { border-color: var(--gold); animation: pulse 2.4s infinite; }
+.world-node.locked { opacity: .55; filter: saturate(.4); cursor: not-allowed; }
+.world-node .w-lock { margin-left: auto; font-size: 1.4rem; }
+@keyframes pulse { 0%,100% { box-shadow: var(--shadow); } 50% { box-shadow: 0 6px 0 rgba(255,201,60,.55), 0 0 0 8px rgba(255,201,60,.18); } }
+
+/* progress ring on nodes */
+.w-progress { margin-left: auto; font-weight: 800; color: var(--jungle-deep); font-size: .9rem; }
+
+/* ---------- Missions ---------- */
+.mission { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) 0; border-bottom: 2px dashed var(--line); }
+.mission:last-child { border-bottom: none; }
+.mission .m-reward { margin-left: auto; font-weight: 800; white-space: nowrap; }
+.mission.done .m-text { text-decoration: line-through; color: var(--ink-soft); }
+
+/* ---------- Quiz / lesson ---------- */
+.quiz-option {
+  display: block; width: 100%; text-align: left; font-size: 1.05rem; font-weight: 700;
+  background: var(--card); color: var(--ink); border: 3px solid var(--line);
+  border-radius: var(--r-btn); padding: var(--sp-3); margin-bottom: var(--sp-2);
+  transition: border-color var(--t-fast), transform var(--t-fast) var(--ease-bounce);
+}
+.quiz-option:hover { border-color: var(--ocean); transform: translateX(4px); }
+.quiz-option.correct { border-color: var(--jungle); background: color-mix(in srgb, var(--jungle) 14%, var(--card)); }
+.quiz-option.wrong { border-color: var(--lava); background: color-mix(in srgb, var(--lava) 12%, var(--card)); animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.lesson-step { font-size: 1.1rem; line-height: 1.75; }
+.boss-hp { height: 18px; border-radius: var(--r-pill); background: var(--line); overflow: hidden; }
+.boss-hp > span { display: block; height: 100%; background: linear-gradient(90deg, var(--lava), var(--sunset)); transition: width .4s var(--ease-bounce); }
+
+/* ---------- Avatar shop ---------- */
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--sp-2); }
+.shop-item { text-align: center; background: var(--card); border-radius: var(--r-card); padding: var(--sp-3); box-shadow: var(--shadow); border: 3px solid transparent; }
+.shop-item .s-emoji { font-size: 2.2rem; }
+.shop-item.owned { border-color: var(--jungle); }
+.shop-item.equipped { border-color: var(--gold); }
+.avatar-stage { font-size: 4.5rem; text-align: center; padding: var(--sp-3); }
+
+/* ---------- Leaderboard ---------- */
+.rank-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-btn); margin-bottom: var(--sp-1); background: var(--card); box-shadow: var(--shadow); }
+.rank-row.me { border: 3px solid var(--magic); }
+.rank-num { font-family: var(--font-display); font-weight: 800; width: 2rem; text-align: center; }
+.rank-xp { margin-left: auto; font-weight: 800; color: var(--magic-deep); }
+
+/* ---------- Bottom nav ---------- */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: min(1100px, 100%); display: flex; z-index: 40;
+  background: var(--card); border-radius: 20px 20px 0 0;
+  box-shadow: 0 -6px 20px rgba(30,42,74,.15); padding: .4rem .4rem calc(.4rem + env(safe-area-inset-bottom));
+}
+.bottom-nav[hidden], .kancil[hidden], .kancil-panel[hidden] { display: none; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: var(--ink-soft); font-weight: 700; font-size: .72rem; padding: .4rem 0; border-radius: 14px; }
+.nav-btn.active { color: var(--sunset-deep); background: color-mix(in srgb, var(--sunset) 12%, transparent); }
+.nav-ico { font-size: 1.35rem; }
+
+/* ---------- Sang Kancil tutor ---------- */
+.kancil { position: fixed; right: 16px; bottom: 92px; z-index: 50; }
+.kancil-toggle { width: 60px; height: 60px; border-radius: 50%; font-size: 1.8rem; border: none; background: var(--magic); box-shadow: var(--shadow-pop); animation: bob 3s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.kancil-panel { position: absolute; right: 0; bottom: 70px; width: min(340px, calc(100vw - 32px)); background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow-pop); display: flex; flex-direction: column; overflow: hidden; }
+.kancil-head { display: flex; align-items: center; gap: .5rem; background: var(--magic); color: #fff; padding: .7rem 1rem; font-family: var(--font-display); }
+.kancil-sub { font-size: .72rem; opacity: .85; flex: 1; }
+.kancil-head button { background: none; border: none; color: #fff; font-size: 1rem; }
+.kancil-log { height: 260px; overflow-y: auto; padding: var(--sp-2); display: flex; flex-direction: column; gap: .5rem; }
+.msg { max-width: 85%; padding: .5rem .8rem; border-radius: 14px; font-size: .92rem; line-height: 1.5; }
+.msg.bot { background: var(--card-tint); align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg.user { background: var(--magic); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.kancil-form { display: flex; gap: .4rem; padding: .6rem; border-top: 2px solid var(--line); }
+.kancil-form input { flex: 1; border: 2px solid var(--line); border-radius: var(--r-pill); padding: .5rem .9rem; font-family: inherit; background: var(--paper); color: var(--ink); }
+.kancil-form button { border: none; background: var(--magic); color: #fff; border-radius: var(--r-pill); padding: .5rem 1rem; font-weight: 800; }
+
+/* ---------- Toast & modal ---------- */
+.toast { position: fixed; top: 14px; left: 50%; transform: translate(-50%, -120%); background: var(--ink); color: #fff; padding: .7rem 1.3rem; border-radius: var(--r-pill); font-weight: 800; z-index: 60; transition: transform var(--t-med) var(--ease-bounce); }
+.toast.show { transform: translate(-50%, 0); }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(14,23,48,.55); z-index: 55; display: grid; place-items: center; padding: var(--sp-3); }
+.modal { background: var(--card); border-radius: var(--r-card); padding: var(--sp-4); max-width: 440px; width: 100%; box-shadow: var(--shadow-pop); text-align: center; }
+.reward-burst { font-size: 3.5rem; animation: burst .6s var(--ease-bounce); }
+@keyframes burst { from { transform: scale(0) rotate(-30deg); } to { transform: scale(1) rotate(0); } }
+
+/* ---------- Auth / landing ---------- */
+.landing { text-align: center; padding: var(--sp-5) var(--sp-3); }
+.landing h1 { font-size: var(--fs-hero); line-height: 1.15; }
+.landing .tagline { color: var(--ink-soft); font-size: 1.1rem; margin: var(--sp-2) 0 var(--sp-4); }
+.role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-2); max-width: 700px; margin: 0 auto; }
+.role-card { background: var(--card); border: 3px solid var(--line); border-radius: var(--r-card); padding: var(--sp-4) var(--sp-2); font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: var(--ink); transition: transform var(--t-fast) var(--ease-bounce), border-color var(--t-fast); }
+.role-card:hover { transform: translateY(-4px); border-color: var(--sunset); }
+.role-card .r-emoji { display: block; font-size: 2.4rem; margin-bottom: .5rem; }
+
+/* ---------- Dashboards (parent/teacher/admin) ---------- */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-2); }
+.stat { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); padding: var(--sp-3); }
+.stat .s-num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; }
+.stat .s-label { color: var(--ink-soft); font-size: var(--fs-small); font-weight: 700; }
+table.report { width: 100%; border-collapse: collapse; font-size: .95rem; }
+table.report th, table.report td { text-align: left; padding: .55rem .6rem; border-bottom: 2px solid var(--line); }
+table.report th { font-family: var(--font-display); }
+
+/* ---------- Mini-game canvas ---------- */
+.game-wrap { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); padding: var(--sp-3); }
+.memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
+.memory-card { aspect-ratio: 1; font-size: 1.5rem; display: grid; place-items: center; background: var(--magic); color: #fff; border: none; border-radius: var(--r-btn); font-weight: 800; transition: transform var(--t-fast) var(--ease-bounce); }
+.memory-card.flipped { background: var(--card-tint); color: var(--ink); transform: rotateY(180deg); }
+.memory-card.matched { background: var(--jungle); color: #fff; }
+.balloon-field { position: relative; height: 380px; overflow: hidden; border-radius: var(--r-btn); background: linear-gradient(180deg, var(--sky-hi), var(--sky-lo)); }
+.balloon { position: absolute; bottom: -70px; width: 62px; height: 76px; border-radius: 50% 50% 48% 48%; border: none; color: #fff; font-weight: 800; font-size: 1rem; animation: rise linear forwards; }
+@keyframes rise { to { transform: translateY(-480px); } }
+
+/* ---------- Game-world atmosphere ---------- */
+body::before { /* sun */
+  content: '';
+  position: fixed; top: -60px; right: -60px; width: 180px; height: 180px;
+  border-radius: 50%; z-index: -1;
+  background: radial-gradient(circle, #FFE9A8 30%, rgba(255,233,168,0) 70%);
+}
+:root[data-theme="dark"] body::before { /* moon */
+  background: radial-gradient(circle, #DCE6FF 25%, rgba(220,230,255,0) 65%);
+  opacity: .5;
+}
+.cloud {
+  position: fixed; z-index: -1; font-size: 3rem; opacity: .8; pointer-events: none;
+  animation: drift linear infinite;
+}
+:root[data-theme="dark"] .cloud { opacity: .15; }
+@keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(105vw); } }
+
+/* floating-island feel on the world map */
+.world-node { animation: floaty 5s ease-in-out infinite; }
+.world-node:nth-child(odd) { animation-delay: -2.5s; }
+.world-node.locked { animation: none; }
+.world-node::after { /* island shadow underneath */
+  content: ''; position: absolute; left: 22%; right: 22%; bottom: -16px; height: 10px;
+  border-radius: 50%; background: rgba(30,42,74,.14); filter: blur(3px);
+}
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+.world-node.current { animation: floaty 5s ease-in-out infinite, pulse 2.4s infinite; }
+
+/* ---------- Word Builder ---------- */
+.word-slots { display: flex; gap: .5rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; }
+.word-slot {
+  width: 46px; height: 52px; display: grid; place-items: center;
+  font-family: var(--font-display); font-size: 1.5rem; font-weight: 800;
+  background: var(--card-tint); border: 3px dashed var(--line); border-radius: 12px;
+}
+.letter-tray { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+.letter-tile {
+  width: 50px; height: 54px; font-family: var(--font-display); font-size: 1.4rem; font-weight: 800;
+  color: #fff; background: var(--ocean); border: none; border-radius: 12px;
+  box-shadow: 0 4px 0 #2A7FBE; transition: transform var(--t-fast) var(--ease-bounce);
+}
+.letter-tile:hover { transform: translateY(-3px); }
+.letter-tile.tile-wrong { background: var(--lava); animation: shake .3s; }
+
+/* ---------- Catch the Answer ---------- */
+.faller {
+  position: absolute; top: -60px; border: none; color: #fff; font-weight: 800;
+  background: var(--magic); padding: .5rem .9rem; border-radius: var(--r-pill);
+  box-shadow: var(--shadow); animation: fall linear forwards;
+}
+@keyframes fall { to { transform: translateY(460px); } }
+
+/* ---------- Maze ---------- */
+.maze-grid {
+  display: grid; gap: 3px; max-width: 380px; margin: 0 auto;
+  background: var(--line); padding: 3px; border-radius: var(--r-btn);
+}
+.maze-grid:focus-visible { outline: 3px solid var(--magic); }
+.maze-cell {
+  aspect-ratio: 1; display: grid; place-items: center; font-size: clamp(.9rem, 3.4vw, 1.3rem);
+  border-radius: 6px; background: var(--card-tint);
+}
+.maze-cell.wall { background: var(--ink-soft); }
+:root[data-theme="dark"] .maze-cell.wall { background: #0B1226; }
+.dpad {
+  display: grid; grid-template-columns: repeat(3, 56px); gap: .4rem;
+  justify-content: center; margin-top: 1rem;
+}
+.dpad button {
+  height: 48px; font-size: 1.3rem; border: none; border-radius: 12px;
+  background: var(--card); box-shadow: var(--shadow);
+  transition: transform var(--t-fast) var(--ease-bounce);
+}
+.dpad button:active { transform: translateY(3px); }
+
+/* ---------- Crossword ---------- */
+.cw-grid { display: grid; gap: 4px; max-width: 340px; margin: 0 auto; }
+.cw-cell {
+  aspect-ratio: 1; width: 100%; text-align: center; text-transform: uppercase;
+  font-family: var(--font-display); font-size: 1.2rem; font-weight: 800;
+  color: var(--ink); background: var(--card); border: 3px solid var(--line); border-radius: 8px;
+}
+.cw-cell.cw-right { border-color: var(--jungle); background: color-mix(in srgb, var(--jungle) 14%, var(--card)); }
+.cw-cell.cw-wrong { border-color: var(--lava); animation: shake .3s; }
+.cw-block { aspect-ratio: 1; }
+
+/* ---------- Escape Room ---------- */
+.escape-scene {
+  text-align: center; font-family: var(--font-display); font-weight: 800; font-size: 1.2rem;
+  background: linear-gradient(180deg, #2B2350, #1E2A4A); color: #FFE9A8;
+  border-radius: var(--r-btn); padding: 1.4rem; margin: .6rem 0;
+  text-shadow: 0 0 12px rgba(255, 233, 168, .5);
+}
+
+/* ---------- Lucky Spin & Treasure ---------- */
+.spin-wheel {
+  width: min(280px, 80vw); aspect-ratio: 1; border-radius: 50%; margin: 0 auto;
+  border: 8px solid var(--gold); box-shadow: var(--shadow-pop);
+  background: conic-gradient(var(--sunset) 0 45deg, var(--ocean) 0 90deg, var(--jungle) 0 135deg,
+    var(--magic) 0 180deg, var(--gold) 0 225deg, var(--lava) 0 270deg, var(--ocean) 0 315deg, var(--jungle) 0 360deg);
+  position: relative; transition: transform 3.2s cubic-bezier(.15, .9, .25, 1);
+}
+.spin-pointer { text-align: center; font-size: 1.8rem; margin-bottom: -10px; position: relative; z-index: 2; }
+.spin-label {
+  position: absolute; left: 50%; top: 50%; transform-origin: 0 0;
+  font-weight: 800; font-size: .8rem; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+.chest-btn { font-size: 3.5rem; background: none; border: none; transition: transform var(--t-fast) var(--ease-bounce); }
+.chest-btn:hover:not([disabled]) { transform: scale(1.12) rotate(-4deg); }
+.chest-btn[disabled] { filter: grayscale(1); opacity: .6; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .world-node { width: 100%; margin-left: 0 !important; }
+  .memory-grid { grid-template-columns: repeat(4, 1fr); }
+}

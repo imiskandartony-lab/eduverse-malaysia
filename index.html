@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduVerse Malaysia — Where Learning Becomes an Adventure</title>
+  <meta name="description" content="Gamified KSSR learning adventure for Year 5 & 6 students: Bahasa Melayu, English and Mathematics through quests, worlds and games." />
+  <meta name="theme-color" content="#7ED0FF" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Views are rendered here by js/router.js -->
+    <main id="view" class="view" aria-live="polite"></main>
+
+    <!-- Bottom navigation (students) -->
+    <nav id="bottom-nav" class="bottom-nav" hidden aria-label="Main navigation">
+      <button data-route="#/dashboard" class="nav-btn" aria-label="Home"><span class="nav-ico">🏝️</span><span>Home</span></button>
+      <button data-route="#/worlds" class="nav-btn" aria-label="Worlds"><span class="nav-ico">🗺️</span><span>Worlds</span></button>
+      <button data-route="#/missions" class="nav-btn" aria-label="Missions"><span class="nav-ico">⭐</span><span>Missions</span></button>
+      <button data-route="#/avatar" class="nav-btn" aria-label="Avatar"><span class="nav-ico">🎒</span><span>Avatar</span></button>
+      <button data-route="#/leaderboard" class="nav-btn" aria-label="Leaderboard"><span class="nav-ico">🏆</span><span>Ranks</span></button>
+    </nav>
+
+    <!-- Sang Kancil AI tutor -->
+    <div id="kancil" class="kancil" hidden>
+      <button id="kancil-toggle" class="kancil-toggle" aria-label="Ask Sang Kancil, your AI tutor">🦌</button>
+      <div id="kancil-panel" class="kancil-panel" hidden>
+        <header class="kancil-head">
+          <strong>Sang Kancil</strong><span class="kancil-sub">Your clever study buddy</span>
+          <button id="kancil-close" aria-label="Close tutor">✕</button>
+        </header>
+        <div id="kancil-log" class="kancil-log"></div>
+        <form id="kancil-form" class="kancil-form">
+          <input id="kancil-input" type="text" placeholder="Ask me anything…" autocomplete="off" />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="modal-root"></div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
+</body>
+</html>

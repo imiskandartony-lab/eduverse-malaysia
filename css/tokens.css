@@ -1,0 +1,75 @@
+/* ============================================================
+   EduVerse Malaysia — Design Tokens
+   Theme: "Peta Pengembaraan" (Adventure Map)
+   ============================================================ */
+:root {
+  /* Color — core */
+  --ink: #1E2A4A;          /* deep navy text */
+  --ink-soft: #4A5878;
+  --paper: #FFFFFF;
+  --sky-hi: #BDE7FF;       /* backdrop gradient top */
+  --sky-lo: #F2FBFF;       /* backdrop gradient bottom */
+
+  /* Color — action & meaning */
+  --sunset: #FF7A45;       /* primary CTA */
+  --sunset-deep: #E85F2C;
+  --jungle: #35C48D;       /* success / BM world */
+  --jungle-deep: #23A171;
+  --gold: #FFC93C;         /* coins / rewards */
+  --gold-deep: #E0A81C;
+  --magic: #8C6CF5;        /* XP / AI tutor */
+  --magic-deep: #6F4EE0;
+  --lava: #FF5D73;         /* danger / maths volcano */
+  --ocean: #3AA6F0;        /* english kingdom */
+
+  /* Surfaces */
+  --card: #FFFFFF;
+  --card-tint: #FFF8EC;
+  --line: #E3ECF5;
+  --shadow: 0 6px 0 rgba(30, 42, 74, .12);
+  --shadow-pop: 0 10px 24px rgba(30, 42, 74, .18);
+
+  /* Type */
+  --font-display: "Baloo 2", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --fs-hero: clamp(1.8rem, 5vw, 2.8rem);
+  --fs-h2: clamp(1.3rem, 3.5vw, 1.7rem);
+  --fs-body: 1rem;
+  --fs-small: .85rem;
+
+  /* Shape & space */
+  --r-card: 22px;
+  --r-btn: 16px;
+  --r-pill: 999px;
+  --sp-1: .5rem; --sp-2: .75rem; --sp-3: 1rem; --sp-4: 1.5rem; --sp-5: 2.25rem;
+
+  /* Motion */
+  --ease-bounce: cubic-bezier(.34, 1.56, .64, 1);
+  --t-fast: 150ms; --t-med: 300ms;
+}
+
+/* Dark mode ("Night Quest") */
+:root[data-theme="dark"] {
+  --ink: #EAF2FF;
+  --ink-soft: #A6B4D0;
+  --paper: #131B33;
+  --sky-hi: #0E1730;
+  --sky-lo: #1A2547;
+  --card: #1E2A4A;
+  --card-tint: #263257;
+  --line: #34406B;
+  --shadow: 0 6px 0 rgba(0, 0, 0, .35);
+  --shadow-pop: 0 10px 24px rgba(0, 0, 0, .45);
+}
+
+/* Accessibility modifiers */
+:root[data-font="dyslexic"] body { letter-spacing: .04em; word-spacing: .12em; line-height: 1.8; }
+:root[data-fontsize="large"] { font-size: 118%; }
+:root[data-fontsize="xlarge"] { font-size: 136%; }
+:root[data-colorblind="on"] {
+  --jungle: #0072B2; --lava: #D55E00; --gold: #F0E442; --magic: #CC79A7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
