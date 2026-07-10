@@ -13,23 +13,35 @@ Keep answers under 80 words, simple, warm and encouraging. Give hints and guidin
 questions instead of direct answers to homework. Never discuss unsafe topics;
 redirect gently to learning.`;
 
+// The key lives on the device (Settings → Sang Kancil AI), never in the repo.
+export const getAiKey = () => CONFIG.geminiApiKey || localStorage.getItem('eduverse-gemini-key') || '';
+export const setAiKey = k => localStorage.setItem('eduverse-gemini-key', k.trim());
+
 export async function askKancil(user, question, context = '') {
-  if (CONFIG.geminiApiKey) {
-    try { return await askGemini(question, context); }
-    catch (e) { console.warn('Gemini unavailable, falling back offline:', e); }
+  if (getAiKey()) {
+    // Main model first; if Google is overloaded (5xx), try the lite model
+    // before giving up to the offline tutor.
+    for (const model of [CONFIG.geminiModel, 'gemini-flash-lite-latest']) {
+      try { return await askGemini(model, question, context); }
+      catch (e) { console.warn(`Gemini ${model} unavailable:`, e); }
+    }
   }
   return offlineTutor(user, question);
 }
 
-async function askGemini(question, context) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.geminiModel}:generateContent?key=${CONFIG.geminiApiKey}`;
+async function askGemini(model, question, context) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getAiKey()}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: SYSTEM }] },
       contents: [{ role: 'user', parts: [{ text: context ? `Lesson context: ${context}\n\nStudent: ${question}` : question }] }],
-      generationConfig: { maxOutputTokens: 200, temperature: 0.7 },
+      generationConfig: {
+        maxOutputTokens: 300, temperature: 0.7,
+        // Fast replies: skip the model's "thinking" phase — hints don't need it.
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     }),
   });
   if (!res.ok) throw new Error(`Gemini ${res.status}`);
@@ -56,7 +68,7 @@ function offlineTutor(user, q) {
     return weak
       ? `Good question! I noticed "${weak}" gave you trouble — let us revise that world first, then push forward. Small steps win big adventures!`
       : 'You are doing great everywhere! Pick the next unlocked lesson on your map and keep your streak alive. 🔥';
-  return 'Interesting question! Break it into small pieces and try the practice questions — I will cheer you on. (Psst: add a Gemini API key in js/config.js and I become even smarter!) 🦌';
+  return 'Interesting question! Break it into small pieces and try the practice questions — I will cheer you on. (Psst: ask a grown-up to add my AI key in ⚙️ Settings and I become even smarter!) 🦌';
 }
 
 // Wire up the floating chat widget.

@@ -9,6 +9,7 @@ import {
   achievementList, titleFor, canSpin, doSpin, canOpenChest, openChest, SPIN_PRIZES, grant as grantReward,
 } from './gamification.js';
 import { sfx, isMuted, setMuted } from './sounds.js';
+import { getAiKey, setAiKey } from './ai.js';
 import { toast, rewardModal, speak, esc, confetti } from './ui.js';
 import { gameForLesson } from './games.js';
 
@@ -523,6 +524,17 @@ export function settings(el) {
       </label>
     </div>
   </div>
+  <div class="card">
+    <h3 class="display">🦌 Sang Kancil AI</h3>
+    <p style="color:var(--ink-soft);margin:.4rem 0 .8rem;font-size:.9rem">
+      ${getAiKey() ? '✅ AI tutor is active on this device.' : 'Paste a Gemini API key (grown-ups: aistudio.google.com/apikey) to make Sang Kancil fully conversational. Stored on this device only.'}
+    </p>
+    <form id="ai-key-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <input id="ai-key-input" type="password" placeholder="${getAiKey() ? '••••••• (key saved)' : 'Paste API key'}" autocomplete="off"
+        style="flex:1;min-width:180px;border:2px solid var(--line);border-radius:var(--r-pill);padding:.5rem .9rem;font-family:inherit;background:var(--paper);color:var(--ink)" />
+      <button class="btn btn-sm btn-purple" type="submit">Save</button>
+    </form>
+  </div>
   ${user.role === 'student' && user.familyCode ? `
   <div class="card card-tint" style="text-align:center">
     <h3 class="display">👨‍👩‍👧 Family Code</h3>
@@ -535,6 +547,11 @@ export function settings(el) {
   </div>`;
   const persist = () => localStorage.setItem('eduverse-a11y', JSON.stringify(root.dataset));
   el.querySelector('#opt-mute').addEventListener('change', e => setMuted(e.target.checked));
+  el.querySelector('#ai-key-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = el.querySelector('#ai-key-input').value.trim();
+    if (v) { setAiKey(v); toast('🦌 AI tutor activated!'); settings(el); }
+  });
   el.querySelector('#opt-dark').addEventListener('change', e => { root.dataset.theme = e.target.checked ? 'dark' : ''; persist(); });
   el.querySelector('#opt-dys').addEventListener('change', e => { root.dataset.font = e.target.checked ? 'dyslexic' : ''; persist(); });
   el.querySelector('#opt-cb').addEventListener('change', e => { root.dataset.colorblind = e.target.checked ? 'on' : ''; persist(); });

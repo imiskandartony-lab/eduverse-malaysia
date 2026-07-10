@@ -17,8 +17,10 @@ export const CONFIG = {
 
   // Google Gemini free-tier API key (https://aistudio.google.com/apikey).
   // Leave empty to use the built-in offline tutor (rule-based hints).
+  // Never commit a real key here — the repo is public. Enter the key once
+  // on each device via Settings → Sang Kancil AI; it's stored locally only.
   geminiApiKey: '',
-  geminiModel: 'gemini-2.0-flash',
+  geminiModel: 'gemini-flash-latest',
 
   // Gamification tuning
   xpPerLevel: 100,        // level = floor(xp / xpPerLevel) + 1
