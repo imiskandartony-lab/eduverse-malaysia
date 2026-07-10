@@ -72,6 +72,10 @@ class FirebaseStore {
     this.app = appMod.initializeApp(CONFIG.firebaseConfig);
     this.db = fsMod.getFirestore(this.app);
     this.authInst = authMod.getAuth(this.app);
+    // Wait for the session to restore before the router asks for the user.
+    await new Promise(res => {
+      const off = authMod.onAuthStateChanged(this.authInst, () => { off(); res(); });
+    });
     return this;
   }
   _ref(uid) { return this.fs.doc(this.db, 'users', uid); }
@@ -79,7 +83,23 @@ class FirebaseStore {
     const u = this.authInst.currentUser;
     if (!u) return null;
     const snap = await this.fs.getDoc(this._ref(u.uid));
-    return snap.exists() ? snap.data() : null;
+    if (snap.exists()) return snap.data();
+    // First visit after a redirect sign-in: finish creating the profile.
+    const pending = localStorage.getItem('eduverse-pending-role');
+    if (pending) {
+      const { name, role } = JSON.parse(pending);
+      return this._createProfile(u, name, role);
+    }
+    return null;
+  }
+  async _createProfile(authUser, name, role) {
+    localStorage.removeItem('eduverse-pending-role');
+    const user = defaultProfile(authUser.displayName || name, role);
+    await this.saveUser(user);
+    if (user.familyCode) {
+      await this.fs.setDoc(this.fs.doc(this.db, 'codes', user.familyCode), { uid: authUser.uid });
+    }
+    return user;
   }
   async saveUser(user) {
     const u = this.authInst.currentUser;
@@ -88,17 +108,22 @@ class FirebaseStore {
   }
   async signIn(name, role) {
     const provider = new this.auth.GoogleAuthProvider();
-    const cred = await this.auth.signInWithPopup(this.authInst, provider);
-    let user = await this.getUser();
-    if (!user) {
-      user = defaultProfile(cred.user.displayName || name, role);
-      await this.saveUser(user);
-      // Publish the family code so a parent can link this student.
-      if (user.familyCode) {
-        await this.fs.setDoc(this.fs.doc(this.db, 'codes', user.familyCode), { uid: cred.user.uid });
+    // Remember intent so the profile can be created after a redirect round-trip.
+    localStorage.setItem('eduverse-pending-role', JSON.stringify({ name, role }));
+    let cred;
+    try {
+      cred = await this.auth.signInWithPopup(this.authInst, provider);
+    } catch (e) {
+      // Installed PWAs / tablets often block popups — fall back to redirect.
+      if (['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/operation-not-supported-in-this-environment', 'auth/cancelled-popup-request'].includes(e.code)) {
+        await this.auth.signInWithRedirect(this.authInst, provider);
+        return null; // page navigates away; getUser() finishes the job on return
       }
+      throw e;
     }
-    return user;
+    const snap = await this.fs.getDoc(this._ref(cred.user.uid));
+    if (snap.exists()) { localStorage.removeItem('eduverse-pending-role'); return snap.data(); }
+    return this._createProfile(cred.user, name, role);
   }
   async signOut() { await this.auth.signOut(this.authInst); }
   async linkChild(code) {

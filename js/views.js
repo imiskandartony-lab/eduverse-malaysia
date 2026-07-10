@@ -65,6 +65,7 @@ export function landing(el) {
   const form = el.querySelector('#name-form');
   const begin = async (name, role) => {
     user = await store.signIn(name, role);
+    if (!user) return; // redirect sign-in in progress; page is navigating away
     ensureDailyMissions(user);
     const { streakGrew } = touchStreak(user);
     if (streakGrew && role === 'student') {

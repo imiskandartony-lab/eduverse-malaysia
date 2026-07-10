@@ -3,16 +3,16 @@
 
 export const CONFIG = {
   // Set to 'firebase' after filling in firebaseConfig below.
-  backend: 'local',
+  backend: 'firebase',
 
   // Firebase free-tier project config (Console → Project settings → Web app).
   firebaseConfig: {
-    apiKey: '',
-    authDomain: '',
-    projectId: '',
-    storageBucket: '',
-    messagingSenderId: '',
-    appId: '',
+    apiKey: 'AIzaSyCCAdlYtX_RZadwAjBGIWOska5XZVXSBOo',
+    authDomain: 'eduverse-155a0.firebaseapp.com',
+    projectId: 'eduverse-155a0',
+    storageBucket: 'eduverse-155a0.firebasestorage.app',
+    messagingSenderId: '727852493060',
+    appId: '1:727852493060:web:24e4d1d4eb0c46f9d7c851',
   },
 
   // Google Gemini free-tier API key (https://aistudio.google.com/apikey).
