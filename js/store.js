@@ -9,12 +9,19 @@ const LS_KEY = 'eduverse-state-v1';
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
+// Short code a parent types on their phone to link a child's account.
+function makeFamilyCode() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no lookalikes
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
 export function defaultProfile(name = 'Adventurer', role = 'student') {
   return {
     name, role, year: 5,
     xp: 0, coins: 100, gems: 0, level: 1,
     streak: 0, lastLogin: null,
     avatarBase: '🧒', equipped: {}, owned: [],
+    familyCode: role === 'student' ? makeFamilyCode() : null,
     completedLessons: [], unlockedWorlds: ['english-kingdom', 'maths-volcano', 'bm-village'],
     achievements: [],
     missions: [], missionsDate: null,
@@ -46,6 +53,12 @@ class LocalStore {
     const me = this.state.user ? [{ name: this.state.user.name, xp: this.state.user.xp, me: true }] : [];
     return [...bots, ...me].sort((a, b) => b.xp - a.xp);
   }
+  // Demo mode: the "linked child" is whatever student plays on this device.
+  async getChildren() {
+    const u = this.state.user;
+    return u && u.role === 'student' ? [u] : [];
+  }
+  async linkChild() { throw new Error('Linking needs Firebase — demo mode monitors this device only.'); }
 }
 
 class FirebaseStore {
@@ -77,10 +90,37 @@ class FirebaseStore {
     const provider = new this.auth.GoogleAuthProvider();
     const cred = await this.auth.signInWithPopup(this.authInst, provider);
     let user = await this.getUser();
-    if (!user) { user = defaultProfile(cred.user.displayName || name, role); await this.saveUser(user); }
+    if (!user) {
+      user = defaultProfile(cred.user.displayName || name, role);
+      await this.saveUser(user);
+      // Publish the family code so a parent can link this student.
+      if (user.familyCode) {
+        await this.fs.setDoc(this.fs.doc(this.db, 'codes', user.familyCode), { uid: cred.user.uid });
+      }
+    }
     return user;
   }
   async signOut() { await this.auth.signOut(this.authInst); }
+  async linkChild(code) {
+    const snap = await this.fs.getDoc(this.fs.doc(this.db, 'codes', code.trim().toUpperCase()));
+    if (!snap.exists()) throw new Error('Code not found — check the 6 letters on your child\'s Settings page.');
+    const childUid = snap.data().uid;
+    const pRef = this.fs.doc(this.db, 'parents', this.authInst.currentUser.uid);
+    await this.fs.setDoc(pRef, { children: this.fs.arrayUnion(childUid) }, { merge: true });
+    return childUid;
+  }
+  async getChildren() {
+    const uid = this.authInst.currentUser?.uid;
+    if (!uid) return [];
+    const pSnap = await this.fs.getDoc(this.fs.doc(this.db, 'parents', uid));
+    if (!pSnap.exists()) return [];
+    const kids = [];
+    for (const childUid of pSnap.data().children || []) {
+      const s = await this.fs.getDoc(this.fs.doc(this.db, 'users', childUid));
+      if (s.exists()) kids.push(s.data());
+    }
+    return kids;
+  }
   async getLeaderboard() {
     const q = this.fs.query(this.fs.collection(this.db, 'users'),
       this.fs.orderBy('xp', 'desc'), this.fs.limit(20));

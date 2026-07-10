@@ -26,6 +26,15 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Family-link codes: student publishes their own code; any signed-in
+    // adult can look one up (needs the exact 6-char code, not listable).
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
     match /parents/{uid} {
       allow read, write: if isSelf(uid) || isAdmin();
     }

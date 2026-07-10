@@ -522,6 +522,13 @@ export function settings(el) {
       </label>
     </div>
   </div>
+  ${user.role === 'student' && user.familyCode ? `
+  <div class="card card-tint" style="text-align:center">
+    <h3 class="display">👨‍👩‍👧 Family Code</h3>
+    <p style="color:var(--ink-soft);margin:.4rem 0">Show this to your parent so they can follow your adventure:</p>
+    <div class="display" style="font-size:2rem;letter-spacing:.35em;font-weight:800;color:var(--magic-deep)">${esc(user.familyCode)}</div>
+    ${CONFIG.backend !== 'firebase' ? '<p style="font-size:.8rem;color:var(--ink-soft);margin-top:.4rem">(Works once the app is connected to Firebase.)</p>' : ''}
+  </div>` : ''}
   <div class="card">
     <button class="btn btn-ghost" id="logout">Log out</button>
   </div>`;
@@ -535,12 +542,49 @@ export function settings(el) {
 }
 
 // ---------------- Parent dashboard ----------------
-export function parent(el) {
-  const child = user.role === 'parent' ? demoChildData() : user;
+export async function parent(el, _m, selectedIdx = 0) {
+  let children = [];
+  try { children = await store.getChildren(); } catch { /* fall through to link form */ }
+  if (user.role === 'parent' && !children.length && CONFIG.backend !== 'firebase') children = [demoChildData()];
+
+  if (!children.length) {
+    el.innerHTML = `
+    <div class="hud"><span class="pill">👨‍👩‍👧 Parent Dashboard</span><span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
+    <div class="card card-tint" style="text-align:center">
+      <div style="font-size:3rem">🔗</div>
+      <h2 class="display">Link your child</h2>
+      <p style="color:var(--ink-soft);margin:.6rem 0 1rem">On your child's tablet, open <b>⚙️ Settings</b> — you'll see a 6-letter <b>Family Code</b>. Type it here:</p>
+      <form id="link-form" style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+        <input id="link-code" maxlength="6" placeholder="e.g. K7XM2P" autocapitalize="characters"
+          style="border:3px solid var(--line);border-radius:var(--r-pill);padding:.7rem 1.1rem;font-family:var(--font-display);font-weight:800;letter-spacing:.2em;text-transform:uppercase;width:11ch;text-align:center;background:var(--card);color:var(--ink)" />
+        <button class="btn btn-green" type="submit">Link 🔗</button>
+      </form>
+      <p id="link-msg" style="color:var(--lava);font-weight:700;margin-top:.8rem"></p>
+    </div>`;
+    el.querySelector('#logout').addEventListener('click', async () => { await store.signOut(); user = null; go('#/'); });
+    el.querySelector('#link-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      try {
+        await store.linkChild(el.querySelector('#link-code').value);
+        toast('Linked! 🎉');
+        parent(el);
+      } catch (err) { el.querySelector('#link-msg').textContent = err.message; }
+    });
+    return;
+  }
+
+  const child = children[Math.min(selectedIdx, children.length - 1)];
   el.innerHTML = `
   <div class="hud"><span class="pill">👨‍👩‍👧 Parent Dashboard</span><span class="spacer"></span>
     <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
-  <div class="card card-tint"><h2 class="display">📊 ${esc(child.name)}'s Progress</h2></div>
+  <div class="card card-tint">
+    <h2 class="display">📊 ${esc(child.name)}'s Progress</h2>
+    ${children.length > 1 ? `<div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">${
+      children.map((c, i) => `<button class="btn btn-sm ${i === selectedIdx ? 'btn-gold' : 'btn-ghost'}" data-child="${i}">${esc(c.name)}</button>`).join('')
+    }</div>` : ''}
+    ${CONFIG.backend === 'firebase' ? `<button class="btn btn-ghost btn-sm" id="add-child" style="margin-top:.6rem">➕ Link another child</button>` : ''}
+  </div>
   <div class="stat-grid">
     <div class="stat"><div class="s-num">${child.completedLessons.length}</div><div class="s-label">Lessons completed</div></div>
     <div class="stat"><div class="s-num">${child.stats.correct}</div><div class="s-label">Correct answers</div></div>
@@ -558,6 +602,14 @@ export function parent(el) {
   <div class="card"><button class="btn btn-green" id="report">⬇️ Download report</button></div>`;
   el.querySelector('#logout').addEventListener('click', async () => { await store.signOut(); user = null; go('#/'); });
   el.querySelector('#report').addEventListener('click', () => downloadReport(child));
+  el.querySelectorAll('[data-child]').forEach(b =>
+    b.addEventListener('click', () => parent(el, null, Number(b.dataset.child))));
+  el.querySelector('#add-child')?.addEventListener('click', async () => {
+    const code = window.prompt('Enter the 6-letter Family Code from the child\'s Settings page:');
+    if (!code) return;
+    try { await store.linkChild(code); toast('Linked! 🎉'); parent(el); }
+    catch (err) { toast(err.message, 3500); }
+  });
 }
 
 // ---------------- Teacher dashboard ----------------
