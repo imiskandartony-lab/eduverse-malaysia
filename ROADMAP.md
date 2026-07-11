@@ -37,7 +37,7 @@ impact-per-effort; each item is shippable on its own.
 - [x] **7. Mystery Box after each lesson** *(shipped 2026-07-11 — 3-card pick, shard collection toward free epic item)* — replace flat coin reward with a
       choice of 3 face-down cards (coins / XP / rare-item shard; 10 shards =
       free epic item). Variable rewards beat fixed ones.
-- [ ] **8. Practice Arena** — free-play mode on the dashboard: pick any
+- [x] **8. Practice Arena** *(shipped 2026-07-11 — endless drill mode, personal-best combo per lesson)* — free-play mode on the dashboard: pick any
       completed topic, endless questions, no stakes, combo leaderboard vs
       your own best. *For kids who want to grind their favourite.*
 

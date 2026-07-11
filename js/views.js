@@ -173,6 +173,15 @@ export function dashboard(el) {
     <h3 class="display">⭐ Today's Missions <span style="color:var(--ink-soft);font-size:.85rem">(${missionsDone}/${user.missions.length})</span></h3>
     <div id="mission-list"></div>
   </div>
+  <button class="card" style="width:100%;text-align:left;cursor:pointer" id="arena-btn">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <span style="font-size:2rem">🏋️</span>
+      <div>
+        <strong class="display" style="font-size:1.05rem">Practice Arena</strong>
+        <div style="color:var(--ink-soft);font-size:.85rem">No stakes, no boss — just chase your best combo!</div>
+      </div>
+    </div>
+  </button>
   <div class="card">
     <h3 class="display">🏅 Achievements</h3>
     <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
@@ -183,6 +192,7 @@ export function dashboard(el) {
   </div>`;
   renderMissions(el.querySelector('#mission-list'));
   el.querySelector('#continue-btn')?.addEventListener('click', () => go(`#/lesson/${rec.lesson.id}`));
+  el.querySelector('#arena-btn').addEventListener('click', () => go('#/arena'));
   el.querySelector('#claim-challenge')?.addEventListener('click', async () => {
     await claimChallenge(user); dashboard(el);
   });
@@ -619,6 +629,92 @@ export function lessonFlow(el, lessonId) {
 
   const order = ['intro', 'learn', 'practice', 'game', 'quiz', 'boss', 'reward'];
   const render = () => stages[order[stage]]();
+  render();
+}
+
+// ---------------- Practice Arena: no-stakes endless drilling ----------------
+export function arenaHome(el) {
+  const done = LESSONS.filter(l => user.completedLessons.includes(l.id));
+  el.innerHTML = `${hud()}
+  <h2 class="display" style="margin:1rem 0">🏋️ Practice Arena</h2>
+  <p style="color:var(--ink-soft)">Pick any quest you've finished and drill it forever — no boss, no stakes, just your best combo.</p>
+  ${done.length ? done.map(l => {
+    const world = WORLDS.find(w => w.id === l.worldId);
+    const best = (user.arenaBest || {})[l.id] || 0;
+    return `
+    <button class="card arena-pick" style="width:100%;text-align:left;cursor:pointer" data-lesson="${l.id}">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span style="font-size:1.8rem">${world.emoji}</span>
+        <div style="flex:1">
+          <strong class="display">${esc(l.title)}</strong>
+          <div style="color:var(--ink-soft);font-size:.82rem">${esc(world.name)}</div>
+        </div>
+        <span class="pill">🔥 best ×${best}</span>
+      </div>
+    </button>`;
+  }).join('') : '<div class="card">Finish your first quest to unlock practice drills here!</div>'}`;
+  el.querySelectorAll('.arena-pick').forEach(b =>
+    b.addEventListener('click', () => go(`#/arena/${b.dataset.lesson}`)));
+}
+
+export function arenaPlay(el, lessonId) {
+  const lesson = LESSONS.find(l => l.id === lessonId);
+  const pool = QUIZZES[lessonId] || [];
+  if (!lesson || !pool.length) { go('#/arena'); return; }
+  const best = (user.arenaBest || {})[lessonId] || 0;
+  let combo = 0, sessionBest = 0, deck = [], qIdx = 0;
+
+  const reshuffle = () => { deck = [...pool].sort(() => Math.random() - 0.5); qIdx = 0; };
+  reshuffle();
+
+  const render = () => {
+    if (qIdx >= deck.length) reshuffle();
+    const q = deck[qIdx];
+    el.innerHTML = `${hud()}
+      <div style="display:flex;align-items:center;gap:.6rem;margin:1rem 0">
+        <button class="btn btn-ghost btn-sm" id="quit-arena">← Exit</button>
+        <span class="pill">🔥 combo ×${combo}</span>
+        <span class="pill">🏆 best ×${Math.max(best, sessionBest)}</span>
+      </div>
+      <div class="card">
+        <p style="color:var(--ink-soft);font-weight:800">${esc(lesson.title)} — practice</p>
+        <p class="lesson-step" style="margin:1rem 0">${esc(q.q)}</p>
+        <div id="opts"></div>
+      </div>`;
+    el.querySelector('#quit-arena').addEventListener('click', async () => {
+      if (sessionBest > best) {
+        user.arenaBest[lessonId] = sessionBest;
+        await store.saveUser(user);
+      }
+      go('#/arena');
+    });
+    const opts = el.querySelector('#opts');
+    q.options.forEach((o, i) => {
+      const b = document.createElement('button');
+      b.className = 'quiz-option'; b.textContent = o;
+      b.addEventListener('click', async ev => {
+        opts.querySelectorAll('button').forEach(x => x.disabled = true);
+        if (i === q.answer) {
+          combo++; sessionBest = Math.max(sessionBest, combo);
+          sfx.correct(combo); flashEdge('good'); showCombo(combo);
+          floatText(ev.clientX, ev.clientY, '✓ +1');
+          if (combo > 0 && combo % 5 === 0) sfx.levelUp();
+          if (sessionBest > best && sessionBest === combo) {
+            floatText(ev.clientX, ev.clientY - 40, '🏆 New best!', 'var(--gold-deep)');
+          }
+        } else {
+          b.classList.add('wrong'); opts.children[q.answer].classList.add('correct');
+          sfx.wrong(); flashEdge('bad');
+          floatText(ev.clientX, ev.clientY, '✗ combo lost', 'var(--lava)');
+          toast(q.explain, 2400);
+          combo = 0;
+        }
+        qIdx++;
+        setTimeout(render, i === q.answer ? 500 : 1600);
+      });
+      opts.appendChild(b);
+    });
+  };
   render();
 }
 
