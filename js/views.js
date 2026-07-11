@@ -1,6 +1,6 @@
 // EduVerse Malaysia — view renderers (SPA, hash-routed)
 
-import { WORLDS, LESSONS, QUIZZES, BOSSES } from './data/curriculum.js';
+import { WORLDS, LESSONS, QUIZZES, BOSSES, MAP_STORY, MAP_FINALE } from './data/curriculum.js';
 import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe } from './avatar.js';
 import { store, ensureDailyMissions, touchStreak } from './store.js';
 import { CONFIG } from './config.js';
@@ -8,6 +8,7 @@ import {
   grant, missionProgress, claimMission, recordAnswer, weakestTopics,
   recommendLesson, worldProgress, maybeUnlockNextWorld, levelFor, xpIntoLevel,
   achievementList, titleFor, canSpin, doSpin, canOpenChest, openChest, SPIN_PRIZES, grant as grantReward,
+  maybeRestoreMapPiece,
 } from './gamification.js';
 import { sfx, isMuted, setMuted } from './sounds.js';
 import { getAiKey, setAiKey } from './ai.js';
@@ -231,10 +232,23 @@ function renderMissions(box) {
 
 // ---------------- World map ----------------
 export function worlds(el) {
+  const pieces = user.mapPieces || [];
   el.innerHTML = `
   ${hud()}
   <h2 class="display" style="margin:1rem 0 .2rem;font-size:var(--fs-h2)">🗺️ Adventure Map</h2>
   <p style="color:var(--ink-soft)">Complete every lesson in a world to unlock the next!</p>
+  <button class="card map-strip" id="map-story-btn" style="width:100%;text-align:left;cursor:pointer">
+    <div style="display:flex;align-items:center;gap:.8rem">
+      <span style="font-size:1.6rem">${user.mapComplete ? '🗺️✨' : '📜'}</span>
+      <div style="flex:1">
+        <strong class="display" style="font-size:1rem">Sang Kancil's Torn Map</strong>
+        <div style="color:var(--ink-soft);font-size:.82rem">${pieces.length}/${WORLDS.length} pieces restored — tap to read the tale</div>
+      </div>
+    </div>
+    <div class="map-pieces">
+      ${WORLDS.map(w => `<span class="map-piece ${pieces.includes(w.id) ? 'restored' : ''}" title="${esc(w.name)}">${pieces.includes(w.id) ? w.emoji : '❔'}</span>`).join('')}
+    </div>
+  </button>
   <div class="worldmap">
     <svg class="trail-svg" preserveAspectRatio="none" viewBox="0 0 100 100">
       <path d="M 20 4 C 80 12, 80 18, 30 26 C -10 33, 90 40, 70 48 C 50 56, 10 62, 30 70 C 60 78, 80 84, 50 96" vector-effect="non-scaling-stroke"/>
@@ -260,6 +274,31 @@ export function worlds(el) {
   </div>`;
   el.querySelectorAll('.world-node:not(.locked)').forEach(n =>
     n.addEventListener('click', () => go(`#/world/${n.dataset.world}`)));
+  el.querySelector('#map-story-btn').addEventListener('click', () => showMapStory(el));
+}
+
+function showMapStory(el) {
+  const pieces = user.mapPieces || [];
+  const root = document.getElementById('modal-root');
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-backdrop';
+  const beats = WORLDS.filter(w => pieces.includes(w.id)).map(w => MAP_STORY[w.id]).filter(Boolean);
+  wrap.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Sang Kancil's Tale" style="text-align:left;max-width:520px">
+      <div style="text-align:center;font-size:2.6rem">📜</div>
+      <h2 class="display" style="text-align:center">Sang Kancil's Tale</h2>
+      <div style="max-height:50vh;overflow-y:auto;margin:1rem 0">
+        ${beats.length ? beats.map(b => `
+          <p style="margin-bottom:.9rem"><b class="display">${esc(b.title)}</b><br>${esc(b.text)}</p>`).join('')
+          : '<p style="color:var(--ink-soft)">Complete your first world to begin the tale…</p>'}
+        ${user.mapComplete ? `<p style="margin-top:.5rem"><b class="display">${esc(MAP_FINALE.title)}</b><br>${esc(MAP_FINALE.text)}</p>` : ''}
+      </div>
+      <button class="btn btn-gold" id="close-story">Close</button>
+    </div>`;
+  root.appendChild(wrap);
+  const close = () => wrap.remove();
+  wrap.querySelector('#close-story').addEventListener('click', close);
+  wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
 }
 
 export function worldDetail(el, worldId) {
@@ -489,6 +528,7 @@ export function lessonFlow(el, lessonId) {
         reason: '(quest complete!)',
       });
       await maybeUnlockNextWorld(user, lesson.worldId);
+      await maybeRestoreMapPiece(user, lesson.worldId);
       confetti(40);
       frame(`
         <div style="text-align:center">
@@ -541,7 +581,7 @@ export function avatar(el, _m, activeTab = 'shirt') {
   if (refund) { store.saveUser(user); toast(`Wardrobe upgraded! ${refund} 🪙 refunded for retired items`); }
 
   const render = () => {
-    const parts = CATALOG.filter(p => p.type === activeTab);
+    const parts = CATALOG.filter(p => p.type === activeTab && (!p.storyOnly || user.owned.includes(p.id)));
     el.innerHTML = `${hud()}
     <h2 class="display" style="margin:1rem 0">🎭 Hero Studio</h2>
     <div class="editor">

@@ -57,6 +57,16 @@ a { color: var(--ocean); }
 .xpbar { position: relative; height: 14px; background: var(--line); border-radius: var(--r-pill); overflow: hidden; }
 .xpbar > span { position: absolute; inset: 0; width: 0; background: linear-gradient(90deg, var(--magic), var(--ocean)); border-radius: var(--r-pill); transition: width .6s var(--ease-bounce); }
 
+/* ---------- Story mode: torn map strip ---------- */
+.map-strip { border: none; font-family: inherit; }
+.map-pieces { display: flex; gap: .4rem; margin-top: .6rem; flex-wrap: wrap; }
+.map-piece {
+  width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px;
+  background: var(--card-tint); font-size: 1.05rem; filter: grayscale(1) opacity(.45);
+  border: 2px dashed var(--line);
+}
+.map-piece.restored { filter: none; border-style: solid; border-color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, var(--card-tint)); }
+
 /* ---------- World map trail (signature) ---------- */
 .worldmap { position: relative; padding: var(--sp-3) 0; }
 .trail-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }

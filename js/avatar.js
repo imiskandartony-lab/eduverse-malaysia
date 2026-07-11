@@ -48,6 +48,7 @@ export const CATALOG = [
   // Wings
   { id: 'wings-leaf', name: 'Leaf Wings',   type: 'wings', price: 300, rarity: 'epic',      c: '#35C48D' },
   { id: 'wings-gold', name: 'Golden Wings', type: 'wings', price: 500, rarity: 'legendary', c: '#FFC93C' },
+  { id: 'wings-kancil-legend', name: 'Kancil\'s Cloak', type: 'wings', price: 0, rarity: 'legendary', c: '#8C6CF5', storyOnly: true },
 
   // Pets (companions)
   { id: 'pet-cat',      name: 'Kucing Oren', type: 'pet', price: 150, rarity: 'rare',      emoji: '🐱' },

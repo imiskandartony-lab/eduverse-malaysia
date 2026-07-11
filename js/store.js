@@ -24,7 +24,7 @@ export function defaultProfile(name = 'Adventurer', role = 'student') {
     shields: 0, comebackDate: null,
     familyCode: role === 'student' ? makeFamilyCode() : null,
     completedLessons: [], unlockedWorlds: ['english-kingdom', 'maths-volcano', 'bm-village'],
-    achievements: [],
+    achievements: [], mapPieces: [], mapComplete: false,
     missions: [], missionsDate: null,
     stats: { correct: 0, wrong: 0, gamesPlayed: 0, minutes: 0, weakTopics: {} },
   };
@@ -187,6 +187,11 @@ export const store = CONFIG.backend === 'firebase'
 
 // ---------- Daily missions ----------
 export function ensureDailyMissions(user) {
+  // Backfill fields added after this profile was created (story mode, shields).
+  if (user.mapPieces === undefined) user.mapPieces = [];
+  if (user.mapComplete === undefined) user.mapComplete = false;
+  if (user.shields === undefined) user.shields = 0;
+  if (user.comebackDate === undefined) user.comebackDate = null;
   if (user.missionsDate !== todayStr()) {
     user.missionsDate = todayStr();
     user.missions = DAILY_MISSION_POOL.map(m => ({ ...m, progress: 0, done: false, claimed: false }));

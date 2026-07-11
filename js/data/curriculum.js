@@ -531,6 +531,26 @@ export const BOSSES = {
   },
 };
 
+// Story mode: Sang Kancil's map was torn into 9 pieces by the Shadow of
+// Forgetting. Each world you master restores one piece and reveals a beat
+// of the tale — order matches WORLDS above.
+export const MAP_STORY = {
+  'english-kingdom': { piece: 1, title: 'A Torn Map', text: 'Sang Kancil unrolls an ancient map — but it is ripped to shreds! "The Shadow of Forgetting scattered these pieces across every kingdom," he sighs. "Master English Kingdom, and the first piece returns to us!"' },
+  'grammar-forest': { piece: 2, title: 'Into the Forest', text: 'The map hums as the first piece slides into place, pointing deep into a forest where sentences grow wild and untamed. "One piece down, eight to go," grins Sang Kancil.' },
+  'reading-castle': { piece: 3, title: 'The Sealed Library', text: 'A castle appears on the map, its library sealed by riddles only a careful reader can solve. "Every clue you find brings us closer to the truth," says Sang Kancil.' },
+  'maths-volcano': { piece: 4, title: 'The Counting Fire', text: 'Beyond the forest, a volcano rumbles with numbers instead of lava. "Legend says Tok Naga has guarded this piece for a thousand years," Sang Kancil whispers.' },
+  'fraction-island': { piece: 5, title: 'Halfway There', text: 'Five pieces glow on the map — halfway restored! An island of split treasure appears on the horizon, guarded by a pirate who never shares fairly.' },
+  'geometry-city': { piece: 6, title: 'The Crooked City', text: 'A city of tilted towers and bent streets flickers into view. "Someone twisted every angle here," Sang Kancil frowns. "Set it straight, and the sixth piece is ours."' },
+  'bm-village': { piece: 7, title: 'The Silent Village', text: 'A quiet kampung appears, its market stalls empty of words — all swallowed by a hungry giant. "Speak clearly, hero, and free the village\'s voice."' },
+  'tatabahasa-temple': { piece: 8, title: 'The Ancient Gate', text: 'An old stone temple rises from the mist, its gate carved with imbuhan older than memory. "Only true mastery of the tongue opens this door," says Sang Kancil.' },
+  'karangan-kingdom': { piece: 9, title: 'The Final Ink', text: 'One piece remains! A kingdom drowning in spilled ink awaits — write your way through, and the map will finally be whole.' },
+};
+export const MAP_FINALE = {
+  emoji: '🗺️✨',
+  title: 'The Map Restored!',
+  text: 'All nine pieces shimmer and fuse into one radiant map. Sang Kancil beams with pride: "You did not just learn, hero — you rebuilt an entire world of knowledge. This treasure is yours, forever." A legendary Golden Kancil Cloak appears in your wardrobe!',
+  itemId: 'wings-kancil-legend',
+};
 export const SHOP_ITEMS = [
   { id: 'hat-songkok', name: 'Songkok', emoji: '🎩', type: 'hat', price: 80 },
   { id: 'hat-crown', name: 'Royal Crown', emoji: '👑', type: 'hat', price: 300 },

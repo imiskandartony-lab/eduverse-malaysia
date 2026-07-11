@@ -19,7 +19,7 @@ impact-per-effort; each item is shippable on its own.
       streak (1 shield earned per 7-day streak); returning after a break gives
       a "Welcome back, hero!" double-XP day instead of a guilt trip. *Why:
       broken streaks are the #1 quit moment in habit apps.*
-- [ ] **4. Chapter quests / story mode** — a light narrative thread: Sang
+- [x] **4. Chapter quests / story mode** *(shipped 2026-07-11 — torn map, 9 lore beats, legendary finale item)* — a light narrative thread: Sang
       Kancil's map is torn into 9 pieces; each completed world restores one
       piece and plays a short story beat. Finishing everything reveals the
       secret treasure (a legendary exclusive item). *Why: gives the whole map

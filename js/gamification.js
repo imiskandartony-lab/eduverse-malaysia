@@ -4,9 +4,9 @@
 
 import { CONFIG } from './config.js';
 import { store, ensureDailyMissions } from './store.js';
-import { toast, rewardModal } from './ui.js';
+import { toast, rewardModal, confetti } from './ui.js';
 import { sfx } from './sounds.js';
-import { WORLDS, LESSONS } from './data/curriculum.js';
+import { WORLDS, LESSONS, MAP_STORY, MAP_FINALE } from './data/curriculum.js';
 
 export const levelFor = xp => Math.floor(xp / CONFIG.xpPerLevel) + 1;
 export const xpIntoLevel = xp => xp % CONFIG.xpPerLevel;
@@ -162,4 +162,25 @@ export async function maybeUnlockNextWorld(user, worldId) {
       await store.saveUser(user);
     }
   }
+}
+
+// Story mode: finishing every lesson in a world restores one torn map
+// piece and reveals a lore beat. Restoring all 9 unlocks the legendary
+// finale reward (a wardrobe item flagged storyOnly in avatar.js CATALOG).
+export async function maybeRestoreMapPiece(user, worldId) {
+  user.mapPieces = user.mapPieces || [];
+  const beat = MAP_STORY[worldId];
+  if (!beat || user.mapPieces.includes(worldId)) return;
+  const { done, total } = worldProgress(user, worldId);
+  if (total === 0 || done < total) return;
+  user.mapPieces.push(worldId);
+  await rewardModal('📜', beat.title, beat.text);
+  if (user.mapPieces.length >= Object.keys(MAP_STORY).length && !user.mapComplete) {
+    user.mapComplete = true;
+    user.owned.push(MAP_FINALE.itemId);
+    user.equipped.wings = MAP_FINALE.itemId;
+    confetti(60);
+    await rewardModal(MAP_FINALE.emoji, MAP_FINALE.title, MAP_FINALE.text);
+  }
+  await store.saveUser(user);
 }
