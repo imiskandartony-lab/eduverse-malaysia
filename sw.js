@@ -1,5 +1,5 @@
 // EduVerse Malaysia — service worker (offline-first)
-const CACHE = 'eduverse-v15';
+const CACHE = 'eduverse-v16';
 const CORE = [
   './', './index.html', './manifest.json',
   './css/tokens.css', './css/app.css',

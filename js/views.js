@@ -669,7 +669,14 @@ export async function parent(el, _m, selectedIdx = 0) {
     ${children.length > 1 ? `<div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">${
       children.map((c, i) => `<button class="btn btn-sm ${i === selectedIdx ? 'btn-gold' : 'btn-ghost'}" data-child="${i}">${esc(c.name)}</button>`).join('')
     }</div>` : ''}
-    ${CONFIG.backend === 'firebase' ? `<button class="btn btn-ghost btn-sm" id="add-child" style="margin-top:.6rem">➕ Link another child</button>` : ''}
+    ${CONFIG.backend === 'firebase' ? `
+    <button class="btn btn-ghost btn-sm" id="add-child" style="margin-top:.6rem">➕ Link another child</button>
+    <form id="add-child-form" hidden style="gap:.5rem;margin-top:.6rem;flex-wrap:wrap">
+      <input id="add-child-code" maxlength="6" placeholder="Family Code" autocapitalize="characters" autocomplete="off"
+        style="border:3px solid var(--line);border-radius:var(--r-pill);padding:.55rem 1rem;font-family:var(--font-display);font-weight:800;letter-spacing:.2em;text-transform:uppercase;width:11ch;text-align:center;background:var(--card);color:var(--ink)" />
+      <button class="btn btn-green btn-sm" type="submit">Link 🔗</button>
+      <span id="add-child-msg" style="color:var(--lava);font-weight:700;flex-basis:100%"></span>
+    </form>` : ''}
   </div>
   <div class="stat-grid">
     <div class="stat"><div class="s-num">${child.completedLessons.length}</div><div class="s-label">Lessons completed</div></div>
@@ -690,11 +697,20 @@ export async function parent(el, _m, selectedIdx = 0) {
   el.querySelector('#report').addEventListener('click', () => downloadReport(child));
   el.querySelectorAll('[data-child]').forEach(b =>
     b.addEventListener('click', () => parent(el, null, Number(b.dataset.child))));
-  el.querySelector('#add-child')?.addEventListener('click', async () => {
-    const code = window.prompt('Enter the 6-letter Family Code from the child\'s Settings page:');
+  // Inline form instead of window.prompt(), which installed PWAs and some
+  // mobile browsers silently block ("nothing happens" on tap).
+  el.querySelector('#add-child')?.addEventListener('click', () => {
+    const form = el.querySelector('#add-child-form');
+    form.hidden = !form.hidden;
+    form.style.display = form.hidden ? '' : 'flex';
+    if (!form.hidden) el.querySelector('#add-child-code').focus();
+  });
+  el.querySelector('#add-child-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const code = el.querySelector('#add-child-code').value.trim();
     if (!code) return;
     try { await store.linkChild(code); toast('Linked! 🎉'); parent(el); }
-    catch (err) { toast(err.message, 3500); }
+    catch (err) { el.querySelector('#add-child-msg').textContent = err.message; }
   });
 }
 
