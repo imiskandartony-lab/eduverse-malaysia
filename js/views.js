@@ -466,7 +466,7 @@ function partPreview(p) {
   if (p.type === 'hair') return `<span class="swatch" style="background:${p.c};border-radius:50% 50% 30% 30%"></span>`;
   if (p.type === 'pet') return `<span style="font-size:2rem">${p.emoji}</span>`;
   if (p.type === 'wings') return `<span style="font-size:1.8rem">🪽</span>`;
-  const icons = { hat: { songkok: '🎩', cap: '🧢', crown: '👑', wizard: '🧙' }, glasses: { shades: '🕶️', round: '👓' }, emote: { jump: '🤸', spin: '🌀', jelly: '🪼' } };
+  const icons = { hat: { songkok: '🎩', cap: '🧢', crown: '👑', wizard: '🧙', tanjak: '👳' }, glasses: { shades: '🕶️', round: '👓' }, emote: { jump: '🤸', spin: '🌀', jelly: '🪼' } };
   return `<span style="font-size:1.8rem">${(icons[p.type] || {})[p.style || p.anim] || '✨'}</span>`;
 }
 

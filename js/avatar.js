@@ -26,6 +26,7 @@ export const CATALOG = [
   { id: 'shirt-batik',  name: 'Batik Shirt',  type: 'shirt', price: 150, rarity: 'rare',      c: '#8C6CF5', pattern: 'batik' },
   { id: 'shirt-kite',   name: 'Wau Jersey',   type: 'shirt', price: 150, rarity: 'rare',      c: '#FFC93C', pattern: 'kite' },
   { id: 'shirt-royal',  name: 'Royal Armour', type: 'shirt', price: 420, rarity: 'legendary', c: '#41496B', pattern: 'armour' },
+  { id: 'shirt-melayu', name: 'Baju Melayu',  type: 'shirt', price: 280, rarity: 'epic',      c: '#1F8A70', pattern: 'melayu' },
 
   // Pants
   { id: 'pants-navy',  name: 'Navy Shorts',  type: 'pants', price: 0,   rarity: 'common', c: '#31427A' },
@@ -38,6 +39,7 @@ export const CATALOG = [
   { id: 'hat-cap',     name: 'Sport Cap',    type: 'hat', price: 80,  rarity: 'common',    style: 'cap' },
   { id: 'hat-crown',   name: 'Royal Crown',  type: 'hat', price: 450, rarity: 'legendary', style: 'crown' },
   { id: 'hat-wizard',  name: 'Wizard Hat',   type: 'hat', price: 260, rarity: 'epic',      style: 'wizard' },
+  { id: 'hat-tanjak',  name: 'Tanjak',       type: 'hat', price: 300, rarity: 'epic',      style: 'tanjak' },
 
   // Glasses
   { id: 'glasses-cool',  name: 'Cool Shades',  type: 'glasses', price: 60,  rarity: 'common', style: 'shades' },
@@ -51,6 +53,7 @@ export const CATALOG = [
   { id: 'pet-cat',      name: 'Kucing Oren', type: 'pet', price: 150, rarity: 'rare',      emoji: '🐱' },
   { id: 'pet-hornbill', name: 'Hornbill',    type: 'pet', price: 250, rarity: 'epic',      emoji: '🦜' },
   { id: 'pet-tiger',    name: 'Harimau Cub', type: 'pet', price: 400, rarity: 'legendary', emoji: '🐯' },
+  { id: 'pet-kucing-hitam', name: 'Kucing Hitam', type: 'pet', price: 200, rarity: 'rare', emoji: '🐈‍⬛' },
 
   // Emotes
   { id: 'emote-jump', name: 'Victory Jump', type: 'emote', price: 0,   rarity: 'common', anim: 'jump' },
@@ -129,6 +132,11 @@ function hatSvg(part) {
     case 'songkok': return `<path d="M60 44 L64 16 Q100 8 136 16 L140 44 Q100 32 60 44 Z" fill="#151A2E"/><path d="M60 44 Q100 32 140 44 L140 38 Q100 27 60 38 Z" fill="#2A3354"/>`;
     case 'cap': return `<path d="M58 42 Q58 12 100 12 Q142 12 142 42 Q100 30 58 42 Z" fill="#E74C3C"/><path d="M132 36 Q168 34 172 44 Q140 48 130 44 Z" fill="#C0392B"/><circle cx="100" cy="12" r="5" fill="#C0392B"/>`;
     case 'crown': return `<path d="M64 40 L60 10 L82 26 L100 4 L118 26 L140 10 L136 40 Q100 28 64 40 Z" fill="#FFC93C" stroke="#D9A821" stroke-width="3"/><circle cx="100" cy="24" r="5" fill="#FF5D73"/><circle cx="74" cy="28" r="4" fill="#3AA6F0"/><circle cx="126" cy="28" r="4" fill="#35C48D"/>`;
+    case 'tanjak': return `
+      <path d="M60 44 L64 22 Q100 12 136 22 L140 44 Q100 32 60 44 Z" fill="#1F8A70"/>
+      <path d="M116 24 L146 -4 L138 26 Z" fill="#1F8A70"/>
+      <path d="M120 24 L142 4 L136 25 Z" fill="#156353"/>
+      <path d="M62 38 Q100 27 138 38 L138 44 Q100 32 62 44 Z" fill="#C9A227"/>`;
     case 'wizard': return `<path d="M100 -14 L134 44 Q100 32 66 44 Z" fill="#5B3FA8"/><path d="M58 46 Q100 32 142 46 L142 54 Q100 40 58 54 Z" fill="#7A5BD0"/><circle cx="104" cy="12" r="5" fill="#FFC93C"/>`;
     default: return '';
   }
@@ -144,6 +152,12 @@ function shirtPattern(part) {
   if (!part.pattern) return '';
   if (part.pattern === 'batik') return `<circle cx="82" cy="168" r="7" fill="#B49CFF"/><circle cx="112" cy="182" r="6" fill="#B49CFF"/><circle cx="120" cy="160" r="4" fill="#D9CBFF"/><circle cx="92" cy="190" r="4" fill="#D9CBFF"/>`;
   if (part.pattern === 'kite') return `<path d="M100 156 L114 172 L100 192 L86 172 Z" fill="#E85F2C"/><path d="M100 162 L108 172 L100 184 L92 172 Z" fill="#FFF2CC"/>`;
+  if (part.pattern === 'melayu') return `
+    <rect x="96" y="146" width="8" height="34" rx="3" fill="${darken(part.c, .8)}"/>
+    <circle cx="100" cy="152" r="2.2" fill="#FFC93C"/><circle cx="100" cy="161" r="2.2" fill="#FFC93C"/><circle cx="100" cy="170" r="2.2" fill="#FFC93C"/>
+    <path d="M64 192 L136 192 L136 214 Q136 220 122 220 L78 220 Q64 220 64 214 Z" fill="#C9A227"/>
+    <path d="M64 192 L136 192 L136 197 L64 197 Z" fill="#8F6E12"/>
+    <circle cx="82" cy="207" r="2.5" fill="#8F6E12"/><circle cx="100" cy="211" r="2.5" fill="#8F6E12"/><circle cx="118" cy="207" r="2.5" fill="#8F6E12"/>`;
   if (part.pattern === 'armour') return `<path d="M68 152 Q100 142 132 152 L132 162 Q100 152 68 162 Z" fill="#8E99C4"/><circle cx="100" cy="176" r="9" fill="#FFC93C"/><path d="M96 172 l4 -6 4 6 -4 8 Z" fill="#E85F2C"/>`;
   return '';
 }
