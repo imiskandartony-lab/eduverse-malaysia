@@ -9,7 +9,7 @@ export const WORLDS = [
   { id: 'fraction-island',  name: 'Fraction Island',    emoji: '🏝️', subject: 'Mathematics', color: 'var(--gold)', desc: 'Fractions, decimals & percentages' },
   { id: 'geometry-city',    name: 'Geometry City',      emoji: '📐', subject: 'Mathematics', color: 'var(--magic)', desc: 'Space, shapes & measurement' },
   { id: 'bm-village',       name: 'Kampung Bahasa',     emoji: '🛖', subject: 'Bahasa Melayu', color: 'var(--jungle)', desc: 'Kosa kata & pemahaman' },
-  { id: 'tatabahasa-temple',name: 'Kuil Tatabahasa',    emoji: '⛩️', subject: 'Bahasa Melayu', color: 'var(--sunset)', desc: 'Imbuhan, kata & ayat' },
+  { id: 'tatabahasa-temple',name: 'Dewan Tatabahasa',    emoji: '🏛️', subject: 'Bahasa Melayu', color: 'var(--sunset)', desc: 'Imbuhan, kata & ayat' },
   { id: 'karangan-kingdom', name: 'Kerajaan Karangan',  emoji: '👑', subject: 'Bahasa Melayu', color: 'var(--gold)', desc: 'Penulisan kreatif' },
 ];
 
@@ -306,7 +306,7 @@ export const LESSONS = [
     id: 'tt-1', worldId: 'tatabahasa-temple', title: 'Imbuhan Awalan "meN-"', year: 6,
     kssr: 'KSSR BM T6 — Tatabahasa: Imbuhan awalan meN-',
     xp: 70, coins: 30, difficulty: 3, prerequisite: null,
-    intro: 'Pintu Kuil Tatabahasa hanya terbuka kepada mereka yang menguasai imbuhan "meN-". Beranikah kamu?',
+    intro: 'Pintu Dewan Tatabahasa hanya terbuka kepada mereka yang menguasai imbuhan "meN-". Beranikah kamu?',
     steps: [
       'Awalan <b>meN-</b> berubah mengikut huruf pertama kata dasar: me-, mem-, men-, meng-, meny-.',
       '<b>mem-</b> untuk b, p (p gugur): baca → membaca, pukul → memukul.',
@@ -318,7 +318,7 @@ export const LESSONS = [
     id: 'tt-2', worldId: 'tatabahasa-temple', title: 'Imbuhan Akhiran "-kan" & "-i"', year: 6,
     kssr: 'KSSR BM T6 — Tatabahasa: Imbuhan akhiran -kan dan -i',
     xp: 70, coins: 30, difficulty: 3, prerequisite: 'tt-1',
-    intro: 'Melangkah lebih dalam ke Kuil Tatabahasa, kamu menemui dua patung penjaga: "-kan" dan "-i". Kuasai kedua-duanya untuk melepasi lorong seterusnya!',
+    intro: 'Melangkah lebih dalam ke Dewan Tatabahasa, kamu menemui dua patung penjaga: "-kan" dan "-i". Kuasai kedua-duanya untuk melepasi lorong seterusnya!',
     steps: [
       'Akhiran <b>-kan</b> sering bermaksud "menyebabkan sesuatu berlaku" atau melibatkan objek: letak → letak<b>kan</b>, naik → naik<b>kan</b>, betul → betul<b>kan</b>.',
       'Akhiran <b>-i</b> sering bermaksud "melakukan berulang kali" atau "pada sesuatu": temu → temu<b>i</b>, jauh → jauh<b>i</b>, sirami → siram + i.',
@@ -330,7 +330,7 @@ export const LESSONS = [
     id: 'tt-3', worldId: 'tatabahasa-temple', title: 'Kata Ganda', year: 6,
     kssr: 'KSSR BM T6 — Tatabahasa: Kata ganda',
     xp: 75, coins: 32, difficulty: 3, prerequisite: 'tt-2',
-    intro: 'Di ruang paling dalam kuil, gema bergandaan kedengaran — "rumah-rumah… kanak-kanak…". Inilah ujian KATA GANDA, penjaga terakhir sebelum pintu emas!',
+    intro: 'Di ruang paling dalam dewan, gema bergandaan kedengaran — "rumah-rumah… kanak-kanak…". Inilah ujian KATA GANDA, penjaga terakhir sebelum pintu emas!',
     steps: [
       '<b>Kata ganda penuh</b> mengulang seluruh kata dasar, biasa menunjukkan jamak/banyak: rumah → rumah-rumah, budak → budak-budak, buku → buku-buku.',
       '<b>Kata ganda berentak</b> mengulang dengan bunyi berirama: sayur-mayur, lauk-pauk, gunung-ganang, saudara-mara.',
@@ -342,7 +342,7 @@ export const LESSONS = [
     id: 'tt-y6-1', worldId: 'tatabahasa-temple', title: 'Ayat Majmuk', year: 6,
     kssr: 'KSSR BM T6 — Tatabahasa: Ayat majmuk gabungan dan pancangan',
     xp: 75, coins: 32, difficulty: 3, prerequisite: 'tt-3',
-    intro: 'Pintu emas kuil akhirnya terbuka! Di dalamnya, dua ayat tunggal bercantum menjadi satu — kamu perlu memahami AYAT MAJMUK untuk menamatkan kuil ini selamanya.',
+    intro: 'Pintu emas dewan akhirnya terbuka! Di dalamnya, dua ayat tunggal bercantum menjadi satu — kamu perlu memahami AYAT MAJMUK untuk menamatkan dewan ini selamanya.',
     steps: [
       '<b>Ayat majmuk gabungan</b> menyatukan dua ayat tunggal dengan kata hubung: <i>"Ali membaca buku <b>dan</b> Abu menonton televisyen."</i>',
       '<b>Ayat majmuk pancangan</b> menyisipkan satu ayat kecil (klausa) ke dalam ayat utama menggunakan kata hubung pancangan: <b>yang, bahawa, jika, kerana, walaupun, apabila</b>.',
@@ -714,11 +714,11 @@ export const BOSSES = {
     defeat: 'Ampun… ampun! Ambillah semua perkataan ini. Kampung Bahasa selamat… buat masa ini!',
   },
   'tatabahasa-temple': {
-    name: 'Penjaga Batu', emoji: '🗿', title: 'Golem Kuil Tatabahasa',
+    name: 'Penjaga Batu', emoji: '🗿', title: 'Golem Dewan Tatabahasa',
     intro: 'Berhenti. Hanya yang fasih imbuhan boleh melepasi pintu ini. Buktikan dirimu.',
     blocks: ['Imbuhan salah. Pintu kekal tertutup.', 'Batu tidak berganjak untuk kesilapan.', 'Sekali lagi.'],
-    hits: ['Retak… jawapanmu… tepat.', 'Kuasa bahasamu… menggegar kuil!'],
-    defeat: 'Pintu… terbuka. Kuil ini mengiktiraf penguasaan bahasamu. Masuklah, cendekiawan.',
+    hits: ['Retak… jawapanmu… tepat.', 'Kuasa bahasamu… menggegar dewan!'],
+    defeat: 'Pintu… terbuka. Dewan ini mengiktiraf penguasaan bahasamu. Masuklah, cendekiawan.',
   },
   'karangan-kingdom': {
     name: 'Ratu Dakwat', emoji: '🦑', title: 'Penguasa Lautan Dakwat',
@@ -740,7 +740,7 @@ export const MAP_STORY = {
   'fraction-island': { piece: 5, title: 'Halfway There', text: 'Five pieces glow on the map — halfway restored! An island of split treasure appears on the horizon, guarded by a pirate who never shares fairly.' },
   'geometry-city': { piece: 6, title: 'The Crooked City', text: 'A city of tilted towers and bent streets flickers into view. "Someone twisted every angle here," Sang Kancil frowns. "Set it straight, and the sixth piece is ours."' },
   'bm-village': { piece: 7, title: 'The Silent Village', text: 'A quiet kampung appears, its market stalls empty of words — all swallowed by a hungry giant. "Speak clearly, hero, and free the village\'s voice."' },
-  'tatabahasa-temple': { piece: 8, title: 'The Ancient Gate', text: 'An old stone temple rises from the mist, its gate carved with imbuhan older than memory. "Only true mastery of the tongue opens this door," says Sang Kancil.' },
+  'tatabahasa-temple': { piece: 8, title: 'The Ancient Gate', text: 'An old grand hall rises from the mist, its gate carved with imbuhan older than memory. "Only true mastery of the tongue opens this door," says Sang Kancil.' },
   'karangan-kingdom': { piece: 9, title: 'The Final Ink', text: 'One piece remains! A kingdom drowning in spilled ink awaits — write your way through, and the map will finally be whole.' },
 };
 export const MAP_FINALE = {
