@@ -65,14 +65,20 @@ export function landing(el) {
     </p>
   </div>`;
   const form = el.querySelector('#name-form');
+  let signingIn = false;
+  const setBusy = busy => el.querySelectorAll('.role-card').forEach(b => {
+    b.disabled = busy; b.style.opacity = busy ? '.5' : '';
+  });
   const begin = async (name, role) => {
+    if (signingIn) return; // one tap, one popup — repeat taps caused login loops
+    signingIn = true; setBusy(true);
     try {
       user = await store.signIn(name, role);
     } catch (e) {
-      toast(`Sign-in failed: ${e.message}`, 4000);
+      toast(e.message, 4500);
       return;
-    }
-    if (!user) return; // redirect sign-in in progress; page is navigating away
+    } finally { signingIn = false; setBusy(false); }
+    if (!user) return;
     // Route by what the account actually is, not the button that was tapped.
     if (role === 'admin') {
       if (isAdminUser()) { go('#/admin'); return; }
@@ -80,6 +86,9 @@ export function landing(el) {
       go(homeRoute()); return;
     }
     if (user.role !== role) {
+      if (isAdminUser()) { // admins may open any dashboard directly
+        go(role === 'student' ? '#/dashboard' : `#/${role}`); return;
+      }
       toast(`This Google account is registered as ${user.role} — opening that dashboard.`, 3500);
     }
     ensureDailyMissions(user);

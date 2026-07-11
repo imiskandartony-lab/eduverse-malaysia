@@ -120,16 +120,21 @@ class FirebaseStore {
       return this._createProfile(this.authInst.currentUser, name, role);
     }
     const provider = new this.auth.GoogleAuthProvider();
-    // Remember intent so the profile can be created after a redirect round-trip.
+    // Remember intent so the profile can be created even if the tab reloads
+    // mid sign-in (getUser() finishes the job on return).
     localStorage.setItem('eduverse-pending-role', JSON.stringify({ name, role }));
     let cred;
     try {
       cred = await this.auth.signInWithPopup(this.authInst, provider);
     } catch (e) {
-      // Installed PWAs / tablets often block popups — fall back to redirect.
-      if (['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/operation-not-supported-in-this-environment', 'auth/cancelled-popup-request'].includes(e.code)) {
-        await this.auth.signInWithRedirect(this.authInst, provider);
-        return null; // page navigates away; getUser() finishes the job on return
+      // NOTE: no signInWithRedirect fallback — redirect sign-in silently fails
+      // on modern browsers when authDomain (firebaseapp.com) differs from the
+      // site origin (github.io), which caused an endless login loop.
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+        throw new Error('Sign-in window was closed. Tap the button once and finish signing in.');
+      }
+      if (e.code === 'auth/popup-blocked') {
+        throw new Error('Your browser blocked the sign-in window. Allow pop-ups for this site, then try again.');
       }
       throw e;
     }
