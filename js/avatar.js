@@ -107,6 +107,12 @@ const darken = (hex, f = .72) => {
   const ch = s => Math.round(((n >> s) & 255) * f).toString(16).padStart(2, '0');
   return `#${ch(16)}${ch(8)}${ch(0)}`;
 };
+const lighten = (hex, f = .4) => {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = s => { const v = (n >> s) & 255; return Math.round(v + (255 - v) * f).toString(16).padStart(2, '0'); };
+  return `#${ch(16)}${ch(8)}${ch(0)}`;
+};
+let heroIdSeq = 0; // unique gradient IDs so multiple avatars can render on one page
 
 function hairSvg(part) {
   if (!part) return '';
@@ -192,6 +198,7 @@ export function fileToAvatarDataURL(file, size = 220, quality = 0.78) {
 
 // The hero: chunky head, capsule body — layered back-to-front.
 export function renderAvatar(user, size = 220) {
+  ensureCheekGradient();
   const eq = { ...DEFAULT_EQUIP, ...(user.equipped || {}) };
   const skin = findPart(eq.skin) || findPart('skin-tan');
   const shirt = findPart(eq.shirt) || findPart('shirt-sun');
@@ -204,9 +211,26 @@ export function renderAvatar(user, size = 220) {
   const sc = skin.c, sd = darken(sc, .8);
   const cc = shirt.c, cd = darken(cc, .78);
   const pc = pants.c;
+  const uid = `h${heroIdSeq++}`;
 
   return `
   <svg class="hero-svg" viewBox="0 0 200 290" width="${size}" height="${size * 1.32}" role="img" aria-label="Your hero character">
+    <defs>
+      <radialGradient id="${uid}s" cx="38%" cy="24%" r="90%">
+        <stop offset="0%" stop-color="${lighten(sc, .5)}"/>
+        <stop offset="55%" stop-color="${sc}"/>
+        <stop offset="100%" stop-color="${darken(sc, .86)}"/>
+      </radialGradient>
+      <linearGradient id="${uid}c" x1="15%" y1="0%" x2="70%" y2="100%">
+        <stop offset="0%" stop-color="${lighten(cc, .3)}"/>
+        <stop offset="55%" stop-color="${cc}"/>
+        <stop offset="100%" stop-color="${darken(cc, .82)}"/>
+      </linearGradient>
+      <linearGradient id="${uid}p" x1="0%" y1="0%" x2="10%" y2="100%">
+        <stop offset="0%" stop-color="${lighten(pc, .22)}"/>
+        <stop offset="100%" stop-color="${darken(pc, .82)}"/>
+      </linearGradient>
+    </defs>
     ${wings ? `
       <g class="hero-wings">
         <path d="M60 150 Q10 110 18 66 Q52 92 66 128 Z" fill="${wings.c}" opacity=".92"/>
@@ -214,35 +238,59 @@ export function renderAvatar(user, size = 220) {
         <path d="M60 150 Q28 122 26 92 Q52 108 62 134 Z" fill="${darken(wings.c)}"/>
         <path d="M140 150 Q172 122 174 92 Q148 108 138 134 Z" fill="${darken(wings.c)}"/>
       </g>` : ''}
+    <!-- soft grounded shadow -->
+    <ellipse cx="100" cy="262" rx="48" ry="9" fill="#1E2A4A" opacity=".06"/>
+    <ellipse cx="100" cy="262" rx="36" ry="7" fill="#1E2A4A" opacity=".07"/>
+    <ellipse cx="100" cy="262" rx="24" ry="5" fill="#1E2A4A" opacity=".08"/>
     <g class="hero-body-group">
       <!-- legs -->
-      <rect x="72" y="208" width="24" height="46" rx="10" fill="${pc}"/>
-      <rect x="104" y="208" width="24" height="46" rx="10" fill="${pc}"/>
+      <rect x="72" y="208" width="24" height="46" rx="10" fill="url(#${uid}p)"/>
+      <rect x="104" y="208" width="24" height="46" rx="10" fill="url(#${uid}p)"/>
       <path d="M68 248 h32 v12 a6 6 0 0 1 -6 6 h-20 a6 6 0 0 1 -6 -6 Z" fill="#2B2118"/>
       <path d="M100 248 h32 v12 a6 6 0 0 1 -6 6 h-20 a6 6 0 0 1 -6 -6 Z" fill="#2B2118"/>
+      <path d="M68 251 h32" stroke="#4A3826" stroke-width="1.5" opacity=".5"/>
+      <path d="M100 251 h32" stroke="#4A3826" stroke-width="1.5" opacity=".5"/>
       <!-- arms -->
       <rect x="44" y="150" width="22" height="52" rx="11" fill="${cd}"/>
       <rect x="134" y="150" width="22" height="52" rx="11" fill="${cd}"/>
-      <circle cx="55" cy="200" r="10" fill="${sc}"/>
-      <circle cx="145" cy="200" r="10" fill="${sc}"/>
+      <circle cx="55" cy="200" r="10" fill="url(#${uid}s)"/>
+      <circle cx="145" cy="200" r="10" fill="url(#${uid}s)"/>
       <!-- torso -->
-      <path d="M64 146 Q100 136 136 146 L136 206 Q136 220 122 220 L78 220 Q64 220 64 206 Z" fill="${cc}"/>
+      <path d="M64 146 Q100 136 136 146 L136 206 Q136 220 122 220 L78 220 Q64 220 64 206 Z" fill="url(#${uid}c)"/>
+      <path d="M70 148 Q78 144 86 147 L82 172 Q74 170 70 165 Z" fill="#fff" opacity=".16"/>
       ${shirtPattern(shirt)}
       <!-- head -->
-      <rect x="55" y="34" width="90" height="82" rx="26" fill="${sc}"/>
-      <rect x="55" y="96" width="90" height="20" rx="10" fill="${sd}" opacity=".35"/>
+      <rect x="55" y="34" width="90" height="82" rx="26" fill="url(#${uid}s)"/>
+      <rect x="55" y="96" width="90" height="20" rx="10" fill="${sd}" opacity=".3"/>
+      <!-- glossy highlight for that toy-shine look -->
+      <ellipse cx="76" cy="48" rx="16" ry="10" fill="#fff" opacity=".28" transform="rotate(-18 76 48)"/>
       <!-- face -->
-      <circle cx="79" cy="78" r="6.5" fill="#1E2A4A"/>
-      <circle cx="121" cy="78" r="6.5" fill="#1E2A4A"/>
-      <circle cx="81.5" cy="75.5" r="2" fill="#fff"/>
-      <circle cx="123.5" cy="75.5" r="2" fill="#fff"/>
-      <path d="M88 96 Q100 106 112 96" stroke="#1E2A4A" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      <circle cx="67" cy="92" r="6" fill="#FF9B85" opacity=".55"/>
-      <circle cx="133" cy="92" r="6" fill="#FF9B85" opacity=".55"/>
+      <circle cx="79" cy="78" r="7" fill="#1E2A4A"/>
+      <circle cx="121" cy="78" r="7" fill="#1E2A4A"/>
+      <circle cx="82" cy="74.5" r="2.6" fill="#fff"/>
+      <circle cx="124" cy="74.5" r="2.6" fill="#fff"/>
+      <circle cx="77" cy="80" r="1" fill="#fff" opacity=".7"/>
+      <circle cx="119" cy="80" r="1" fill="#fff" opacity=".7"/>
+      <path d="M87 95 Q100 108 113 95" stroke="#1E2A4A" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <circle cx="67" cy="92" r="7" fill="url(#cheekGrad)" opacity=".65"/>
+      <circle cx="133" cy="92" r="7" fill="url(#cheekGrad)" opacity=".65"/>
       ${hairSvg(hair)}
       ${glassesSvg(glasses)}
       ${hatSvg(hat)}
     </g>
     ${pet ? `<text x="166" y="252" font-size="34" class="hero-pet">${pet.emoji}</text>` : ''}
   </svg>`;
+}
+
+// Shared cheek-blush gradient definition, injected once into the page so
+// every hero (HUD mini-icon, Hero Studio stage, etc.) can reference it.
+let cheekGradInjected = false;
+function ensureCheekGradient() {
+  if (cheekGradInjected || typeof document === 'undefined') return;
+  cheekGradInjected = true;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '0'); svg.setAttribute('height', '0');
+  svg.style.position = 'absolute';
+  svg.innerHTML = `<defs><radialGradient id="cheekGrad"><stop offset="0%" stop-color="#FF9B85" stop-opacity=".9"/><stop offset="100%" stop-color="#FF9B85" stop-opacity="0"/></radialGradient></defs>`;
+  document.body?.appendChild(svg) || document.documentElement.appendChild(svg);
 }
