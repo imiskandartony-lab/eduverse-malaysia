@@ -302,9 +302,13 @@ table.report th { font-family: var(--font-display); }
 /* ---------- Mini-game canvas ---------- */
 .game-wrap { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); padding: var(--sp-3); }
 .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
-.memory-card { aspect-ratio: 1; font-size: 1.5rem; display: grid; place-items: center; background: var(--magic); color: #fff; border: none; border-radius: var(--r-btn); font-weight: 800; transition: transform var(--t-fast) var(--ease-bounce); }
-.memory-card.flipped { background: var(--card-tint); color: var(--ink); transform: rotateY(180deg); }
-.memory-card.matched { background: var(--jungle); color: #fff; }
+.memory-card { aspect-ratio: 1; font-size: 1.5rem; display: grid; place-items: center; background: var(--magic); color: #fff; border: none; border-radius: var(--r-btn); font-weight: 800; }
+/* A literal rotateY(180deg) would mirror the revealed word backwards —
+   animate through the flip instead of resting on it, so the label
+   always ends up readable. */
+.memory-card.flipped { background: var(--card-tint); color: var(--ink); animation: card-flip .3s ease; }
+.memory-card.matched { background: var(--jungle); color: #fff; animation: card-flip .3s ease; }
+@keyframes card-flip { 0% { transform: rotateY(0deg); } 50% { transform: rotateY(90deg); } 100% { transform: rotateY(0deg); } }
 .balloon-field { position: relative; height: 380px; overflow: hidden; border-radius: var(--r-btn); background: linear-gradient(180deg, var(--sky-hi), var(--sky-lo)); }
 .balloon { position: absolute; bottom: -70px; width: 62px; height: 76px; border-radius: 50% 50% 48% 48%; border: none; color: #fff; font-weight: 800; font-size: 1rem; animation: rise linear forwards; }
 @keyframes rise { to { transform: translateY(-480px); } }
