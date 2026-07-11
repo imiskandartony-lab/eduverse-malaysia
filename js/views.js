@@ -30,7 +30,7 @@ function hud() {
   <div class="hud">
     <span class="pill"><span class="ico hud-hero">${renderAvatar(user, 20)}</span>${esc(user.name)}</span>
     <span class="pill"><span class="ico">⭐</span>Lv ${levelFor(user.xp)}</span>
-    <span class="pill"><span class="ico">${titleFor(levelFor(user.xp)).emoji}</span>${titleFor(levelFor(user.xp)).name}</span>
+    <span class="pill pill-rank"><span class="ico">${titleFor(levelFor(user.xp)).emoji}</span>${titleFor(levelFor(user.xp)).name}</span>
     <span class="pill"><span class="ico">🪙</span>${user.coins}</span>
     <span class="pill"><span class="ico">💎</span>${user.gems}</span>
     <span class="pill"><span class="ico">🔥</span>${user.streak} day${user.streak === 1 ? '' : 's'}</span>
