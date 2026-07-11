@@ -171,20 +171,50 @@ export async function claimMysteryReward(user, reward, CATALOG) {
   return null;
 }
 
-// Adaptive learning: track wrong answers per topic, surface weakest.
+// Adaptive learning: track wrong answers per topic AND per subject, so both
+// "which lesson" and "which subject" views are available to recommend
+// revision and to give parents a subject-level read on where help is needed.
 export function recordAnswer(user, lessonId, correct) {
   const lesson = LESSONS.find(l => l.id === lessonId);
   const topic = lesson ? lesson.title : lessonId;
+  const subject = lesson ? WORLDS.find(w => w.id === lesson.worldId)?.subject : null;
   if (correct) user.stats.correct++;
   else {
     user.stats.wrong++;
     user.stats.weakTopics[topic] = (user.stats.weakTopics[topic] || 0) + 1;
+  }
+  if (subject) {
+    user.stats.bySubject = user.stats.bySubject || {};
+    const s = user.stats.bySubject[subject] || { correct: 0, wrong: 0 };
+    correct ? s.correct++ : s.wrong++;
+    user.stats.bySubject[subject] = s;
   }
 }
 
 export function weakestTopics(user, n = 3) {
   return Object.entries(user.stats.weakTopics)
     .sort((a, b) => b[1] - a[1]).slice(0, n).map(([t]) => t);
+}
+
+// Subject accuracy list, sorted weakest-first — the parent dashboard's
+// headline view of "which subject needs the most help right now".
+export function subjectBreakdown(user) {
+  const by = user.stats.bySubject || {};
+  return Object.entries(by)
+    .map(([subject, s]) => {
+      const total = s.correct + s.wrong;
+      return { subject, correct: s.correct, wrong: s.wrong, total, accuracy: total ? Math.round(s.correct / total * 100) : null };
+    })
+    .filter(s => s.total > 0)
+    .sort((a, b) => a.accuracy - b.accuracy);
+}
+
+// Bounded recent-activity log (most recent first) for the parent timeline.
+const ACTIVITY_LOG_MAX = 20;
+export function logActivity(user, entry) {
+  user.activityLog = user.activityLog || [];
+  user.activityLog.unshift({ ...entry, at: new Date().toISOString() });
+  if (user.activityLog.length > ACTIVITY_LOG_MAX) user.activityLog.length = ACTIVITY_LOG_MAX;
 }
 
 // Recommend the next lesson: first uncompleted lesson whose prerequisite is met,

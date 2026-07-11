@@ -32,7 +32,8 @@ export function defaultProfile(name = 'Adventurer', role = 'student') {
     achievements: [], mapPieces: [], mapComplete: false,
     missions: [], missionsDate: null,
     challenge: null, challengeDate: null, shards: 0, arenaBest: {}, duelWins: 0, photoURL: null,
-    stats: { correct: 0, wrong: 0, gamesPlayed: 0, minutes: 0, weakTopics: {} },
+    activityLog: [],
+    stats: { correct: 0, wrong: 0, gamesPlayed: 0, minutes: 0, weakTopics: {}, bySubject: {} },
   };
 }
 
@@ -247,6 +248,8 @@ export function ensureDailyMissions(user) {
   if (user.arenaBest === undefined) user.arenaBest = {};
   if (user.duelWins === undefined) user.duelWins = 0;
   if (user.photoURL === undefined) user.photoURL = null;
+  if (user.activityLog === undefined) user.activityLog = [];
+  if (user.stats.bySubject === undefined) user.stats.bySubject = {};
   if (user.missionsDate !== todayStr()) {
     user.missionsDate = todayStr();
     user.missions = DAILY_MISSION_POOL.map(m => ({ ...m, progress: 0, done: false, claimed: false }));

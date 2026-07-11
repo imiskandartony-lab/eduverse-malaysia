@@ -9,6 +9,7 @@ import {
   recommendLesson, worldProgress, maybeUnlockNextWorld, levelFor, xpIntoLevel,
   achievementList, titleFor, canSpin, doSpin, canOpenChest, openChest, SPIN_PRIZES, grant as grantReward,
   maybeRestoreMapPiece, challengeProgress, claimChallenge, rollMysteryReward, claimMysteryReward, SHARDS_FOR_EPIC,
+  logActivity, subjectBreakdown,
 } from './gamification.js';
 import { sfx, isMuted, setMuted } from './sounds.js';
 import { getAiKey, setAiKey } from './ai.js';
@@ -661,6 +662,11 @@ export function lessonFlow(el, lessonId) {
       });
       await maybeUnlockNextWorld(user, lesson.worldId);
       await maybeRestoreMapPiece(user, lesson.worldId);
+      logActivity(user, {
+        lessonId: lesson.id, title: lesson.title, worldId: lesson.worldId,
+        subject: WORLDS.find(w => w.id === lesson.worldId)?.subject,
+        accuracy: Math.round(accuracy * 100),
+      });
       if (accuracy === 1) await challengeProgress(user, 'perfect_quiz');
       await challengeProgress(user, 'lessons');
       confetti(40);
@@ -1385,12 +1391,33 @@ export async function parent(el, _m, selectedIdx = 0) {
   <div class="stat-grid">
     <div class="stat"><div class="s-num">${child.completedLessons.length}</div><div class="s-label">Lessons completed</div></div>
     <div class="stat"><div class="s-num">${child.stats.correct}</div><div class="s-label">Correct answers</div></div>
-    <div class="stat"><div class="s-num">${accuracy(child)}%</div><div class="s-label">Quiz accuracy</div></div>
+    <div class="stat"><div class="s-num">${accuracy(child)}%</div><div class="s-label">Overall accuracy</div></div>
     <div class="stat"><div class="s-num">${child.streak}🔥</div><div class="s-label">Day streak</div></div>
   </div>
+  <div class="card card-tint">
+    <h3 class="display">🎯 Where to focus next</h3>
+    ${focusSuggestion(child)}
+  </div>
   <div class="card">
-    <h3 class="display">🎯 Topics needing attention</h3>
+    <h3 class="display">📚 Accuracy by subject</h3>
+    ${subjectCards(child)}
+  </div>
+  <div class="card">
+    <h3 class="display">🗺️ Adventure map progress</h3>
+    <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.2rem">Lessons completed per world (green ring = world finished)</p>
+    ${worldMapStrip(child)}
+  </div>
+  <div class="card">
+    <h3 class="display">🔍 Topics needing attention</h3>
     ${weakList(child)}
+  </div>
+  <div class="card">
+    <h3 class="display">📅 Recent activity</h3>
+    ${activityTimeline(child)}
+  </div>
+  <div class="card">
+    <h3 class="display">🎮 Engagement snapshot</h3>
+    ${engagementSnapshot(child)}
   </div>
   <div class="card">
     <h3 class="display">🏅 Recent achievements</h3>
@@ -1487,11 +1514,84 @@ const weakList = u => {
     ? `<ul style="margin:.5rem 0 0 1.2rem">${w.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`
     : '<p style="color:var(--ink-soft)">No weak topics detected — great work!</p>';
 };
+const SUBJECT_EMOJI = { English: '🔤', Mathematics: '🔢', 'Bahasa Melayu': '🗣️' };
+const accColor = pct => pct >= 80 ? 'var(--jungle-deep)' : pct >= 60 ? 'var(--gold-deep)' : 'var(--lava)';
+
+function subjectCards(child) {
+  const rows = subjectBreakdown(child);
+  if (!rows.length) return '<p style="color:var(--ink-soft)">No quiz answers recorded yet — subject breakdown appears after the first few lessons.</p>';
+  return `<div class="stat-grid">${rows.map(s => `
+    <div class="stat">
+      <div class="s-num" style="color:${accColor(s.accuracy)}">${s.accuracy}%</div>
+      <div class="s-label">${SUBJECT_EMOJI[s.subject] || '📘'} ${esc(s.subject)}</div>
+      <div style="color:var(--ink-soft);font-size:.78rem;margin-top:.2rem">${s.correct} right · ${s.wrong} wrong</div>
+    </div>`).join('')}</div>`;
+}
+
+function focusSuggestion(child) {
+  const subjects = subjectBreakdown(child);
+  const weakest = subjects[0];
+  if (!weakest || weakest.accuracy >= 80) {
+    return `<p style="color:var(--ink-soft)">🎉 No subject is currently below 80% — ${esc(child.name)} is doing well across the board!</p>`;
+  }
+  const topic = weakestTopics(child, 1)[0];
+  return `
+    <p style="margin-bottom:.4rem"><b>${SUBJECT_EMOJI[weakest.subject] || '📘'} ${esc(weakest.subject)}</b> is the subject needing the most help right now,
+    at <b style="color:${accColor(weakest.accuracy)}">${weakest.accuracy}%</b> accuracy (${weakest.correct}/${weakest.correct + weakest.wrong} correct).</p>
+    ${topic ? `<p style="color:var(--ink-soft)">The specific topic tripping them up most: <b>${esc(topic)}</b>. Sitting with them to redo that quest together — or asking Sang Kancil for a hint together — usually helps it click.</p>` : ''}`;
+}
+
+function worldMapStrip(child) {
+  return `<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem">
+    ${WORLDS.map(w => {
+      const ls = LESSONS.filter(l => l.worldId === w.id);
+      const done = ls.filter(l => child.completedLessons.includes(l.id)).length;
+      const complete = ls.length > 0 && done === ls.length;
+      return `<span class="pill" style="${complete ? `border:2px solid var(--jungle);` : ''}" title="${esc(w.name)}">
+        ${w.emoji} ${done}/${ls.length || '—'}</span>`;
+    }).join('')}
+  </div>`;
+}
+
+function activityTimeline(child) {
+  const log = child.activityLog || [];
+  if (!log.length) return '<p style="color:var(--ink-soft)">No completed quests logged yet.</p>';
+  return `<div style="display:flex;flex-direction:column;gap:.4rem">
+    ${log.slice(0, 8).map(a => {
+      const world = WORLDS.find(w => w.id === a.worldId);
+      const date = new Date(a.at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' });
+      return `<div style="display:flex;align-items:center;gap:.6rem;padding:.35rem 0;border-bottom:1px solid var(--line)">
+        <span style="color:var(--ink-soft);font-size:.78rem;width:4.2em;flex-shrink:0">${date}</span>
+        <span>${world?.emoji || '📘'}</span>
+        <span style="flex:1">${esc(a.title)}</span>
+        <b style="color:${accColor(a.accuracy)}">${a.accuracy}%</b>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function engagementSnapshot(child) {
+  return `<div class="stat-grid">
+    <div class="stat"><div class="s-num">🔥${child.streak || 0}</div><div class="s-label">Day streak</div></div>
+    <div class="stat"><div class="s-num">🛡️${child.shields || 0}</div><div class="s-label">Streak shields</div></div>
+    <div class="stat"><div class="s-num">⚔️${child.duelWins || 0}</div><div class="s-label">Duels won</div></div>
+    <div class="stat"><div class="s-num">🗺️${(child.mapPieces || []).length}/9</div><div class="s-label">Story pieces</div></div>
+  </div>`;
+}
 function demoChildData() {
   const d = JSON.parse(localStorage.getItem('eduverse-state-v1') || '{}').user;
   return d && d.role === 'student' ? d : {
-    name: 'Demo Child', completedLessons: ['ek-1'], streak: 2, achievements: ['first-steps'],
-    stats: { correct: 8, wrong: 3, gamesPlayed: 2, minutes: 45, weakTopics: { 'Equivalent Fractions': 2 } },
+    name: 'Demo Child', completedLessons: ['ek-1', 'mv-1'], streak: 2, shields: 0, duelWins: 1, mapPieces: ['english-kingdom'],
+    achievements: ['first-steps'],
+    stats: {
+      correct: 8, wrong: 3, gamesPlayed: 2, minutes: 45,
+      weakTopics: { 'Equivalent Fractions': 2 },
+      bySubject: { English: { correct: 5, wrong: 1 }, Mathematics: { correct: 3, wrong: 2 } },
+    },
+    activityLog: [
+      { title: 'Numbers to 1 000 000', worldId: 'maths-volcano', accuracy: 60, at: new Date(Date.now() - 864e5).toISOString() },
+      { title: 'Simple Present Tense', worldId: 'english-kingdom', accuracy: 100, at: new Date(Date.now() - 2 * 864e5).toISOString() },
+    ],
   };
 }
 const demoClass = () => [
@@ -1502,13 +1602,22 @@ const demoClass = () => [
   { name: 'Mei Ling', lessons: 3, acc: 68, streak: 2, weak: 'Simple Present Tense' },
 ];
 function downloadReport(child) {
+  const subjects = subjectBreakdown(child);
+  const log = (child.activityLog || []).slice(0, 10);
   const lines = [
     `EduVerse Malaysia — Progress Report (${new Date().toLocaleDateString('ms-MY')})`,
     `Student: ${child.name}`,
     `Lessons completed: ${child.completedLessons.length}`,
-    `Quiz accuracy: ${accuracy(child)}%`,
-    `Streak: ${child.streak} days`,
+    `Overall accuracy: ${accuracy(child)}%`,
+    `Streak: ${child.streak} days · Shields: ${child.shields || 0} · Duel wins: ${child.duelWins || 0} · Story pieces: ${(child.mapPieces || []).length}/9`,
+    '',
+    'Accuracy by subject:',
+    ...(subjects.length ? subjects.map(s => `  - ${s.subject}: ${s.accuracy}% (${s.correct}/${s.correct + s.wrong})`) : ['  (no quiz data yet)']),
+    '',
     `Weak topics: ${weakestTopics(child).join(', ') || 'none'}`,
+    '',
+    'Recent activity:',
+    ...(log.length ? log.map(a => `  - ${new Date(a.at).toLocaleDateString('en-MY')}: ${a.title} — ${a.accuracy}%`) : ['  (none logged yet)']),
   ];
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain' }));
