@@ -113,6 +113,64 @@ export async function openChest(user) {
   return loot;
 }
 
+// ---------- Daily Challenge ----------
+export async function challengeProgress(user, kind, amount = 1) {
+  const c = user.challenge;
+  if (!c || c.kind !== kind || c.done) return;
+  c.progress = Math.min(c.target, c.progress + amount);
+  if (c.progress >= c.target) c.done = true;
+  await store.saveUser(user);
+}
+
+export async function claimChallenge(user) {
+  const c = user.challenge;
+  if (!c || !c.done || c.claimed) return user;
+  c.claimed = true;
+  return grant(user, { xp: 0, coins: c.coins, gems: c.gems, reason: '(daily challenge!)' });
+}
+
+// ---------- Mystery Box ----------
+// Weighted pool: shards are the rare pull, coins/xp the common ones.
+const MYSTERY_POOL = [
+  { type: 'coins', min: 10, max: 25, emoji: '🪙' },
+  { type: 'coins', min: 15, max: 35, emoji: '💰' },
+  { type: 'xp', min: 10, max: 25, emoji: '⭐' },
+  { type: 'xp', min: 15, max: 30, emoji: '✨' },
+  { type: 'gems', amount: 1, emoji: '💎' },
+  { type: 'shard', amount: 1, emoji: '🔷' },
+];
+export function rollMysteryReward() {
+  const pick = MYSTERY_POOL[Math.floor(Math.random() * MYSTERY_POOL.length)];
+  if (pick.type === 'shard') return { ...pick, label: '1 Mystery Shard' };
+  if (pick.type === 'gems') return { ...pick, label: '1 Gem' };
+  const amount = pick.min + Math.floor(Math.random() * (pick.max - pick.min + 1));
+  return { ...pick, amount, label: `${amount} ${pick.type === 'coins' ? 'Coins' : 'XP'}` };
+}
+
+export const SHARDS_FOR_EPIC = 10;
+// Applies a rolled reward; every 10 shards auto-redeems a random unowned
+// epic wardrobe item (import kept local to avoid a hard avatar<->game coupling).
+export async function claimMysteryReward(user, reward, CATALOG) {
+  if (reward.type === 'coins') await grant(user, { coins: reward.amount, reason: '(mystery box!)' });
+  else if (reward.type === 'xp') await grant(user, { xp: reward.amount, reason: '(mystery box!)' });
+  else if (reward.type === 'gems') await grant(user, { gems: reward.amount, reason: '(mystery box!)' });
+  else if (reward.type === 'shard') {
+    user.shards = (user.shards || 0) + 1;
+    let epicWon = null;
+    if (user.shards >= SHARDS_FOR_EPIC) {
+      const pool = CATALOG.filter(p => p.rarity === 'epic' && !p.storyOnly && !user.owned.includes(p.id));
+      if (pool.length) {
+        epicWon = pool[Math.floor(Math.random() * pool.length)];
+        user.shards -= SHARDS_FOR_EPIC;
+        user.owned.push(epicWon.id);
+      }
+    }
+    await store.saveUser(user);
+    return epicWon;
+  }
+  return null;
+}
+
 // Adaptive learning: track wrong answers per topic, surface weakest.
 export function recordAnswer(user, lessonId, correct) {
   const lesson = LESSONS.find(l => l.id === lessonId);

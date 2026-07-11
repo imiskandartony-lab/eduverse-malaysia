@@ -377,9 +377,100 @@ export function escapeRoom(mount, questions, onDone) {
   render();
 }
 
+// ---------- Sentence Builder: tap words in order to rebuild the answer ----------
+// Works for any correct answer that is a short multi-word phrase.
+export function sentenceBuilder(mount, { question, phrase }, onDone) {
+  const words = phrase.split(' ');
+  const bank = words.map((w, i) => ({ w, i })).sort(() => Math.random() - 0.5);
+  let built = [], mistakes = 0;
+  const render = () => {
+    mount.innerHTML = `
+      <h3 class="display">📝 Sentence Builder</h3>
+      <p style="margin:.4rem 0 1rem">${esc(question)}</p>
+      <div class="word-slots sentence-slots">${
+        words.map((_, i) => `<span class="word-slot sentence-slot">${built[i] ? esc(built[i]) : ''}</span>`).join('')
+      }</div>
+      <div class="letter-tray"></div>`;
+    const tray = mount.querySelector('.letter-tray');
+    bank.forEach(item => {
+      if (item.used) return;
+      const b = document.createElement('button');
+      b.className = 'letter-tile sentence-tile'; b.textContent = item.w;
+      b.addEventListener('click', ev => {
+        if (item.w === words[built.length]) {
+          built.push(item.w); item.used = true; sfx.correct(built.length);
+          floatText(ev.clientX, ev.clientY, '✓');
+          if (built.length === words.length) { setTimeout(() => onDone(Math.max(.4, 1 - mistakes * .15)), 400); return; }
+        } else {
+          mistakes++; sfx.wrong(); b.classList.add('tile-wrong');
+          setTimeout(() => b.classList.remove('tile-wrong'), 350); return;
+        }
+        render();
+      });
+      tray.appendChild(b);
+    });
+  };
+  render();
+}
+
+// A quiz answer usable as a Sentence Builder phrase: 2-6 words, letters only.
+function phraseCandidate(quiz) {
+  for (const q of quiz) {
+    const ans = q.options[q.answer];
+    const words = ans.trim().split(/\s+/);
+    if (words.length >= 2 && words.length <= 6 && /^[A-Za-z\s]+$/.test(ans)) return { q, phrase: ans.trim() };
+  }
+  return null;
+}
+
+// ---------- Math Ninja: slice the correct falling answer, misses cost energy ----------
+export function mathNinja(mount, { question, correct, wrong }, onDone) {
+  let hits = 0, energy = 3, spawned = 0;
+  const need = 3;
+  mount.innerHTML = `
+    <h3 class="display">🥷 Math Ninja</h3>
+    <p style="margin:.4rem 0 1rem">${esc(question)} — slice the correct answer, dodge the rest!</p>
+    <p style="font-weight:800" id="ninja-energy"></p>
+    <div class="balloon-field ninja-field" aria-label="Math Ninja game area"></div>
+    <p class="game-status" style="margin-top:.6rem;font-weight:800"></p>`;
+  const field = mount.querySelector('.ninja-field');
+  const status = mount.querySelector('.game-status');
+  const energyEl = mount.querySelector('#ninja-energy');
+  const drawEnergy = () => { energyEl.textContent = '❤️'.repeat(energy) + '🖤'.repeat(3 - energy); };
+  drawEnergy();
+  const pool = [...Array(3).fill(correct), ...wrong].sort(() => Math.random() - 0.5);
+  let finished = false;
+  const finish = score => { if (finished) return; finished = true; clearInterval(timer); onDone(score); };
+
+  const timer = setInterval(() => {
+    if (finished) return;
+    const label = pool[spawned % pool.length]; spawned++;
+    const s = document.createElement('button');
+    s.className = 'ninja-shuriken'; s.textContent = label;
+    s.style.left = Math.random() * 75 + 5 + '%';
+    s.style.animationDuration = 2.6 + Math.random() * 1.4 + 's';
+    s.addEventListener('click', ev => {
+      s.classList.add('sliced');
+      if (label === correct) {
+        hits++; sfx.correct(hits); floatText(ev.clientX, ev.clientY, '⚔️ Hit!');
+        status.textContent = `${hits}/${need} sliced!`;
+        if (hits >= need) setTimeout(() => finish(Math.max(.5, 1 - (3 - energy) * .15)), 300);
+      } else {
+        energy--; drawEnergy(); sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗ Oops!', 'var(--lava)');
+        status.textContent = 'That was a decoy!';
+        if (energy <= 0) setTimeout(() => finish(.2), 300);
+      }
+      setTimeout(() => s.remove(), 180);
+    });
+    s.addEventListener('animationend', () => s.remove());
+    field.appendChild(s);
+  }, 950);
+  setTimeout(() => finish(hits >= need ? 1 : .3), 45000);
+}
+
 // Pick a game suited to the lesson and return a runner.
 export function gameForLesson(lesson, quiz) {
-  const kinds = ['memory', 'balloon', 'speed', 'catch', 'maze', 'escape'];
+  const kinds = ['memory', 'balloon', 'speed', 'catch', 'maze', 'escape', 'ninja'];
   // Word Builder only when the correct answer is one clean word (3-10 letters).
   const q0 = quiz[0];
   const w = q0 && q0.options[q0.answer];
@@ -387,8 +478,19 @@ export function gameForLesson(lesson, quiz) {
   // Crossword only when two answers can cross at a shared letter.
   const cw = buildCrossword(quiz);
   if (cw) kinds.push('crossword');
+  // Sentence Builder only when some answer is a short multi-word phrase.
+  const phraseHit = phraseCandidate(quiz);
+  if (phraseHit) kinds.push('sentence');
   const kind = kinds[Math.floor(Math.random() * kinds.length)];
   if (kind === 'word') return (mount, onDone) => wordBuilder(mount, { question: q0.q, word: w }, onDone);
+  if (kind === 'sentence') return (mount, onDone) => sentenceBuilder(mount, { question: phraseHit.q.q, phrase: phraseHit.phrase }, onDone);
+  if (kind === 'ninja') {
+    const q = quiz[Math.floor(Math.random() * quiz.length)];
+    return (mount, onDone) => mathNinja(mount, {
+      question: q.q, correct: q.options[q.answer],
+      wrong: q.options.filter((_, i) => i !== q.answer),
+    }, onDone);
+  }
   if (kind === 'maze') {
     const q = quiz[Math.floor(Math.random() * quiz.length)];
     return (mount, onDone) => maze(mount, q, onDone);

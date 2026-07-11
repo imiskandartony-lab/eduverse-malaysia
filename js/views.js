@@ -8,7 +8,7 @@ import {
   grant, missionProgress, claimMission, recordAnswer, weakestTopics,
   recommendLesson, worldProgress, maybeUnlockNextWorld, levelFor, xpIntoLevel,
   achievementList, titleFor, canSpin, doSpin, canOpenChest, openChest, SPIN_PRIZES, grant as grantReward,
-  maybeRestoreMapPiece,
+  maybeRestoreMapPiece, challengeProgress, claimChallenge, rollMysteryReward, claimMysteryReward, SHARDS_FOR_EPIC,
 } from './gamification.js';
 import { sfx, isMuted, setMuted } from './sounds.js';
 import { getAiKey, setAiKey } from './ai.js';
@@ -158,6 +158,17 @@ export function dashboard(el) {
       <div style="font-weight:800;font-size:.85rem">${canSpin(user) ? 'Lucky Spin ready!' : 'Spin used today'}</div>
     </div>
   </div>
+  <div class="card challenge-card">
+    <h3 class="display">🎯 Daily Challenge</h3>
+    <p style="margin:.4rem 0">${esc(user.challenge.text)}</p>
+    <div class="challenge-progress"><span style="width:${(user.challenge.progress / user.challenge.target) * 100}%"></span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem">
+      <span style="color:var(--ink-soft);font-size:.85rem">${user.challenge.progress}/${user.challenge.target}</span>
+      ${user.challenge.done && !user.challenge.claimed
+        ? `<button class="btn btn-purple btn-sm" id="claim-challenge">Claim 💎${user.challenge.gems} +${user.challenge.coins}🪙</button>`
+        : user.challenge.claimed ? '<span class="pill">🎉 Claimed</span>' : `<span class="pill">💎${user.challenge.gems} +${user.challenge.coins}🪙</span>`}
+    </div>
+  </div>
   <div class="card">
     <h3 class="display">⭐ Today's Missions <span style="color:var(--ink-soft);font-size:.85rem">(${missionsDone}/${user.missions.length})</span></h3>
     <div id="mission-list"></div>
@@ -172,6 +183,9 @@ export function dashboard(el) {
   </div>`;
   renderMissions(el.querySelector('#mission-list'));
   el.querySelector('#continue-btn')?.addEventListener('click', () => go(`#/lesson/${rec.lesson.id}`));
+  el.querySelector('#claim-challenge')?.addEventListener('click', async () => {
+    await claimChallenge(user); dashboard(el);
+  });
   el.querySelector('#chest')?.addEventListener('click', async () => {
     const loot = await openChest(user);
     if (loot) { await rewardModal('🧰✨', 'Treasure!', `You found ${loot.coins} 🪙 and ${loot.xp} XP inside!`); dashboard(el); }
@@ -332,12 +346,61 @@ export function worldDetail(el, worldId) {
     b.addEventListener('click', () => go(`#/lesson/${b.dataset.lesson}`)));
 }
 
+// Mystery Box: 3 face-down cards, pick one, reveal a variable reward.
+// Shards accumulate toward a free epic wardrobe item (see gamification.js).
+function showMysteryBox(user) {
+  return new Promise(resolve => {
+    const rolls = [rollMysteryReward(), rollMysteryReward(), rollMysteryReward()];
+    const root = document.getElementById('modal-root');
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    wrap.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true" aria-label="Mystery Box">
+        <div style="font-size:2.4rem">🎁</div>
+        <h2 class="display">Mystery Box!</h2>
+        <p style="color:var(--ink-soft);margin:.3rem 0 0">Pick one card…</p>
+        <div class="mystery-grid">
+          ${rolls.map((r, i) => `
+            <button class="mystery-card" data-idx="${i}" aria-label="Mystery card ${i + 1}">
+              <div class="mc-inner">
+                <div class="mc-face mc-back">❔</div>
+                <div class="mc-face mc-front"><span class="mc-emoji">${r.emoji}</span><span>${esc(r.label)}</span></div>
+              </div>
+            </button>`).join('')}
+        </div>
+        <p id="mystery-result" style="min-height:1.4em;font-weight:800"></p>
+        <button class="btn btn-gold" id="mystery-continue" hidden>Continue</button>
+      </div>`;
+    root.appendChild(wrap);
+    sfx.spin();
+    wrap.querySelectorAll('.mystery-card').forEach(card => {
+      card.addEventListener('click', async () => {
+        wrap.querySelectorAll('.mystery-card').forEach(c => c.disabled = true);
+        card.classList.add('flipped');
+        const roll = rolls[Number(card.dataset.idx)];
+        sfx.chest();
+        const epicWon = await claimMysteryReward(user, roll, CATALOG);
+        const result = wrap.querySelector('#mystery-result');
+        if (epicWon) {
+          confetti(50);
+          result.textContent = `+1 shard → ${SHARDS_FOR_EPIC} shards traded for ${epicWon.name}! 🌟`;
+        } else {
+          result.textContent = `You won ${roll.label}!` + (roll.type === 'shard' ? ` (${user.shards}/${SHARDS_FOR_EPIC} shards)` : '');
+        }
+        wrap.querySelector('#mystery-continue').hidden = false;
+      });
+    });
+    wrap.querySelector('#mystery-continue').addEventListener('click', () => { wrap.remove(); resolve(); });
+  });
+}
+
 // ---------------- Lesson flow: intro → learn → practice → game → quiz → boss → reward ----------------
 export function lessonFlow(el, lessonId) {
   const lesson = LESSONS.find(l => l.id === lessonId);
   if (!lesson) { go('#/worlds'); return; }
   const quiz = QUIZZES[lessonId] || [];
   let stage = 0, stepIdx = 0, quizIdx = 0, quizCorrect = 0, bossHp = 100, gameScore = 0, combo = 0;
+  let bossWrong = 0, combo5Fired = false;
 
   const frame = inner => {
     el.innerHTML = `${hud()}
@@ -405,6 +468,7 @@ export function lessonFlow(el, lessonId) {
         gameScore = score;
         user.stats.gamesPlayed++;
         await missionProgress(user, 'game');
+        await challengeProgress(user, 'games');
         await rewardModal('🎮', 'Game Complete!', `You scored ${Math.round(score * 100)}%! On to the quiz…`);
         stage++; render();
       });
@@ -429,6 +493,7 @@ export function lessonFlow(el, lessonId) {
             sfx.correct(combo); flashEdge('good'); showCombo(combo);
             floatText(ev.clientX, ev.clientY, combo >= 3 ? `+5 XP 🔥` : '✓ +1');
             if (combo >= 3) user.xp += 5;
+            if (combo >= 5 && !combo5Fired) { combo5Fired = true; await challengeProgress(user, 'combo5'); }
             await missionProgress(user, 'correct');
           } else {
             combo = 0; sfx.wrong(); flashEdge('bad');
@@ -474,6 +539,7 @@ export function lessonFlow(el, lessonId) {
 
       const drawDefeat = () => {
         confetti(24);
+        if (bossWrong === 0) challengeProgress(user, 'no_miss_boss');
         frame(`
           ${bossHead('defeated', boss.defeat)}
           <div style="text-align:center;margin-top:1rem">
@@ -503,6 +569,7 @@ export function lessonFlow(el, lessonId) {
               if (bossHp <= 0) drawDefeat();
               else drawBoss(pick(boss.hits), 'hit');
             } else {
+              bossWrong++;
               flashEdge('bad'); sfx.wrong();
               floatText(ev.clientX, ev.clientY, '🛡️', 'var(--lava)');
               toast(q.explain, 2800);
@@ -529,7 +596,10 @@ export function lessonFlow(el, lessonId) {
       });
       await maybeUnlockNextWorld(user, lesson.worldId);
       await maybeRestoreMapPiece(user, lesson.worldId);
+      if (accuracy === 1) await challengeProgress(user, 'perfect_quiz');
+      await challengeProgress(user, 'lessons');
       confetti(40);
+      await showMysteryBox(user);
       frame(`
         <div style="text-align:center">
           <div style="font-size:4rem">🏆</div>

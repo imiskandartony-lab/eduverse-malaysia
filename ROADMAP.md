@@ -27,14 +27,14 @@ impact-per-effort; each item is shippable on its own.
 
 ## Tier 2 — Session variety
 
-- [ ] **5. Daily Challenge board** — one rotating challenge per day pulled
+- [x] **5. Daily Challenge board** *(shipped 2026-07-11)* — one rotating challenge per day pulled
       from completed topics ("Beat the volcano boss without a single miss",
       "Score 90% in a speed quiz") with gem rewards. Uses existing content.
-- [ ] **6. Two more game mechanics** — Sentence Builder (drag words into
+- [x] **6. Two more game mechanics** *(shipped 2026-07-11 — Sentence Builder, Math Ninja)* — Sentence Builder (drag words into
       order — perfect for BM ayat & English writing) and Math Ninja (slice the
       correct falling answers, misses cost energy). Both plug into the
       existing registry.
-- [ ] **7. Mystery Box after each lesson** — replace flat coin reward with a
+- [x] **7. Mystery Box after each lesson** *(shipped 2026-07-11 — 3-card pick, shard collection toward free epic item)* — replace flat coin reward with a
       choice of 3 face-down cards (coins / XP / rare-item shard; 10 shards =
       free epic item). Variable rewards beat fixed ones.
 - [ ] **8. Practice Arena** — free-play mode on the dashboard: pick any

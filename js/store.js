@@ -3,7 +3,11 @@
 // Both expose the same async API so views never care which backend runs.
 
 import { CONFIG } from './config.js';
-import { DAILY_MISSION_POOL } from './data/curriculum.js';
+import { DAILY_MISSION_POOL, DAILY_CHALLENGE_POOL } from './data/curriculum.js';
+
+// Days since epoch — used to rotate the daily challenge deterministically
+// (same challenge for everyone on a given day, no randomness needed).
+function dayIndex() { return Math.floor(Date.now() / 864e5); }
 
 const LS_KEY = 'eduverse-state-v1';
 
@@ -26,6 +30,7 @@ export function defaultProfile(name = 'Adventurer', role = 'student') {
     completedLessons: [], unlockedWorlds: ['english-kingdom', 'maths-volcano', 'bm-village'],
     achievements: [], mapPieces: [], mapComplete: false,
     missions: [], missionsDate: null,
+    challenge: null, challengeDate: null, shards: 0,
     stats: { correct: 0, wrong: 0, gamesPlayed: 0, minutes: 0, weakTopics: {} },
   };
 }
@@ -192,9 +197,16 @@ export function ensureDailyMissions(user) {
   if (user.mapComplete === undefined) user.mapComplete = false;
   if (user.shields === undefined) user.shields = 0;
   if (user.comebackDate === undefined) user.comebackDate = null;
+  if (user.shards === undefined) user.shards = 0;
+  if (user.challenge === undefined) { user.challenge = null; user.challengeDate = null; }
   if (user.missionsDate !== todayStr()) {
     user.missionsDate = todayStr();
     user.missions = DAILY_MISSION_POOL.map(m => ({ ...m, progress: 0, done: false, claimed: false }));
+  }
+  if (user.challengeDate !== todayStr()) {
+    user.challengeDate = todayStr();
+    const pick = DAILY_CHALLENGE_POOL[dayIndex() % DAILY_CHALLENGE_POOL.length];
+    user.challenge = { ...pick, progress: 0, done: false, claimed: false };
   }
   return user;
 }

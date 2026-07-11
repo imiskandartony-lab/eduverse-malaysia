@@ -565,6 +565,15 @@ export const SHOP_ITEMS = [
 
 export const AVATAR_BASES = ['🧒', '👧', '👦', '🧕', '👳'];
 
+// Daily Challenge: one harder, rarer goal per day (rotates by date), gem reward.
+export const DAILY_CHALLENGE_POOL = [
+  { id: 'c-perfect', text: 'Score 100% on any quiz', kind: 'perfect_quiz', target: 1, gems: 3, coins: 20 },
+  { id: 'c-noboss', text: 'Defeat a boss without a single wrong answer', kind: 'no_miss_boss', target: 1, gems: 3, coins: 20 },
+  { id: 'c-combo', text: 'Reach a ×5 combo in a quiz', kind: 'combo5', target: 1, gems: 3, coins: 20 },
+  { id: 'c-games', text: 'Play 2 mini-games', kind: 'games', target: 2, gems: 2, coins: 15 },
+  { id: 'c-lessons', text: 'Complete 2 lessons', kind: 'lessons', target: 2, gems: 3, coins: 25 },
+];
+
 export const DAILY_MISSION_POOL = [
   { id: 'm-lesson', text: 'Complete 1 lesson', target: 1, kind: 'lesson', xp: 30, coins: 15 },
   { id: 'm-quiz3', text: 'Answer 3 quiz questions correctly', target: 3, kind: 'correct', xp: 25, coins: 10 },
