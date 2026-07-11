@@ -21,6 +21,7 @@ export function defaultProfile(name = 'Adventurer', role = 'student') {
     xp: 0, coins: 100, gems: 0, level: 1,
     streak: 0, lastLogin: null,
     avatarBase: '🧒', equipped: {}, owned: [],
+    shields: 0, comebackDate: null,
     familyCode: role === 'student' ? makeFamilyCode() : null,
     completedLessons: [], unlockedWorlds: ['english-kingdom', 'maths-volcano', 'bm-village'],
     achievements: [],
@@ -184,12 +185,34 @@ export function ensureDailyMissions(user) {
   return user;
 }
 
-// ---------- Streak ----------
+// ---------- Streak (with shields & comeback) ----------
+// - consecutive days grow the streak; every 7th day forges a 🛡️ shield (max 3)
+// - a missed day consumes a shield instead of breaking the streak
+// - a truly broken streak triggers a "comeback day": double XP instead of guilt
 export function touchStreak(user) {
   const today = todayStr();
-  if (user.lastLogin === today) return { user, streakGrew: false };
+  user.shields = user.shields || 0;
+  const none = { user, streakGrew: false, shieldUsed: false, comeback: false, shieldEarned: false };
+  if (user.lastLogin === today) return none;
+
   const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-  user.streak = user.lastLogin === yesterday ? user.streak + 1 : 1;
+  let shieldUsed = false, comeback = false, shieldEarned = false;
+
+  if (user.lastLogin === yesterday) {
+    user.streak += 1;
+  } else if (user.lastLogin === null) {
+    user.streak = 1; // first ever login
+  } else if (user.shields > 0) {
+    user.shields -= 1; shieldUsed = true;
+    user.streak += 1; // the shield bridges the gap
+  } else {
+    user.streak = 1; comeback = true;
+    user.comebackDate = today; // double XP all day (see gamification.grant)
+  }
+
+  if (user.streak > 0 && user.streak % 7 === 0 && user.shields < 3) {
+    user.shields += 1; shieldEarned = true;
+  }
   user.lastLogin = today;
-  return { user, streakGrew: true };
+  return { user, streakGrew: true, shieldUsed, comeback, shieldEarned };
 }

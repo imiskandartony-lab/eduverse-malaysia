@@ -50,6 +50,42 @@ export function confetti(count = 24) {
   }
 }
 
+// ---------- Game-feel juice ----------
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Floating reward text at the tap point ("+XP", "💥 -34", …).
+export function floatText(x, y, text, color = 'var(--jungle-deep)') {
+  if (reducedMotion()) return;
+  const el = document.createElement('span');
+  el.className = 'float-text';
+  el.textContent = text;
+  el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.color = color;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('go'));
+  setTimeout(() => el.remove(), 950);
+}
+
+// Soft colored glow around the screen edge (green = correct, red = wrong).
+export function flashEdge(kind = 'good') {
+  if (reducedMotion()) return;
+  const el = document.createElement('div');
+  el.className = `edge-flash ${kind === 'good' ? 'flash-good' : 'flash-bad'}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 500);
+}
+
+// Big combo badge that pops in the middle of the screen from ×2 up.
+export function showCombo(n) {
+  if (n < 2 || reducedMotion()) return;
+  document.querySelector('.combo-badge')?.remove();
+  const el = document.createElement('div');
+  el.className = 'combo-badge';
+  el.innerHTML = `×${n} <small>COMBO!</small>`;
+  if (n >= 5) el.classList.add('combo-hot');
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
 // Text-to-speech narration (accessibility). BM voice when text looks Malay.
 export function speak(text, lang) {
   if (!('speechSynthesis' in window)) return;

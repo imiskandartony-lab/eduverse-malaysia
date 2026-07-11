@@ -2,7 +2,7 @@
 // Each game receives a mount element + config and calls onDone(score 0..1).
 // Games share reward plumbing via gamification.js so new games plug in easily.
 
-import { esc } from './ui.js';
+import { esc, floatText } from './ui.js';
 import { sfx } from './sounds.js';
 
 // ---------- Memory Match: pair terms with meanings ----------
@@ -36,6 +36,9 @@ export function memoryMatch(mount, pairs, onDone) {
         if (x.c.id === y.c.id) {
           x.btn.classList.add('matched'); y.btn.classList.add('matched');
           matched++; flipped = [];
+          sfx.correct(matched);
+          const r = y.btn.getBoundingClientRect();
+          floatText(r.left + r.width / 2, r.top, '🃏 Match!');
           if (matched === Math.min(4, pairs.length)) {
             const score = Math.max(.4, Math.min(1, (pairs.length * 1.6) / moves));
             setTimeout(() => onDone(score), 500);
@@ -82,10 +85,16 @@ export function balloonPop(mount, { question, correct, wrong }, onDone) {
     b.style.left = Math.random() * 80 + 5 + '%';
     b.style.background = colors[spawned % colors.length];
     b.style.animationDuration = 4 + Math.random() * 2 + 's';
-    b.addEventListener('click', () => {
+    b.addEventListener('click', ev => {
       b.remove();
-      if (item.ok) { popped++; status.textContent = `✅ ${popped}/${need} popped!`; if (popped >= need) finish(); }
-      else { mistakes++; status.textContent = '❌ Oops, that one was wrong!'; }
+      if (item.ok) {
+        popped++; sfx.correct(popped); floatText(ev.clientX, ev.clientY, '🎈 +1');
+        status.textContent = `✅ ${popped}/${need} popped!`;
+        if (popped >= need) finish();
+      } else {
+        mistakes++; sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
+        status.textContent = '❌ Oops, that one was wrong!';
+      }
     });
     b.addEventListener('animationend', () => b.remove());
     field.appendChild(b);
@@ -111,10 +120,12 @@ export function speedQuiz(mount, questions, onDone) {
       const b = document.createElement('button');
       b.className = 'quiz-option';
       b.textContent = opt;
-      b.addEventListener('click', () => {
+      b.addEventListener('click', ev => {
         const fast = (Date.now() - start) < 6000;
-        if (idx === q.answer) { score += fast ? 1 : 0.7; b.classList.add('correct'); }
-        else b.classList.add('wrong');
+        if (idx === q.answer) {
+          score += fast ? 1 : 0.7; b.classList.add('correct');
+          sfx.correct(i); floatText(ev.clientX, ev.clientY, fast ? '⚡ FAST!' : '✓');
+        } else { b.classList.add('wrong'); sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
         setTimeout(() => { i++; render(); }, 600);
       });
       box.appendChild(b);
@@ -172,10 +183,16 @@ export function catchAnswer(mount, { question, correct, wrong }, onDone) {
     d.className = 'faller'; d.textContent = t;
     d.style.left = Math.random() * 75 + 5 + '%';
     d.style.animationDuration = 3.2 + Math.random() * 1.6 + 's';
-    d.addEventListener('click', () => {
+    d.addEventListener('click', ev => {
       d.remove();
-      if (t === correct) { caught++; sfx.correct(); status.textContent = `✅ ${caught}/${need} caught!`; if (caught >= need) finish(); }
-      else { misses++; sfx.wrong(); status.textContent = '❌ Not that one!'; }
+      if (t === correct) {
+        caught++; sfx.correct(caught); floatText(ev.clientX, ev.clientY, '🧺 +1');
+        status.textContent = `✅ ${caught}/${need} caught!`;
+        if (caught >= need) finish();
+      } else {
+        misses++; sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
+        status.textContent = '❌ Not that one!';
+      }
     });
     d.addEventListener('animationend', () => d.remove());
     field.appendChild(d);

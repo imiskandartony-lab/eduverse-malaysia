@@ -11,7 +11,7 @@ import {
 } from './gamification.js';
 import { sfx, isMuted, setMuted } from './sounds.js';
 import { getAiKey, setAiKey } from './ai.js';
-import { toast, rewardModal, speak, esc, confetti } from './ui.js';
+import { toast, rewardModal, speak, esc, confetti, floatText, flashEdge, showCombo } from './ui.js';
 import { gameForLesson } from './games.js';
 
 let user = null;
@@ -21,6 +21,22 @@ export const isAdminUser = () =>
   user && (user.role === 'admin' || CONFIG.adminEmails.includes(store.email?.() || ''));
 export const homeRoute = () =>
   !user ? '#/' : user.role === 'student' ? '#/dashboard' : `#/${user.role}`;
+
+// Daily login: streak, shields, comeback bonus, login mission, streak coins.
+// Called on landing sign-in AND at boot (returning sessions skip the landing,
+// which used to mean the streak never grew for installed-app users).
+export async function applyDailyLogin() {
+  if (!user || user.role !== 'student') return;
+  ensureDailyMissions(user);
+  const { streakGrew, shieldUsed, comeback, shieldEarned } = touchStreak(user);
+  if (!streakGrew) return;
+  if (shieldUsed) toast(`🛡️ Streak shield used — your ${user.streak}-day streak is safe!`, 4000);
+  if (comeback) await rewardModal('⚡', 'Welcome back, hero!', 'We missed you! Everything you earn today is DOUBLE XP. Let\'s go!');
+  if (shieldEarned) await rewardModal('🛡️', 'Streak Shield forged!', `A ${user.streak}-day streak earned you a shield — it protects your streak if you ever miss a day. (${user.shields}/3)`);
+  await missionProgress(user, 'login');
+  await grant(user, { coins: user.streak * CONFIG.streakBonusCoins, reason: `(day ${user.streak} streak!)` });
+  await store.saveUser(user);
+}
 
 const go = route => { location.hash = route; };
 
@@ -33,7 +49,7 @@ function hud() {
     <span class="pill pill-rank"><span class="ico">${titleFor(levelFor(user.xp)).emoji}</span>${titleFor(levelFor(user.xp)).name}</span>
     <span class="pill"><span class="ico">🪙</span>${user.coins}</span>
     <span class="pill"><span class="ico">💎</span>${user.gems}</span>
-    <span class="pill"><span class="ico">🔥</span>${user.streak} day${user.streak === 1 ? '' : 's'}</span>
+    <span class="pill"><span class="ico">🔥</span>${user.streak} day${user.streak === 1 ? '' : 's'}${user.shields ? ` 🛡️${user.shields}` : ''}</span>
     <span class="spacer"></span>
     <button class="btn btn-ghost btn-sm" data-route="#/settings">⚙️</button>
   </div>
@@ -79,6 +95,7 @@ export function landing(el) {
       return;
     } finally { signingIn = false; setBusy(false); }
     if (!user) return;
+    await applyDailyLogin();
     // Route by what the account actually is, not the button that was tapped.
     if (role === 'admin') {
       if (isAdminUser()) { go('#/admin'); return; }
@@ -90,12 +107,6 @@ export function landing(el) {
         go(role === 'student' ? '#/dashboard' : `#/${role}`); return;
       }
       toast(`This Google account is registered as ${user.role} — opening that dashboard.`, 3500);
-    }
-    ensureDailyMissions(user);
-    const { streakGrew } = touchStreak(user);
-    if (streakGrew && user.role === 'student') {
-      await missionProgress(user, 'login');
-      await grant(user, { coins: user.streak * CONFIG.streakBonusCoins, reason: `(day ${user.streak} streak!)` });
     }
     await store.saveUser(user);
     go(homeRoute());
@@ -334,9 +345,16 @@ export function lessonFlow(el, lessonId) {
       p.options.forEach((o, i) => {
         const b = document.createElement('button');
         b.className = 'quiz-option'; b.textContent = o;
-        b.addEventListener('click', () => {
-          if (i === p.answer) { b.classList.add('correct'); toast('Correct! 🎉'); setTimeout(() => { stage++; render(); }, 700); }
-          else { b.classList.add('wrong'); toast('Try again — use the hint!'); }
+        b.addEventListener('click', ev => {
+          if (i === p.answer) {
+            b.classList.add('correct'); sfx.correct(); flashEdge('good');
+            floatText(ev.clientX, ev.clientY, '✓ Correct!');
+            setTimeout(() => { stage++; render(); }, 700);
+          } else {
+            b.classList.add('wrong'); sfx.wrong(); flashEdge('bad');
+            floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
+            toast('Try again — use the hint!');
+          }
         });
         opts.appendChild(b);
       });
@@ -364,15 +382,18 @@ export function lessonFlow(el, lessonId) {
       q.options.forEach((o, i) => {
         const b = document.createElement('button');
         b.className = 'quiz-option'; b.textContent = o;
-        b.addEventListener('click', async () => {
+        b.addEventListener('click', async ev => {
           opts.querySelectorAll('button').forEach(x => x.disabled = true);
           recordAnswer(user, lessonId, i === q.answer);
           if (i === q.answer) {
-            b.classList.add('correct'); quizCorrect++; combo++; sfx.correct();
-            if (combo >= 3) { toast(`🔥 COMBO ×${combo}! Bonus +5 XP`); user.xp += 5; }
+            b.classList.add('correct'); quizCorrect++; combo++;
+            sfx.correct(combo); flashEdge('good'); showCombo(combo);
+            floatText(ev.clientX, ev.clientY, combo >= 3 ? `+5 XP 🔥` : '✓ +1');
+            if (combo >= 3) user.xp += 5;
             await missionProgress(user, 'correct');
           } else {
-            combo = 0; sfx.wrong();
+            combo = 0; sfx.wrong(); flashEdge('bad');
+            floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
             b.classList.add('wrong');
             opts.children[q.answer].classList.add('correct');
             toast(q.explain, 3200);
@@ -401,14 +422,16 @@ export function lessonFlow(el, lessonId) {
         q.options.forEach((o, i) => {
           const b = document.createElement('button');
           b.className = 'quiz-option'; b.textContent = o;
-          b.addEventListener('click', () => {
+          b.addEventListener('click', ev => {
             if (i === q.answer) {
               bossHp = Math.max(0, bossHp - CONFIG.bossDamagePerCorrect);
-              sfx.bossHit();
-              toast('💥 Direct hit!');
+              sfx.bossHit(); flashEdge('good');
+              floatText(ev.clientX, ev.clientY, `💥 -${CONFIG.bossDamagePerCorrect}`, 'var(--sunset-deep)');
               recordAnswer(user, lessonId, true);
             } else {
-              toast('🛡️ The boss blocked it! ' + q.explain, 2800);
+              flashEdge('bad'); sfx.wrong();
+              floatText(ev.clientX, ev.clientY, '🛡️ Blocked!', 'var(--lava)');
+              toast(q.explain, 2800);
               recordAnswer(user, lessonId, false);
             }
             bi++;

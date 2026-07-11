@@ -35,6 +35,8 @@ const ACHIEVEMENTS = [
 ];
 
 export async function grant(user, { xp = 0, coins = 0, gems = 0, reason = '' }) {
+  // Comeback day: everything earned today is double XP (see store.touchStreak).
+  if (xp && user.comebackDate === today()) { xp *= 2; reason += ' ⚡×2'; }
   const beforeLevel = levelFor(user.xp);
   user.xp += xp; user.coins += coins; user.gems += gems;
   user.level = levelFor(user.xp);

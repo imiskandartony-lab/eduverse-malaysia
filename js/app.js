@@ -84,6 +84,7 @@ window.addEventListener('hashchange', route);
   const u = await store.getUser();
   if (u) {
     V.setUser(ensureDailyMissions(u));
+    await V.applyDailyLogin(); // streak/shields also count when the landing is skipped
     if (!location.hash || location.hash === '#/') {
       location.hash = u.role === 'student' ? '#/dashboard' : `#/${u.role}`;
     }

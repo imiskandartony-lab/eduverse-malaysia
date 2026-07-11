@@ -18,7 +18,11 @@ function tone(freq, dur = 0.12, type = 'sine', delay = 0, vol = 0.18) {
 }
 
 export const sfx = {
-  correct() { tone(660, .1, 'triangle'); tone(880, .14, 'triangle', .08); },
+  // Pitch climbs a semitone per combo step — rewards streaks audibly.
+  correct(combo = 0) {
+    const m = 2 ** (Math.min(combo, 8) / 12);
+    tone(660 * m, .1, 'triangle'); tone(880 * m, .14, 'triangle', .08);
+  },
   wrong() { tone(220, .2, 'sawtooth', 0, .1); tone(180, .25, 'sawtooth', .1, .1); },
   coin() { tone(988, .08, 'square', 0, .1); tone(1319, .18, 'square', .06, .1); },
   levelUp() { [523, 659, 784, 1047].forEach((f, i) => tone(f, .18, 'triangle', i * .1)); },

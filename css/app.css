@@ -209,6 +209,33 @@ a { color: var(--ocean); }
 .kancil-form input { flex: 1; border: 2px solid var(--line); border-radius: var(--r-pill); padding: .5rem .9rem; font-family: inherit; background: var(--paper); color: var(--ink); }
 .kancil-form button { border: none; background: var(--magic); color: #fff; border-radius: var(--r-pill); padding: .5rem 1rem; font-weight: 800; }
 
+/* ---------- Juice: floating text, edge flash, combo ---------- */
+.float-text {
+  position: fixed; z-index: 65; pointer-events: none;
+  font-family: var(--font-display); font-weight: 800; font-size: 1.3rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,.2); transform: translate(-50%, 0) scale(.6);
+  transition: transform .85s cubic-bezier(.2,.7,.3,1), opacity .85s;
+}
+.float-text.go { transform: translate(-50%, -70px) scale(1.15); opacity: 0; }
+.edge-flash { position: fixed; inset: 0; z-index: 64; pointer-events: none; animation: edge-fade .5s ease-out forwards; }
+.flash-good { box-shadow: inset 0 0 70px rgba(53,196,141,.55); }
+.flash-bad { box-shadow: inset 0 0 70px rgba(255,93,115,.45); }
+@keyframes edge-fade { from { opacity: 1; } to { opacity: 0; } }
+.combo-badge {
+  position: fixed; left: 50%; top: 22%; z-index: 66; pointer-events: none;
+  transform: translateX(-50%); font-family: var(--font-display); font-weight: 800;
+  font-size: 2.6rem; color: var(--gold); -webkit-text-stroke: 2px var(--gold-deep);
+  text-shadow: 0 4px 0 rgba(0,0,0,.18); animation: combo-pop 1s var(--ease-bounce) forwards;
+}
+.combo-badge small { font-size: 1.1rem; -webkit-text-stroke: 0; color: var(--sunset-deep); }
+.combo-badge.combo-hot { color: var(--lava); -webkit-text-stroke: 2px #C23B52; }
+@keyframes combo-pop {
+  0% { transform: translateX(-50%) scale(0) rotate(-8deg); }
+  35% { transform: translateX(-50%) scale(1.25) rotate(2deg); }
+  55% { transform: translateX(-50%) scale(1); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1); opacity: 0; }
+}
+
 /* ---------- Toast & modal ---------- */
 .toast { position: fixed; top: 14px; left: 50%; transform: translate(-50%, -120%); background: var(--ink); color: #fff; padding: .7rem 1.3rem; border-radius: var(--r-pill); font-weight: 800; z-index: 60; transition: transform var(--t-med) var(--ease-bounce); }
 .toast.show { transform: translate(-50%, 0); }

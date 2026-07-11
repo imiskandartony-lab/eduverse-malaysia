@@ -5,7 +5,7 @@ impact-per-effort; each item is shippable on its own.
 
 ## Tier 1 — Biggest boredom-killers (do first)
 
-- [ ] **1. Combo & speed feedback juice** — every correct answer pops "+XP"
+- [x] **1. Combo & speed feedback juice** *(shipped 2026-07-11)* — every correct answer pops "+XP"
       floating text at the tap point, screen edge flashes green, combo counter
       (×2, ×3…) grows on screen with rising sound pitch. Wrong answers shake
       the card, never the whole screen. *Why: moment-to-moment feedback is the
@@ -15,7 +15,7 @@ impact-per-effort; each item is shippable on its own.
       the Volcano, Sang Penyamun of the Forest…). Bosses taunt between
       questions ("Itu saja kemampuanmu?"). *Why: the boss is the emotional
       peak of every lesson; today it's the same 🐉 everywhere.*
-- [ ] **3. Streak shields & comeback bonus** — miss a day without losing the
+- [x] **3. Streak shields & comeback bonus** *(shipped 2026-07-11, incl. fix: streak now also counts when app opens straight to dashboard)* — miss a day without losing the
       streak (1 shield earned per 7-day streak); returning after a break gives
       a "Welcome back, hero!" double-XP day instead of a guilt trip. *Why:
       broken streaks are the #1 quit moment in habit apps.*
