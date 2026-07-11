@@ -1,6 +1,7 @@
 // EduVerse Malaysia — view renderers (SPA, hash-routed)
 
-import { WORLDS, LESSONS, QUIZZES, SHOP_ITEMS, AVATAR_BASES } from './data/curriculum.js';
+import { WORLDS, LESSONS, QUIZZES } from './data/curriculum.js';
+import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe } from './avatar.js';
 import { store, ensureDailyMissions, touchStreak } from './store.js';
 import { CONFIG } from './config.js';
 import {
@@ -23,15 +24,11 @@ export const homeRoute = () =>
 
 const go = route => { location.hash = route; };
 
-function avatarEmoji(u) {
-  return `${u.equipped.wings ? '🪽' : ''}${u.avatarBase}${u.equipped.hat ? findItem(u.equipped.hat).emoji : ''}${u.equipped.pet ? findItem(u.equipped.pet).emoji : ''}`;
-}
-const findItem = id => SHOP_ITEMS.find(s => s.id === id);
 
 function hud() {
   return `
   <div class="hud">
-    <span class="pill"><span class="ico">${esc(user.avatarBase)}</span>${esc(user.name)}</span>
+    <span class="pill"><span class="ico hud-hero">${renderAvatar(user, 20)}</span>${esc(user.name)}</span>
     <span class="pill"><span class="ico">⭐</span>Lv ${levelFor(user.xp)}</span>
     <span class="pill"><span class="ico">${titleFor(levelFor(user.xp)).emoji}</span>${titleFor(levelFor(user.xp)).name}</span>
     <span class="pill"><span class="ico">🪙</span>${user.coins}</span>
@@ -462,51 +459,95 @@ export function missions(el) {
   renderMissions(el.querySelector('#mission-list'));
 }
 
-// ---------------- Avatar & shop ----------------
-export function avatar(el) {
+// ---------------- Character editor ----------------
+function partPreview(p) {
+  if (p.type === 'skin') return `<span class="swatch" style="background:${p.c}"></span>`;
+  if (p.type === 'shirt' || p.type === 'pants') return `<span class="swatch" style="background:${p.c}"></span>`;
+  if (p.type === 'hair') return `<span class="swatch" style="background:${p.c};border-radius:50% 50% 30% 30%"></span>`;
+  if (p.type === 'pet') return `<span style="font-size:2rem">${p.emoji}</span>`;
+  if (p.type === 'wings') return `<span style="font-size:1.8rem">🪽</span>`;
+  const icons = { hat: { songkok: '🎩', cap: '🧢', crown: '👑', wizard: '🧙' }, glasses: { shades: '🕶️', round: '👓' }, emote: { jump: '🤸', spin: '🌀', jelly: '🪼' } };
+  return `<span style="font-size:1.8rem">${(icons[p.type] || {})[p.style || p.anim] || '✨'}</span>`;
+}
+
+export function avatar(el, _m, activeTab = 'shirt') {
+  const refund = migrateWardrobe(user);
+  if (refund) { store.saveUser(user); toast(`Wardrobe upgraded! ${refund} 🪙 refunded for retired items`); }
+
   const render = () => {
+    const parts = CATALOG.filter(p => p.type === activeTab);
     el.innerHTML = `${hud()}
-    <h2 class="display" style="margin:1rem 0">🎒 Your Avatar</h2>
-    <div class="card" style="text-align:center">
-      <div class="avatar-stage" aria-label="Your avatar">${avatarEmoji(user)}</div>
-      <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap">
-        ${AVATAR_BASES.map(b => `<button class="btn btn-ghost btn-sm ${b === user.avatarBase ? 'btn-gold' : ''}" data-base="${b}" style="font-size:1.3rem">${b}</button>`).join('')}
+    <h2 class="display" style="margin:1rem 0">🎭 Hero Studio</h2>
+    <div class="editor">
+      <div class="stage">
+        <div id="hero-holder">${renderAvatar(user)}</div>
+        <div class="podium"></div>
+        <div class="hero-name">${esc(user.name)}</div>
+        <button class="btn btn-purple btn-sm" id="play-emote" style="margin-top:.6rem">🎉 Emote!</button>
       </div>
-    </div>
-    <div class="card">
-      <h3 class="display">🛍️ Reward Shop <span class="pill" style="float:right">🪙 ${user.coins}</span></h3>
-      <p style="color:var(--ink-soft);margin:.3rem 0 1rem">Everything is earned by learning — never with real money.</p>
-      <div class="shop-grid">
-        ${SHOP_ITEMS.map(it => {
-          const owned = user.owned.includes(it.id);
-          const equipped = user.equipped[it.type] === it.id;
-          return `
-          <div class="shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}">
-            <div class="s-emoji">${it.emoji}</div>
-            <div style="font-weight:800;font-size:.85rem">${esc(it.name)}</div>
-            <button class="btn btn-sm ${owned ? 'btn-green' : 'btn-gold'}" data-item="${it.id}" style="margin-top:.4rem" ${!owned && user.coins < it.price ? 'disabled' : ''}>
-              ${equipped ? 'Remove' : owned ? 'Equip' : `${it.price} 🪙`}
-            </button>
-          </div>`;
-        }).join('')}
+      <div>
+        <div class="cat-tabs" role="tablist" aria-label="Item categories">
+          ${CATEGORIES.map(c => `
+            <button class="cat-tab ${c.type === activeTab ? 'active' : ''}" data-tab="${c.type}" role="tab" aria-selected="${c.type === activeTab}">
+              <span class="ct-icon">${c.icon}</span>${c.name}</button>`).join('')}
+        </div>
+        <p style="color:var(--ink-soft);font-size:.82rem;margin:0 0 .8rem">Every item is earned with 🪙 from learning — never real money.</p>
+        <div class="part-grid">
+          ${parts.map(p => {
+            const owned = user.owned.includes(p.id);
+            const equipped = user.equipped[p.type] === p.id;
+            const removable = equipped && !(p.type in DEFAULT_EQUIP_LOCK);
+            return `
+            <div class="part-card r-${p.rarity} ${equipped ? 'equipped' : ''}">
+              <div class="p-preview">${partPreview(p)}</div>
+              <div class="p-name">${esc(p.name)}</div>
+              <div class="p-rarity">${p.rarity}</div>
+              <button class="btn btn-sm ${owned ? 'btn-green' : 'btn-gold'}" data-part="${p.id}" style="margin-top:.4rem"
+                ${!owned && user.coins < p.price ? 'disabled' : ''}>
+                ${equipped ? (removable ? 'Take off' : 'Wearing') : owned ? 'Wear' : p.price === 0 ? 'Free' : `${p.price} 🪙`}
+              </button>
+            </div>`;
+          }).join('')}
+        </div>
       </div>
     </div>`;
-    el.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', async () => {
-      user.avatarBase = b.dataset.base; await store.saveUser(user); render();
-    }));
-    el.querySelectorAll('[data-item]').forEach(b => b.addEventListener('click', async () => {
-      const it = findItem(b.dataset.item);
-      if (!user.owned.includes(it.id)) {
-        if (user.coins < it.price) return;
-        user.coins -= it.price; user.owned.push(it.id);
-        await rewardModal(it.emoji, 'Unlocked!', `${it.name} is yours — earned with pure brain power!`);
-      } else if (user.equipped[it.type] === it.id) delete user.equipped[it.type];
-      else user.equipped[it.type] = it.id;
-      await store.saveUser(user); render();
+
+    el.querySelectorAll('[data-tab]').forEach(b =>
+      b.addEventListener('click', () => { activeTab = b.dataset.tab; render(); }));
+
+    el.querySelector('#play-emote').addEventListener('click', () => {
+      const em = findPart(user.equipped.emote) || findPart('emote-jump');
+      const svg = el.querySelector('.stage .hero-svg');
+      svg.classList.remove('emote-jump', 'emote-spin', 'emote-jelly');
+      void svg.getBoundingClientRect(); // restart animation
+      svg.classList.add(`emote-${em.anim}`);
+      sfx.levelUp();
+    });
+
+    el.querySelectorAll('[data-part]').forEach(b => b.addEventListener('click', async () => {
+      const p = findPart(b.dataset.part);
+      if (!user.owned.includes(p.id)) {
+        if (user.coins < p.price) return;
+        user.coins -= p.price; user.owned.push(p.id);
+        user.equipped[p.type] = p.id;
+        sfx.chest();
+        await rewardModal(p.rarity === 'legendary' ? '🌟' : '🎁', 'Unlocked!', `${p.name} is yours — earned with pure brain power!`);
+      } else if (user.equipped[p.type] === p.id) {
+        // Core slots always keep something on; accessories can come off.
+        if (p.type in DEFAULT_EQUIP_LOCK) { /* keep */ }
+        else delete user.equipped[p.type];
+      } else {
+        user.equipped[p.type] = p.id;
+        sfx.click();
+      }
+      await store.saveUser(user);
+      render();
     }));
   };
   render();
 }
+// Slots that must never be empty (a hero always has skin, hair, clothes).
+const DEFAULT_EQUIP_LOCK = { skin: 1, shirt: 1, pants: 1, hair: 1, emote: 1 };
 
 // ---------------- Leaderboard ----------------
 export async function leaderboard(el) {
@@ -690,7 +731,7 @@ export function admin(el) {
     <div class="stat"><div class="s-num">${LESSONS.length}</div><div class="s-label">Lessons</div></div>
     <div class="stat"><div class="s-num">${Object.values(QUIZZES).flat().length}</div><div class="s-label">Quiz questions</div></div>
     <div class="stat"><div class="s-num">${WORLDS.length}</div><div class="s-label">Worlds</div></div>
-    <div class="stat"><div class="s-num">${SHOP_ITEMS.length}</div><div class="s-label">Shop items</div></div>
+    <div class="stat"><div class="s-num">${CATALOG.length}</div><div class="s-label">Wardrobe items</div></div>
   </div>
   <div class="card">
     <h3 class="display">📚 Curriculum content</h3>

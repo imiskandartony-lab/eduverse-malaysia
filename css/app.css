@@ -50,6 +50,8 @@ a { color: var(--ocean); }
   box-shadow: var(--shadow);
 }
 .pill .ico { font-size: 1rem; }
+.pill .hud-hero svg { display: block; height: 26px; width: auto; }
+.pill .hud-hero .hero-body-group, .pill .hud-hero .hero-wings, .pill .hud-hero .hero-pet { animation: none; }
 
 /* XP bar */
 .xpbar { position: relative; height: 14px; background: var(--line); border-radius: var(--r-pill); overflow: hidden; }
@@ -102,13 +104,75 @@ a { color: var(--ocean); }
 .boss-hp { height: 18px; border-radius: var(--r-pill); background: var(--line); overflow: hidden; }
 .boss-hp > span { display: block; height: 100%; background: linear-gradient(90deg, var(--lava), var(--sunset)); transition: width .4s var(--ease-bounce); }
 
-/* ---------- Avatar shop ---------- */
-.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--sp-2); }
-.shop-item { text-align: center; background: var(--card); border-radius: var(--r-card); padding: var(--sp-3); box-shadow: var(--shadow); border: 3px solid transparent; }
-.shop-item .s-emoji { font-size: 2.2rem; }
-.shop-item.owned { border-color: var(--jungle); }
-.shop-item.equipped { border-color: var(--gold); }
-.avatar-stage { font-size: 4.5rem; text-align: center; padding: var(--sp-3); }
+/* ---------- Character editor ---------- */
+.editor { display: grid; grid-template-columns: minmax(240px, 320px) 1fr; gap: var(--sp-3); align-items: start; }
+@media (max-width: 720px) { .editor { grid-template-columns: 1fr; } }
+
+.stage {
+  position: relative; text-align: center; padding: var(--sp-4) var(--sp-3) var(--sp-3);
+  background:
+    radial-gradient(ellipse 70% 32% at 50% 96%, rgba(30,42,74,.16), transparent 70%),
+    linear-gradient(180deg, var(--card) 55%, var(--card-tint));
+  border-radius: var(--r-card); box-shadow: var(--shadow); overflow: hidden;
+}
+.stage::before { /* spotlight cone */
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 46% 60% at 50% 30%, rgba(255,233,168,.4), transparent 70%);
+  pointer-events: none;
+}
+:root[data-theme="dark"] .stage::before { background: radial-gradient(ellipse 46% 60% at 50% 30%, rgba(140,108,245,.25), transparent 70%); }
+.podium {
+  width: 72%; height: 26px; margin: -12px auto 0; border-radius: 50%;
+  background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+  box-shadow: 0 6px 0 var(--gold-deep), inset 0 3px 6px rgba(255,255,255,.5);
+}
+.hero-svg { display: block; margin: 0 auto; overflow: visible; }
+.hero-body-group { animation: hero-idle 3.2s ease-in-out infinite; transform-origin: 100px 260px; }
+.hero-wings { animation: wing-flap 3.2s ease-in-out infinite; transform-origin: 100px 130px; }
+.hero-pet { animation: hero-idle 3.2s ease-in-out infinite .4s; }
+@keyframes hero-idle { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.02,.97); } }
+@keyframes wing-flap { 0%,100% { transform: scaleX(1); } 50% { transform: scaleX(.94); } }
+.hero-svg.emote-jump .hero-body-group { animation: emote-jump .7s var(--ease-bounce); }
+@keyframes emote-jump { 0%,100% { transform: translateY(0) scale(1,1); } 30% { transform: translateY(6px) scale(1.06,.9); } 60% { transform: translateY(-34px) scale(.96,1.06); } }
+.hero-svg.emote-spin .hero-body-group { animation: emote-spin .8s ease-in-out; transform-origin: 100px 150px; }
+@keyframes emote-spin { to { transform: rotateY(360deg); } }
+.hero-svg.emote-jelly .hero-body-group { animation: emote-jelly .9s var(--ease-bounce); }
+@keyframes emote-jelly { 0%,100% { transform: scale(1,1); } 25% { transform: scale(1.18,.82); } 50% { transform: scale(.86,1.14); } 75% { transform: scale(1.08,.94); } }
+.hero-name { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin-top: .5rem; position: relative; }
+
+.cat-tabs { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: .4rem; margin-bottom: var(--sp-2); scrollbar-width: thin; }
+.cat-tab {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 3px solid var(--line); background: var(--card); border-radius: 14px;
+  padding: .45rem .7rem; font-weight: 800; font-size: .72rem; color: var(--ink-soft);
+  transition: border-color var(--t-fast), transform var(--t-fast) var(--ease-bounce);
+}
+.cat-tab .ct-icon { font-size: 1.2rem; }
+.cat-tab:hover { transform: translateY(-2px); }
+.cat-tab.active { border-color: var(--sunset); color: var(--sunset-deep); background: color-mix(in srgb, var(--sunset) 10%, var(--card)); }
+
+.part-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: var(--sp-2); }
+.part-card {
+  position: relative; text-align: center; background: var(--card); border-radius: 16px;
+  padding: .7rem .5rem .6rem; box-shadow: var(--shadow); border: 3px solid var(--line);
+}
+.part-card .p-preview { height: 58px; display: grid; place-items: center; }
+.part-card .p-name { font-weight: 800; font-size: .78rem; line-height: 1.2; min-height: 2em; }
+.part-card .p-rarity { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.part-card.r-common { border-color: var(--line); }
+.part-card.r-rare { border-color: var(--ocean); }
+.part-card.r-epic { border-color: var(--magic); }
+.part-card.r-legendary { border-color: var(--gold); box-shadow: 0 6px 0 rgba(224,168,28,.35), 0 0 14px rgba(255,201,60,.35); }
+.r-common .p-rarity { color: var(--ink-soft); }
+.r-rare .p-rarity { color: var(--ocean); }
+.r-epic .p-rarity { color: var(--magic-deep); }
+.r-legendary .p-rarity { color: var(--gold-deep); }
+.part-card.equipped::after {
+  content: '✔ ON'; position: absolute; top: -10px; right: -6px;
+  background: var(--jungle); color: #fff; font-size: .62rem; font-weight: 800;
+  padding: .15rem .45rem; border-radius: var(--r-pill); box-shadow: var(--shadow);
+}
+.swatch { width: 40px; height: 40px; border-radius: 12px; border: 3px solid rgba(0,0,0,.15); display: inline-block; }
 
 /* ---------- Leaderboard ---------- */
 .rank-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-btn); margin-bottom: var(--sp-1); background: var(--card); box-shadow: var(--shadow); }

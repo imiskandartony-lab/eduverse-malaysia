@@ -1,11 +1,11 @@
 // EduVerse Malaysia — service worker (offline-first)
-const CACHE = 'eduverse-v7';
+const CACHE = 'eduverse-v8';
 const CORE = [
   './', './index.html', './manifest.json',
   './css/tokens.css', './css/app.css',
   './js/app.js', './js/views.js', './js/store.js',
   './js/gamification.js', './js/games.js', './js/ai.js', './js/ui.js',
-  './js/config.js', './js/sounds.js', './js/data/curriculum.js',
+  './js/config.js', './js/sounds.js', './js/avatar.js', './js/data/curriculum.js',
   './assets/icons/icon.svg',
 ];
 
