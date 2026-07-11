@@ -75,6 +75,30 @@ export const LESSONS = [
     practice: { q: 'Berapakah 24 ÷ 6?', options: ['3', '4', '6', '8'], answer: 1, hint: 'Fikir songsangan: 6 × ? = 24.' },
   },
   {
+    id: 'mv-4', worldId: 'maths-volcano', title: 'Wang (Money)', year: 5,
+    kssr: 'KSSR Matematik T5 — 4.1: Wang hingga RM1 000 000',
+    xp: 60, coins: 30, difficulty: 2, prerequisite: 'mv-3',
+    intro: 'Pedagang gunung berapi membuka kedai! Kira WANG dengan tepat — tersilap kira, harta karunmu lebur dalam lava!',
+    steps: [
+      'Wang Malaysia: <b>sen</b> dan <b>ringgit (RM)</b>. 100 sen = RM1. Tulis dengan dua tempat perpuluhan: RM5.60, RM12.05.',
+      '<b>Tambah dan tolak wang</b> seperti nombor perpuluhan — jajarkan titik: RM12.50 + RM3.80 = RM16.30. Baki = wang dibayar − harga: bayar RM50 untuk barang RM34.20, baki RM15.80.',
+      '<b>Masalah harian:</b> 4 buku berharga RM6.50 sebuah → 4 × RM6.50 = RM26.00. Kongsi RM90 antara 3 orang → RM90 ÷ 3 = RM30 seorang.',
+    ],
+    practice: { q: 'Amir membayar RM20 untuk sebuah buku berharga RM13.40. Berapakah bakinya?', options: ['RM6.60', 'RM7.60', 'RM6.40', 'RM7.40'], answer: 0, hint: 'RM20.00 − RM13.40. Kira sen dahulu: 100 − 40.' },
+  },
+  {
+    id: 'mv-5', worldId: 'maths-volcano', title: 'Masa (Time)', year: 5,
+    kssr: 'KSSR Matematik T5 — 5.1: Masa dan waktu',
+    xp: 60, coins: 30, difficulty: 2, prerequisite: 'mv-4',
+    intro: 'Jam gergasi gunung berapi telah rosak! Betulkan MASA sebelum letusan seterusnya — setiap saat sangat berharga!',
+    steps: [
+      'Unit masa: 60 saat = 1 minit, 60 minit = 1 jam, 24 jam = 1 hari, 7 hari = 1 minggu, 12 bulan = 1 tahun.',
+      '<b>Sistem 12 jam dan 24 jam:</b> 3:00 petang = 1500, 7:30 pagi = 0730, 11:45 malam = 2345. Selepas 1259, terus ke 1300!',
+      '<b>Tempoh masa:</b> dari 8:30 pagi hingga 11:00 pagi = 2 jam 30 minit. Kira jam dahulu, kemudian minit.',
+    ],
+    practice: { q: 'Pukul 4:15 petang dalam sistem 24 jam ialah…', options: ['0415', '1215', '1615', '1815'], answer: 2, hint: 'Petang: tambah 12 kepada jam. 4 + 12 = ?' },
+  },
+  {
     id: 'fi-1', worldId: 'fraction-island', title: 'Equivalent Fractions', year: 5,
     kssr: 'KSSR Matematik T5 — 2.1: Pecahan setara',
     xp: 60, coins: 25, difficulty: 2, prerequisite: null,
@@ -157,6 +181,18 @@ export const QUIZZES = {
     { q: 'Kamu mahu teh ____ kopi?', options: ['atau', 'tetapi', 'kerana', 'lalu'], answer: 0, explain: '"Atau" digunakan untuk pilihan.', hint: 'Pilih satu daripada dua.', difficulty: 1 },
     { q: 'Badannya kecil ____ tenaganya kuat.', options: ['dan', 'jika', 'tetapi', 'sambil'], answer: 2, explain: '"Tetapi" menunjukkan pertentangan: kecil lawan kuat.', hint: 'Dua keadaan yang BERLAWANAN.', difficulty: 2 },
     { q: 'Kita akan bertolak awal pagi ____ jalan raya sesak.', options: ['walaupun', 'sambil', 'atau', 'lalu'], answer: 0, explain: '"Walaupun" menunjukkan keadaan yang bertentangan dengan tindakan.', hint: 'Tetap bertolak MESKIPUN ada halangan.', difficulty: 3 },
+  ],
+  'mv-4': [
+    { q: 'RM7.25 + RM2.50 = ?', options: ['RM9.75', 'RM9.25', 'RM10.75', 'RM8.75'], answer: 0, explain: 'Jajarkan titik: 7.25 + 2.50 = 9.75.', hint: 'Tambah sen dahulu: 25 + 50.', difficulty: 1 },
+    { q: 'Berapa keping duit RM10 dalam RM100?', options: ['5', '10', '20', '100'], answer: 1, explain: 'RM100 ÷ RM10 = 10 keping.', hint: '10 × ? = 100.', difficulty: 1 },
+    { q: 'Sebatang pensel berharga RM1.20. Berapakah harga 5 batang?', options: ['RM5.20', 'RM6.00', 'RM6.20', 'RM5.00'], answer: 1, explain: '5 × RM1.20 = RM6.00.', hint: '5 × 120 sen = 600 sen.', difficulty: 2 },
+    { q: 'Puan Siti membayar RM50 untuk barang berharga RM37.65. Berapakah bakinya?', options: ['RM12.35', 'RM13.35', 'RM12.65', 'RM13.45'], answer: 0, explain: 'RM50.00 − RM37.65 = RM12.35.', hint: 'Kira sen dahulu: 100 − 65 = 35 sen.', difficulty: 3 },
+  ],
+  'mv-5': [
+    { q: 'Berapa minit dalam 2 jam?', options: ['60', '100', '120', '200'], answer: 2, explain: '2 × 60 minit = 120 minit.', hint: '1 jam = 60 minit.', difficulty: 1 },
+    { q: '9:00 malam dalam sistem 24 jam ialah…', options: ['0900', '1900', '2100', '2300'], answer: 2, explain: 'Malam: 9 + 12 = 21 → 2100.', hint: 'Selepas tengah hari, tambah 12.', difficulty: 1 },
+    { q: 'Kelas bermula pukul 7:30 pagi dan tamat pukul 10:00 pagi. Berapakah tempohnya?', options: ['2 jam', '2 jam 30 minit', '3 jam', '3 jam 30 minit'], answer: 1, explain: '7:30 → 10:00 ialah 2 jam 30 minit.', hint: '7:30 → 9:30 (2 jam), 9:30 → 10:00 (30 minit).', difficulty: 2 },
+    { q: 'Sebuah bas bertolak pukul 1445 dan tiba pukul 1620. Berapa lamakah perjalanan itu?', options: ['1 jam 25 minit', '1 jam 35 minit', '2 jam 25 minit', '1 jam 45 minit'], answer: 1, explain: '1445 → 1600 ialah 1 jam 15 minit, tambah 20 minit = 1 jam 35 minit.', hint: '1445 → 1545 (1 jam), 1545 → 1620 (35 minit).', difficulty: 3 },
   ],
   'fi-1': [
     { q: '1/2 = ?/8', options: ['2', '3', '4', '6'], answer: 2, explain: 'Multiply top and bottom by 4: 4/8.', hint: '2 × ? = 8, apply the same to the top.', difficulty: 2 },
