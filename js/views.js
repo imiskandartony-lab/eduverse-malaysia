@@ -23,6 +23,15 @@ export const isAdminUser = () =>
 export const homeRoute = () =>
   !user ? '#/' : user.role === 'student' ? '#/dashboard' : `#/${user.role}`;
 
+// Full sign-out: ends the Firebase session (so the Google account picker
+// appears next time — see store.js signIn) and drops any leftover local state.
+async function doLogout() {
+  localStorage.removeItem('eduverse-pending-role');
+  await store.signOut();
+  user = null;
+  go('#/');
+}
+
 // Daily login: streak, shields, comeback bonus, login mission, streak coins.
 // Called on landing sign-in AND at boot (returning sessions skip the landing,
 // which used to mean the streak never grew for installed-app users).
@@ -897,7 +906,7 @@ export function settings(el) {
   el.querySelector('#opt-dys').addEventListener('change', e => { root.dataset.font = e.target.checked ? 'dyslexic' : ''; persist(); });
   el.querySelector('#opt-cb').addEventListener('change', e => { root.dataset.colorblind = e.target.checked ? 'on' : ''; persist(); });
   el.querySelector('#opt-size').addEventListener('change', e => { root.dataset.fontsize = e.target.value; persist(); });
-  el.querySelector('#logout').addEventListener('click', async () => { await store.signOut(); user = null; go('#/'); });
+  el.querySelector('#logout').addEventListener('click', doLogout);
 }
 
 // ---------------- Parent dashboard ----------------
@@ -921,7 +930,7 @@ export async function parent(el, _m, selectedIdx = 0) {
       </form>
       <p id="link-msg" style="color:var(--lava);font-weight:700;margin-top:.8rem"></p>
     </div>`;
-    el.querySelector('#logout').addEventListener('click', async () => { await store.signOut(); user = null; go('#/'); });
+    el.querySelector('#logout').addEventListener('click', doLogout);
     el.querySelector('#link-form').addEventListener('submit', async e => {
       e.preventDefault();
       try {
@@ -966,7 +975,7 @@ export async function parent(el, _m, selectedIdx = 0) {
     <p>${child.achievements.length ? achievementList(child).filter(a => a.owned).map(a => `${a.emoji} ${a.name}`).join(' · ') : 'None yet — encourage the first quest!'}</p>
   </div>
   <div class="card"><button class="btn btn-green" id="report">⬇️ Download report</button></div>`;
-  el.querySelector('#logout').addEventListener('click', async () => { await store.signOut(); user = null; go('#/'); });
+  el.querySelector('#logout').addEventListener('click', doLogout);
   el.querySelector('#report').addEventListener('click', () => downloadReport(child));
   el.querySelectorAll('[data-child]').forEach(b =>
     b.addEventListener('click', () => parent(el, null, Number(b.dataset.child))));
@@ -1015,7 +1024,7 @@ export function teacher(el) {
       <button class="btn btn-sm" id="hw-assign">Assign to class</button>
     </div>
   </div>`;
-  el.querySelector('#logout').addEventListener('click', async () => { await store.signOut(); user = null; go('#/'); });
+  el.querySelector('#logout').addEventListener('click', doLogout);
   el.querySelector('#hw-assign').addEventListener('click', () =>
     toast('📨 Homework assigned! (Connect Firebase to notify students)'));
 }
@@ -1042,7 +1051,7 @@ export function admin(el) {
     <p style="color:var(--ink-soft);margin-top:.8rem;font-size:.85rem">
       Content lives in <code>js/data/curriculum.js</code> (or Firestore <code>lessons</code>/<code>quizzes</code> collections when Firebase is connected).</p>
   </div>`;
-  el.querySelector('#logout').addEventListener('click', async () => { await store.signOut(); user = null; go('#/'); });
+  el.querySelector('#logout').addEventListener('click', doLogout);
 }
 
 // ---------------- Helpers ----------------

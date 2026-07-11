@@ -134,6 +134,10 @@ class FirebaseStore {
       return this._createProfile(this.authInst.currentUser, name, role);
     }
     const provider = new this.auth.GoogleAuthProvider();
+    // Always show Google's account chooser — without this, Google silently
+    // re-signs-in with whichever account the browser/device remembers, so
+    // logging out would never actually offer a different email.
+    provider.setCustomParameters({ prompt: 'select_account' });
     // Remember intent so the profile can be created even if the tab reloads
     // mid sign-in (getUser() finishes the job on return).
     localStorage.setItem('eduverse-pending-role', JSON.stringify({ name, role }));
