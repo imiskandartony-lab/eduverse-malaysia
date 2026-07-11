@@ -1,7 +1,7 @@
 // EduVerse Malaysia — view renderers (SPA, hash-routed)
 
 import { WORLDS, LESSONS, QUIZZES, BOSSES, MAP_STORY, MAP_FINALE } from './data/curriculum.js';
-import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe, DEFAULT_EQUIP } from './avatar.js';
+import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe, DEFAULT_EQUIP, fileToAvatarDataURL } from './avatar.js';
 import { store, ensureDailyMissions, touchStreak } from './store.js';
 import { CONFIG } from './config.js';
 import {
@@ -54,7 +54,7 @@ const go = route => { location.hash = route; };
 function hud() {
   return `
   <div class="hud">
-    <span class="pill"><span class="ico hud-hero">${renderAvatar(user, 20)}</span>${esc(user.name)}</span>
+    <span class="pill"><span class="ico hud-hero">${user.photoURL ? `<img src="${user.photoURL}" class="hud-hero-photo" alt="">` : renderAvatar(user, 20)}</span>${esc(user.name)}</span>
     <span class="pill"><span class="ico">⭐</span>Lv ${levelFor(user.xp)}</span>
     <span class="pill pill-rank"><span class="ico">${titleFor(levelFor(user.xp)).emoji}</span>${titleFor(levelFor(user.xp)).name}</span>
     <span class="pill"><span class="ico">🪙</span>${user.coins}</span>
@@ -1184,10 +1184,16 @@ export function avatar(el, _m, activeTab = 'shirt') {
     <h2 class="display" style="margin:1rem 0">🎭 Hero Studio</h2>
     <div class="editor">
       <div class="stage">
-        <div id="hero-holder">${renderAvatar(user)}</div>
+        <div id="hero-holder">${user.photoURL ? `<img src="${user.photoURL}" class="hero-photo" alt="Your photo">` : renderAvatar(user)}</div>
         <div class="podium"></div>
         <div class="hero-name">${esc(user.name)}</div>
-        <button class="btn btn-purple btn-sm" id="play-emote" style="margin-top:.6rem">🎉 Emote!</button>
+        ${user.photoURL
+          ? `<button class="btn btn-ghost btn-sm" id="remove-photo" style="margin-top:.6rem">🎭 Back to cartoon hero</button>`
+          : `<button class="btn btn-purple btn-sm" id="play-emote" style="margin-top:.6rem">🎉 Emote!</button>`}
+        <div style="margin-top:.5rem">
+          <button class="btn btn-ghost btn-sm" id="upload-photo">📷 ${user.photoURL ? 'Change' : 'Use my own'} photo</button>
+          <input type="file" id="photo-input" accept="image/*" hidden />
+        </div>
       </div>
       <div>
         <div class="cat-tabs" role="tablist" aria-label="Item categories">
@@ -1219,13 +1225,30 @@ export function avatar(el, _m, activeTab = 'shirt') {
     el.querySelectorAll('[data-tab]').forEach(b =>
       b.addEventListener('click', () => { activeTab = b.dataset.tab; render(); }));
 
-    el.querySelector('#play-emote').addEventListener('click', () => {
+    el.querySelector('#play-emote')?.addEventListener('click', () => {
       const em = findPart(user.equipped.emote) || findPart('emote-jump');
       const svg = el.querySelector('.stage .hero-svg');
       svg.classList.remove('emote-jump', 'emote-spin', 'emote-jelly');
       void svg.getBoundingClientRect(); // restart animation
       svg.classList.add(`emote-${em.anim}`);
       sfx.levelUp();
+    });
+    el.querySelector('#remove-photo')?.addEventListener('click', async () => {
+      user.photoURL = null;
+      await store.saveUser(user);
+      render();
+    });
+    el.querySelector('#upload-photo').addEventListener('click', () => el.querySelector('#photo-input').click());
+    el.querySelector('#photo-input').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await fileToAvatarDataURL(file);
+        user.photoURL = dataUrl;
+        await store.saveUser(user);
+        toast('📷 Photo updated!');
+        render();
+      } catch (err) { toast(err.message, 3500); }
     });
 
     el.querySelectorAll('[data-part]').forEach(b => b.addEventListener('click', async () => {

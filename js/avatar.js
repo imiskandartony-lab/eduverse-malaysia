@@ -163,6 +163,33 @@ function shirtPattern(part) {
   return '';
 }
 
+// Compress a chosen photo down to a small square JPEG data URL so it can be
+// stored directly on the profile document — no Storage bucket, no upload
+// step, works identically offline (localStorage) and online (Firestore).
+export function fileToAvatarDataURL(file, size = 220, quality = 0.78) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) { reject(new Error('Please choose an image file.')); return; }
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read that file.'));
+    reader.onload = () => {
+      img.onerror = () => reject(new Error('Could not read that image.'));
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        // Cover-crop to a square so portrait/landscape photos both fill the frame.
+        const s = Math.min(img.width, img.height);
+        const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+        ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // The hero: chunky head, capsule body — layered back-to-front.
 export function renderAvatar(user, size = 220) {
   const eq = { ...DEFAULT_EQUIP, ...(user.equipped || {}) };

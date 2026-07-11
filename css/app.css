@@ -52,6 +52,7 @@ a { color: var(--ocean); }
 .pill .ico { font-size: 1rem; }
 .pill .hud-hero svg { display: block; height: 26px; width: auto; }
 .pill .hud-hero .hero-body-group, .pill .hud-hero .hero-wings, .pill .hud-hero .hero-pet { animation: none; }
+.hud-hero-photo { display: block; width: 26px; height: 26px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
 
 /* XP bar */
 .xpbar { position: relative; height: 14px; background: var(--line); border-radius: var(--r-pill); overflow: hidden; }
@@ -165,6 +166,11 @@ a { color: var(--ocean); }
   box-shadow: 0 6px 0 var(--gold-deep), inset 0 3px 6px rgba(255,255,255,.5);
 }
 .hero-svg { display: block; margin: 0 auto; overflow: visible; }
+.hero-photo {
+  display: block; width: 180px; height: 180px; margin: 0 auto; border-radius: 28px;
+  object-fit: cover; border: 5px solid var(--gold); box-shadow: var(--shadow-pop);
+  animation: hero-idle 3.2s ease-in-out infinite;
+}
 .hero-body-group { animation: hero-idle 3.2s ease-in-out infinite; transform-origin: 100px 260px; }
 .hero-wings { animation: wing-flap 3.2s ease-in-out infinite; transform-origin: 100px 130px; }
 .hero-pet { animation: hero-idle 3.2s ease-in-out infinite .4s; }
