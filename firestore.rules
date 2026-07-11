@@ -60,6 +60,14 @@ service cloud.firestore {
     // Leaderboards: read-only to clients; written by trusted tooling/admin.
     match /leaderboards/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
 
+    // Public scoreboard mirror: each student writes only their own slim entry.
+    match /leaderboard/{uid} {
+      allow read: if signedIn();
+      allow write: if isSelf(uid)
+        && request.resource.data.keys().hasOnly(['name', 'xp']);
+      allow delete: if isAdmin();
+    }
+
     // Assignments: teacher creates, assigned students read.
     match /assignments/{id} {
       allow read: if signedIn();

@@ -618,7 +618,17 @@ const DEFAULT_EQUIP_LOCK = { skin: 1, shirt: 1, pants: 1, hair: 1, emote: 1 };
 // ---------------- Leaderboard ----------------
 export async function leaderboard(el) {
   el.innerHTML = `${hud()}<h2 class="display" style="margin:1rem 0">🏆 Leaderboard</h2><div class="card"><p>Loading…</p></div>`;
-  const rows = await store.getLeaderboard();
+  let rows;
+  try { rows = await store.getLeaderboard(); }
+  catch (e) {
+    el.lastElementChild.innerHTML = '<p>Could not load ranks — check your connection and try again.</p>';
+    console.warn('leaderboard:', e);
+    return;
+  }
+  if (!rows.length) {
+    el.lastElementChild.innerHTML = '<p>No heroes on the board yet — complete a quest to claim the first spot! 🏅</p>';
+    return;
+  }
   const medals = ['🥇', '🥈', '🥉'];
   el.lastElementChild.innerHTML = rows.map((r, i) => `
     <div class="rank-row ${r.me ? 'me' : ''}">

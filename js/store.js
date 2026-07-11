@@ -108,7 +108,15 @@ class FirebaseStore {
   }
   async saveUser(user) {
     const u = this.authInst.currentUser;
-    if (u) await this.fs.setDoc(this._ref(u.uid), user, { merge: true });
+    if (u) {
+      await this.fs.setDoc(this._ref(u.uid), user, { merge: true });
+      // Public scoreboard entry (name + xp only) — students cannot list the
+      // users collection, so ranks are served from this slim mirror instead.
+      if (user.role === 'student') {
+        this.fs.setDoc(this.fs.doc(this.db, 'leaderboard', u.uid),
+          { name: user.name, xp: user.xp }).catch(() => {});
+      }
+    }
     return user;
   }
   email() { return this.authInst.currentUser?.email || null; }
@@ -165,10 +173,11 @@ class FirebaseStore {
     return kids;
   }
   async getLeaderboard() {
-    const q = this.fs.query(this.fs.collection(this.db, 'users'),
+    const q = this.fs.query(this.fs.collection(this.db, 'leaderboard'),
       this.fs.orderBy('xp', 'desc'), this.fs.limit(20));
     const snap = await this.fs.getDocs(q);
-    return snap.docs.map(d => ({ name: d.data().name, xp: d.data().xp }));
+    const me = this.authInst.currentUser?.uid;
+    return snap.docs.map(d => ({ name: d.data().name, xp: d.data().xp, me: d.id === me }));
   }
 }
 
