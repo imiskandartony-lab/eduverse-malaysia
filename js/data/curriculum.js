@@ -463,6 +463,74 @@ export const QUIZZES = {
   ],
 };
 
+// World bosses — each battle has a personality, not just a health bar.
+// English worlds taunt in English, BM worlds in BM, maths worlds match medium.
+export const BOSSES = {
+  'english-kingdom': {
+    name: 'Sir Jumble', emoji: '🃏', title: 'The Word-Scrambling Knight',
+    intro: 'Halt! I am Sir Jumble — I twist every sentence in this kingdom. Untangle THIS, little scholar!',
+    blocks: ['Ha! My shield of confusion holds!', 'Wrong! Words bow to ME!', 'Is that your best grammar?'],
+    hits: ['Impossible! My jumble... unravelling!', 'Argh! Too... precise!'],
+    defeat: 'Enough! The words are yours... arrange them wisely, champion.',
+  },
+  'grammar-forest': {
+    name: 'Sang Penyamun', emoji: '🐺', title: 'Bandit Wolf of Lost Tenses',
+    intro: 'Grrr… I stole every -ED in this forest! Get past ME to take them back!',
+    blocks: ['Wrong tense, cub!', 'The past stays STOLEN!', 'Grrrahaha! Try again!'],
+    hits: ['Yowch! My loot!', 'No! The verbs escape!'],
+    defeat: 'Ahwoooo… take the tenses… you have EARNED them.',
+  },
+  'reading-castle': {
+    name: 'The Page Phantom', emoji: '👻', title: 'Haunter of Half-Read Books',
+    intro: 'Whooo dares read carefully in MY castle? Skim! Skim like everyone else!',
+    blocks: ['You missed the clue! Whooohaha!', 'Read it AGAIN, mortal!', 'The meaning slips past you!'],
+    hits: ['Nooo! You found the hidden clue!', 'My fog of confusion… clearing!'],
+    defeat: 'You… actually read every word. The library is yours, sharp-eyes.',
+  },
+  'maths-volcano': {
+    name: 'Tok Naga', emoji: '🐉', title: 'Penunggu Gunung Berapi',
+    intro: 'GRAAAH! Akulah Tok Naga! Nombor-nombor gunung ini milikku. Berani kau mencabar?',
+    blocks: ['Salah kira! Rasakan bahang lava!', 'HAHA! Sisikku kalis angka!', 'Cuba lagi, wira kecil!'],
+    hits: ['Aduhh! Kiraanmu tepat!', 'Mustahil! Sisikku retak!'],
+    defeat: 'Cukup… cukup! Kau memang pakar nombor. Gunung ini mengiktirafmu, wira.',
+  },
+  'fraction-island': {
+    name: 'Kapten Cebis', emoji: '🏴‍☠️', title: 'The Pirate Who Splits Everything',
+    intro: 'Yarrr! I be Kapten Cebis — I split every treasure into pieces ye cannot count! Prove me wrong!',
+    blocks: ['Yarr! Wrong slice, landlubber!', 'Me treasure stays scattered!', 'Ye be all at sea!'],
+    hits: ['Blimey! Ye counted me pieces!', 'Me map… it be simplifying!'],
+    defeat: 'Shiver me timbers… ye put every piece together. The treasure be yours, matey.',
+  },
+  'geometry-city': {
+    name: 'Robo Sudut', emoji: '🤖', title: 'Robot Sesat Ukur',
+    intro: 'BEEP! Akulah Robo Sudut. Bandar ini akan SENGET selamanya! Betulkan jika kau mampu!',
+    blocks: ['RALAT! Sudut kamu tidak tepat! BEEP!', 'Sistem pertahanan: AKTIF!', 'Pengiraan kamu... DITOLAK!'],
+    hits: ['AMARAN! Litar terjejas!', 'BEEP-BOOP! Geometri kamu... sempurna?!'],
+    defeat: 'Sistem... dikalahkan. Bandar ini... lurus... kembali. Tahniah... juru-ukur muda.',
+  },
+  'bm-village': {
+    name: 'Gergasi Kata', emoji: '👹', title: 'Gergasi Pelahap Perkataan',
+    intro: 'HOHOHO! Akulah Gergasi Kata! Semua perkataan kampung ini telah kutelan. Rebutlah kembali!',
+    blocks: ['NYUM! Salah! Satu lagi perkataan kutelan!', 'HOHO! Lidahmu kelu?', 'Cubalah lagi, cilik!'],
+    hits: ['UWAA! Perkataan itu terlepas!', 'Perutku! Kata-kata memberontak!'],
+    defeat: 'Ampun… ampun! Ambillah semua perkataan ini. Kampung Bahasa selamat… buat masa ini!',
+  },
+  'tatabahasa-temple': {
+    name: 'Penjaga Batu', emoji: '🗿', title: 'Golem Kuil Tatabahasa',
+    intro: 'Berhenti. Hanya yang fasih imbuhan boleh melepasi pintu ini. Buktikan dirimu.',
+    blocks: ['Imbuhan salah. Pintu kekal tertutup.', 'Batu tidak berganjak untuk kesilapan.', 'Sekali lagi.'],
+    hits: ['Retak… jawapanmu… tepat.', 'Kuasa bahasamu… menggegar kuil!'],
+    defeat: 'Pintu… terbuka. Kuil ini mengiktiraf penguasaan bahasamu. Masuklah, cendekiawan.',
+  },
+  'karangan-kingdom': {
+    name: 'Ratu Dakwat', emoji: '🦑', title: 'Penguasa Lautan Dakwat',
+    intro: 'Hihihi! Akulah Ratu Dakwat — kuconteng semua karangan menjadi kacau! Susunkan semula jika berani!',
+    blocks: ['SIMBUR! Dakwat menutup jawapanmu!', 'Karanganmu bercelaru, hihihi!', 'Tiada penanda wacana boleh menyelamatkanmu!'],
+    hits: ['Dakwatku… kering?!', 'Tidak! Ayatmu terlalu tersusun!'],
+    defeat: 'Baiklah… penamu lebih kuat daripada dakwatku. Menulislah, pujangga muda.',
+  },
+};
+
 export const SHOP_ITEMS = [
   { id: 'hat-songkok', name: 'Songkok', emoji: '🎩', type: 'hat', price: 80 },
   { id: 'hat-crown', name: 'Royal Crown', emoji: '👑', type: 'hat', price: 300 },

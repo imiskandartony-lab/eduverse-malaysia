@@ -10,7 +10,7 @@ impact-per-effort; each item is shippable on its own.
       (×2, ×3…) grows on screen with rising sound pitch. Wrong answers shake
       the card, never the whole screen. *Why: moment-to-moment feedback is the
       #1 "game feel" gap vs real games.*
-- [ ] **2. Boss variety & personalities** — each world gets a named boss with
+- [x] **2. Boss variety & personalities** *(shipped 2026-07-11 — 9 named bosses)* — each world gets a named boss with
       its own look, intro taunt, attack animation and defeat pose (Tok Naga of
       the Volcano, Sang Penyamun of the Forest…). Bosses taunt between
       questions ("Itu saja kemampuanmu?"). *Why: the boss is the emotional

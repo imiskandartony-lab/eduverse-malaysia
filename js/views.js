@@ -1,6 +1,6 @@
 // EduVerse Malaysia — view renderers (SPA, hash-routed)
 
-import { WORLDS, LESSONS, QUIZZES } from './data/curriculum.js';
+import { WORLDS, LESSONS, QUIZZES, BOSSES } from './data/curriculum.js';
 import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe } from './avatar.js';
 import { store, ensureDailyMissions, touchStreak } from './store.js';
 import { CONFIG } from './config.js';
@@ -405,17 +405,49 @@ export function lessonFlow(el, lessonId) {
       el.querySelector('#hint').addEventListener('click', () => rewardModal('🦌', 'Hint!', esc(q.hint)));
     },
     boss() {
-      // Boss battle: reuse quiz questions shuffled; each correct hit damages the boss.
+      // Named world boss: intro taunt → battle (taunts on block, flinch on
+      // hit) → defeat pose. Questions reuse the lesson quiz, shuffled.
+      const boss = BOSSES[lesson.worldId] || {
+        name: 'Shadow Beast', emoji: '🐉', title: 'Guardian of the Quest',
+        intro: 'None shall pass without proving their knowledge!',
+        blocks: ['Blocked!'], hits: ['Argh!'], defeat: 'You win... this time.',
+      };
       const pool = [...quiz].sort(() => Math.random() - 0.5);
-      let bi = 0;
-      const drawBoss = () => {
+      let bi = 0, met = false;
+      const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+      const bossHead = (state, line) => `
+        <div style="text-align:center">
+          <div class="boss-avatar ${state}">${boss.emoji}</div>
+          <div class="boss-name">${esc(boss.name)}</div>
+          <div class="boss-title">${esc(boss.title)}</div>
+          ${line ? `<p class="boss-taunt">“${esc(line)}”</p>` : ''}
+        </div>`;
+
+      const drawIntro = () => {
+        frame(`
+          ${bossHead('menace', boss.intro)}
+          <div style="text-align:center;margin-top:1rem">
+            <button class="btn" id="fight">⚔️ Fight!</button>
+          </div>`);
+        el.querySelector('#fight').addEventListener('click', () => { met = true; drawBoss(); });
+      };
+
+      const drawDefeat = () => {
+        confetti(24);
+        frame(`
+          ${bossHead('defeated', boss.defeat)}
+          <div style="text-align:center;margin-top:1rem">
+            <button class="btn btn-gold" id="claim">🏆 Claim victory!</button>
+          </div>`);
+        el.querySelector('#claim').addEventListener('click', () => { stage++; render(); });
+      };
+
+      const drawBoss = (line, state = 'menace') => {
         const q = pool[bi % pool.length];
         frame(`
-          <div style="text-align:center">
-            <div style="font-size:3.4rem">${bossHp > 60 ? '🐉' : bossHp > 30 ? '😰' : '🥵'}</div>
-            <h2 class="display">Boss Battle!</h2>
-            <div class="boss-hp" style="margin:.8rem 0" role="progressbar" aria-label="Boss health" aria-valuenow="${bossHp}" aria-valuemax="100"><span style="width:${bossHp}%"></span></div>
-          </div>
+          ${bossHead(state, line)}
+          <div class="boss-hp" style="margin:.8rem 0" role="progressbar" aria-label="Boss health" aria-valuenow="${bossHp}" aria-valuemax="100"><span style="width:${bossHp}%"></span></div>
           <p class="lesson-step" style="margin:.6rem 0">${esc(q.q)}</p>
           <div id="opts"></div>`);
         const opts = el.querySelector('#opts');
@@ -423,24 +455,26 @@ export function lessonFlow(el, lessonId) {
           const b = document.createElement('button');
           b.className = 'quiz-option'; b.textContent = o;
           b.addEventListener('click', ev => {
+            bi++;
             if (i === q.answer) {
               bossHp = Math.max(0, bossHp - CONFIG.bossDamagePerCorrect);
               sfx.bossHit(); flashEdge('good');
               floatText(ev.clientX, ev.clientY, `💥 -${CONFIG.bossDamagePerCorrect}`, 'var(--sunset-deep)');
               recordAnswer(user, lessonId, true);
+              if (bossHp <= 0) drawDefeat();
+              else drawBoss(pick(boss.hits), 'hit');
             } else {
               flashEdge('bad'); sfx.wrong();
-              floatText(ev.clientX, ev.clientY, '🛡️ Blocked!', 'var(--lava)');
+              floatText(ev.clientX, ev.clientY, '🛡️', 'var(--lava)');
               toast(q.explain, 2800);
               recordAnswer(user, lessonId, false);
+              drawBoss(pick(boss.blocks), 'block');
             }
-            bi++;
-            if (bossHp <= 0) { stage++; render(); } else drawBoss();
           });
           opts.appendChild(b);
         });
       };
-      drawBoss();
+      met ? drawBoss() : drawIntro();
     },
     async reward() {
       const accuracy = quiz.length ? quizCorrect / quiz.length : 1;

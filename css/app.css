@@ -101,6 +101,33 @@ a { color: var(--ocean); }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
 .lesson-step { font-size: 1.1rem; line-height: 1.75; }
+/* Named boss presentation */
+.boss-avatar { font-size: 4.2rem; display: inline-block; filter: drop-shadow(0 6px 6px rgba(0,0,0,.25)); }
+.boss-avatar.menace { animation: boss-menace 2.2s ease-in-out infinite; }
+@keyframes boss-menace { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-6px) scale(1.06); } }
+.boss-avatar.hit { animation: boss-flinch .45s ease-out; }
+@keyframes boss-flinch {
+  0% { transform: translateX(0) scale(1); filter: drop-shadow(0 0 14px var(--sunset)); }
+  25% { transform: translateX(-10px) rotate(-8deg) scale(.94); }
+  55% { transform: translateX(8px) rotate(5deg); }
+  100% { transform: translateX(0) scale(1); }
+}
+.boss-avatar.block { animation: boss-gloat .5s var(--ease-bounce); }
+@keyframes boss-gloat { 0%,100% { transform: scale(1); } 45% { transform: scale(1.18) rotate(3deg); } }
+.boss-avatar.defeated { animation: boss-defeat 1s ease-in forwards; }
+@keyframes boss-defeat {
+  0% { transform: rotate(0); filter: grayscale(0); }
+  60% { transform: rotate(80deg) translateY(8px); }
+  100% { transform: rotate(94deg) translateY(14px); filter: grayscale(.9); opacity: .75; }
+}
+.boss-name {
+  font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
+  color: var(--lava); text-shadow: 0 2px 0 rgba(0,0,0,.12); margin-top: .3rem;
+}
+.boss-title { color: var(--ink-soft); font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .1em; }
+.boss-taunt { font-style: italic; font-weight: 700; margin: .7rem auto 0; max-width: 42ch;
+  background: var(--card-tint); border-radius: 14px; padding: .5rem .9rem; display: inline-block; }
+
 .boss-hp { height: 18px; border-radius: var(--r-pill); background: var(--line); overflow: hidden; }
 .boss-hp > span { display: block; height: 100%; background: linear-gradient(90deg, var(--lava), var(--sunset)); transition: width .4s var(--ease-bounce); }
 
