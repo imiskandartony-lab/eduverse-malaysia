@@ -58,6 +58,6 @@ impact-per-effort; each item is shippable on its own.
 
 ## Content backlog (quick wins any time)
 
-- [ ] Tatabahasa Temple needs 2 more lessons (imbuhan akhiran, kata ganda)
-- [ ] Year 6 track (same worlds, harder lesson chains)
+- [x] Tatabahasa Temple needs 2 more lessons (imbuhan akhiran, kata ganda) *(shipped 2026-07-11 — added tt-2, tt-3, plus tt-y6-1 Ayat Majmuk)*
+- [x] Year 6 track (same worlds, harder lesson chains) *(shipped 2026-07-11 — one Y6 capstone lesson added to all 9 worlds)*
 - [ ] More wardrobe: baju kurung, kebaya, wau backpack, hijab options
