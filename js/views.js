@@ -240,15 +240,26 @@ export function dashboard(el) {
     <h3 class="display">⭐ Today's Missions <span style="color:var(--ink-soft);font-size:.85rem">(${missionsDone}/${user.missions.length})</span></h3>
     <div id="mission-list"></div>
   </div>
-  <button class="card" style="width:100%;text-align:left;cursor:pointer" id="arena-btn">
-    <div style="display:flex;align-items:center;gap:1rem">
-      <span style="font-size:2rem">🏋️</span>
-      <div>
-        <strong class="display" style="font-size:1.05rem">Practice Arena</strong>
-        <div style="color:var(--ink-soft);font-size:.85rem">No stakes, no boss — just chase your best combo!</div>
+  <div style="display:flex;gap:.8rem;flex-wrap:wrap">
+    <button class="card" style="flex:1;min-width:220px;text-align:left;cursor:pointer" id="arena-btn">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span style="font-size:2rem">🏋️</span>
+        <div>
+          <strong class="display" style="font-size:1.05rem">Practice Arena</strong>
+          <div style="color:var(--ink-soft);font-size:.85rem">No stakes — just chase your best combo!</div>
+        </div>
       </div>
-    </div>
-  </button>
+    </button>
+    <button class="card" style="flex:1;min-width:220px;text-align:left;cursor:pointer" id="duel-btn">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span style="font-size:2rem">⚔️</span>
+        <div>
+          <strong class="display" style="font-size:1.05rem">Friend Duel</strong>
+          <div style="color:var(--ink-soft);font-size:.85rem">Pass the tablet — best of 5!${user.duelWins ? ` 🏆 ${user.duelWins} won` : ''}</div>
+        </div>
+      </div>
+    </button>
+  </div>
   <div class="card">
     <h3 class="display">🏅 Achievements</h3>
     <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
@@ -260,6 +271,7 @@ export function dashboard(el) {
   renderMissions(el.querySelector('#mission-list'));
   el.querySelector('#continue-btn')?.addEventListener('click', () => go(`#/lesson/${rec.lesson.id}`));
   el.querySelector('#arena-btn').addEventListener('click', () => go('#/arena'));
+  el.querySelector('#duel-btn').addEventListener('click', () => go('#/duel'));
   el.querySelector('#claim-challenge')?.addEventListener('click', async () => {
     await claimChallenge(user); dashboard(el);
   });
@@ -783,6 +795,135 @@ export function arenaPlay(el, lessonId) {
     });
   };
   render();
+}
+
+// ---------------- Friend Duel: same-device pass-and-play, best of 5 ----------------
+// No second account is ever created — Player 2 is just a display name for
+// this session. Nothing here touches coins/XP; it's pure bragging rights.
+export function duelHome(el) {
+  const done = LESSONS.filter(l => user.completedLessons.includes(l.id));
+  const ROUNDS = 5;
+  let lesson = null, deck = [], roundIdx = 0, scoreP1 = 0, scoreP2 = 0, p2name = 'Friend';
+  let roundAnswered = { p1: null, p2: null };
+
+  const frame = inner => { el.innerHTML = `${hud()}<div class="card">${inner}</div>`; };
+
+  function renderSetup() {
+    el.innerHTML = `${hud()}
+    <h2 class="display" style="margin:1rem 0">⚔️ Friend Duel</h2>
+    <p style="color:var(--ink-soft)">Pick a topic you've mastered, then pass the tablet for a best-of-5 showdown. No accounts, no stakes — just bragging rights!</p>
+    <div class="card">
+      <label style="font-weight:800;display:block;margin-bottom:.4rem">Friend's name</label>
+      <input id="p2-name" type="text" maxlength="16" placeholder="e.g. Aiman"
+        style="width:100%;border:3px solid var(--line);border-radius:var(--r-pill);padding:.6rem 1rem;font-family:inherit;font-weight:700;background:var(--card);color:var(--ink);box-sizing:border-box" />
+    </div>
+    ${done.length ? done.map(l => {
+      const world = WORLDS.find(w => w.id === l.worldId);
+      return `
+      <button class="card duel-pick" style="width:100%;text-align:left;cursor:pointer" data-lesson="${l.id}">
+        <div style="display:flex;align-items:center;gap:1rem">
+          <span style="font-size:1.8rem">${world.emoji}</span>
+          <div style="flex:1"><strong class="display">${esc(l.title)}</strong>
+            <div style="color:var(--ink-soft);font-size:.82rem">${esc(world.name)}</div></div>
+          <span class="pill">Pick ▶</span>
+        </div>
+      </button>`;
+    }).join('') : '<div class="card">Finish a quest first to unlock duel topics!</div>'}`;
+    el.querySelectorAll('.duel-pick').forEach(b => b.addEventListener('click', () => {
+      lesson = LESSONS.find(l => l.id === b.dataset.lesson);
+      const nameInput = el.querySelector('#p2-name').value.trim();
+      p2name = nameInput || 'Friend';
+      deck = [...(QUIZZES[lesson.id] || [])].sort(() => Math.random() - 0.5);
+      roundIdx = 0; scoreP1 = 0; scoreP2 = 0;
+      renderPassGate('p1');
+    }));
+  }
+
+  function currentQuestion() {
+    if (roundIdx > 0 && roundIdx % deck.length === 0) deck = [...deck].sort(() => Math.random() - 0.5);
+    return deck[roundIdx % deck.length];
+  }
+
+  function renderPassGate(who) {
+    const name = who === 'p1' ? user.name : p2name;
+    const emoji = who === 'p1' ? '🧑‍🚀' : '🧒';
+    frame(`
+      <div style="text-align:center">
+        <p style="color:var(--ink-soft);font-weight:800">Round ${roundIdx + 1} of ${ROUNDS}</p>
+        <div style="font-size:3rem;margin:.6rem 0">${emoji}</div>
+        <h3 class="display">Pass the tablet to<br>${esc(name)}!</h3>
+        <p style="color:var(--ink-soft);margin:.6rem 0 1rem">No peeking, ${who === 'p1' ? esc(p2name) : esc(user.name)}! 🙈</p>
+        <button class="btn btn-purple" id="reveal">I'm ${esc(name)} — Show my question! 👀</button>
+      </div>`);
+    el.querySelector('#reveal').addEventListener('click', () => renderQuestion(who));
+  }
+
+  function renderQuestion(who) {
+    const q = currentQuestion();
+    const name = who === 'p1' ? user.name : p2name;
+    frame(`
+      <p style="color:var(--ink-soft);font-weight:800">${esc(name)}'s turn — Round ${roundIdx + 1}/${ROUNDS}</p>
+      <p class="lesson-step" style="margin:1rem 0">${esc(q.q)}</p>
+      <div id="opts"></div>`);
+    const opts = el.querySelector('#opts');
+    q.options.forEach((o, i) => {
+      const b = document.createElement('button');
+      b.className = 'quiz-option'; b.textContent = o;
+      b.addEventListener('click', ev => {
+        opts.querySelectorAll('button').forEach(x => x.disabled = true);
+        const correct = i === q.answer;
+        if (correct) { b.classList.add('correct'); sfx.correct(); flashEdge('good'); floatText(ev.clientX, ev.clientY, '✓'); }
+        else { b.classList.add('wrong'); opts.children[q.answer].classList.add('correct'); sfx.wrong(); flashEdge('bad'); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        roundAnswered[who] = correct;
+        setTimeout(() => {
+          if (who === 'p1') renderPassGate('p2');
+          else finishRound();
+        }, 900);
+      });
+      opts.appendChild(b);
+    });
+  }
+
+  function finishRound() {
+    if (roundAnswered.p1) scoreP1++;
+    if (roundAnswered.p2) scoreP2++;
+    frame(`
+      <div style="text-align:center">
+        <h3 class="display">Round ${roundIdx + 1} result</h3>
+        <div style="display:flex;justify-content:center;gap:2rem;margin:1rem 0">
+          <div><div style="font-size:2rem">${roundAnswered.p1 ? '✅' : '❌'}</div><b>${esc(user.name)}</b></div>
+          <div style="font-size:1.6rem;color:var(--ink-soft);align-self:center">vs</div>
+          <div><div style="font-size:2rem">${roundAnswered.p2 ? '✅' : '❌'}</div><b>${esc(p2name)}</b></div>
+        </div>
+        <p class="pill" style="font-size:1rem">Score: ${scoreP1} – ${scoreP2}</p>
+        <button class="btn" id="next-round" style="margin-top:1rem">${roundIdx + 1 < ROUNDS ? 'Next round ▶' : 'See final result 🏆'}</button>
+      </div>`);
+    el.querySelector('#next-round').addEventListener('click', async () => {
+      roundIdx++; roundAnswered = { p1: null, p2: null };
+      if (roundIdx < ROUNDS) renderPassGate('p1');
+      else await renderResults();
+    });
+  }
+
+  async function renderResults() {
+    const winner = scoreP1 === scoreP2 ? null : (scoreP1 > scoreP2 ? user.name : p2name);
+    if (scoreP1 > scoreP2) { user.duelWins = (user.duelWins || 0) + 1; await store.saveUser(user); }
+    confetti(50); sfx.levelUp();
+    frame(`
+      <div style="text-align:center">
+        <div style="font-size:4rem">${winner ? '🏆' : '🤝'}</div>
+        <h2 class="display">${winner ? `${esc(winner)} wins!` : "It's a tie!"}</h2>
+        <p class="lesson-step" style="margin:.8rem 0">Final score: <b>${esc(user.name)} ${scoreP1} – ${scoreP2} ${esc(p2name)}</b></p>
+        <p style="color:var(--ink-soft)">${winner ? 'Great match — challenge them again anytime!' : 'An even match! Run it back?'}</p>
+        <div style="display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+          <button class="btn btn-purple" id="rematch">⚔️ Rematch</button>
+          <button class="btn" data-route="#/dashboard">Home 🏝️</button>
+        </div>
+      </div>`);
+    el.querySelector('#rematch').addEventListener('click', renderSetup);
+  }
+
+  renderSetup();
 }
 
 // ---------------- Missions page ----------------

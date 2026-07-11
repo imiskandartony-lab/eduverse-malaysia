@@ -37,6 +37,7 @@ const routes = [
   { re: /^#\/missions$/, render: el => V.missions(el), role: 'student' },
   { re: /^#\/arena$/, render: el => V.arenaHome(el), role: 'student' },
   { re: /^#\/arena\/([\w-]+)$/, render: (el, m) => V.arenaPlay(el, m[1]), role: 'student' },
+  { re: /^#\/duel$/, render: el => V.duelHome(el), role: 'student' },
   { re: /^#\/spin$/, render: el => V.spin(el), role: 'student' },
   { re: /^#\/avatar$/, render: el => V.avatar(el), role: 'student' },
   { re: /^#\/leaderboard$/, render: el => V.leaderboard(el), role: 'student' },

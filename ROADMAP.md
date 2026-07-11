@@ -53,7 +53,7 @@ impact-per-effort; each item is shippable on its own.
       questions ("Say the word!"). English Kingdom listening/speaking coverage.
 - [ ] **13. Background music** — gentle chiptune loop per world (WebAudio,
       generated, no assets), boss battle theme, mute respects settings.
-- [ ] **14. Friend duel (same device)** — pass-the-tablet 5-question duel,
+- [x] **14. Friend duel (same device)** *(shipped 2026-07-12 — pass-and-play best-of-5, no accounts, bragging-rights win counter)* — pass-the-tablet 5-question duel,
       two heroes side by side. No accounts or chat needed — safe by design.
 
 ## Content backlog (quick wins any time)

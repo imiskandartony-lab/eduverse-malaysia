@@ -30,7 +30,7 @@ export function defaultProfile(name = 'Adventurer', role = 'student') {
     completedLessons: [], unlockedWorlds: ['english-kingdom', 'maths-volcano', 'bm-village'],
     achievements: [], mapPieces: [], mapComplete: false,
     missions: [], missionsDate: null,
-    challenge: null, challengeDate: null, shards: 0, arenaBest: {},
+    challenge: null, challengeDate: null, shards: 0, arenaBest: {}, duelWins: 0,
     stats: { correct: 0, wrong: 0, gamesPlayed: 0, minutes: 0, weakTopics: {} },
   };
 }
@@ -204,6 +204,7 @@ export function ensureDailyMissions(user) {
   if (user.shards === undefined) user.shards = 0;
   if (user.challenge === undefined) { user.challenge = null; user.challengeDate = null; }
   if (user.arenaBest === undefined) user.arenaBest = {};
+  if (user.duelWins === undefined) user.duelWins = 0;
   if (user.missionsDate !== todayStr()) {
     user.missionsDate = todayStr();
     user.missions = DAILY_MISSION_POOL.map(m => ({ ...m, progress: 0, done: false, claimed: false }));
