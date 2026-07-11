@@ -1,7 +1,7 @@
 // EduVerse Malaysia — view renderers (SPA, hash-routed)
 
 import { WORLDS, LESSONS, QUIZZES, BOSSES, MAP_STORY, MAP_FINALE } from './data/curriculum.js';
-import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe } from './avatar.js';
+import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe, DEFAULT_EQUIP } from './avatar.js';
 import { store, ensureDailyMissions, touchStreak } from './store.js';
 import { CONFIG } from './config.js';
 import {
@@ -68,18 +68,58 @@ function hud() {
   </div>`;
 }
 
-// ---------------- Landing / auth ----------------
+// ---------------- Landing / auth: game title screen ----------------
 export function landing(el) {
+  const demoHero = { equipped: { ...DEFAULT_EQUIP, hair: 'hair-spikes', shirt: 'shirt-jungle', pants: 'pants-track', glasses: 'glasses-cool' } };
+  const particles = ['🪙', '⭐', '✨', '🪙', '⭐'];
+  const roleCards = [
+    { role: 'student', emoji: '🧑‍🚀', label: "I'm a Student", featured: true, tag: '⭐ Start here' },
+    { role: 'parent', emoji: '👨‍👩‍👧', label: "I'm a Parent" },
+    { role: 'teacher', emoji: '🧑‍🏫', label: "I'm a Teacher" },
+    { role: 'admin', emoji: '🛠️', label: 'Admin' },
+  ];
+
   el.innerHTML = `
   <div class="landing">
-    <div style="font-size:4rem">🦌🗺️</div>
-    <h1>EduVerse <span style="color:var(--sunset)">Malaysia</span></h1>
-    <p class="tagline">Where learning becomes an adventure — KSSR Year 5 & 6</p>
+    <span class="landing-bg-island" style="left:6%;top:6%;animation-delay:-1s">🏝️</span>
+    <span class="landing-bg-island" style="right:8%;top:14%;font-size:2.6rem;animation-delay:-4s">🏔️</span>
+    <span class="landing-bg-island" style="left:12%;top:58%;font-size:2.2rem;animation-delay:-6.5s">☁️</span>
+    <div class="landing-particles">
+      ${particles.map((p, i) => `<span style="left:${8 + i * 20}%;animation-duration:${9 + i * 2}s;animation-delay:${-i * 3}s">${p}</span>`).join('')}
+    </div>
+
+    <div class="title-logo">Edu<span class="word-my">Verse</span></div>
+    <div class="title-sub">MALAYSIA</div>
+    <p class="tagline">Where learning becomes an adventure — KSSR Year 5 &amp; 6</p>
+
+    <div class="landing-stage">
+      <div class="stage" id="mascot-stage" role="button" tabindex="0" aria-label="Tap Sang Kancil and your hero to say hi">
+        <div class="landing-hero-row">
+          <span class="landing-kancil">🦌</span>
+          <div id="hero-preview">${renderAvatar(demoHero, 96)}</div>
+        </div>
+        <div class="podium"></div>
+      </div>
+      <div class="tap-hint">👉 tap us to say hi!</div>
+    </div>
+
+    <p class="path-eyebrow">🗺️ 9 worlds waiting for you</p>
+    <div class="world-ticker-wrap">
+      <div class="world-ticker" id="world-ticker">
+        ${[...WORLDS, ...WORLDS].map(w => `
+          <button type="button" class="world-badge" data-world-name="${esc(w.name)}" data-world-desc="${esc(w.desc)}">
+            <span class="wb-emoji">${w.emoji}</span>${esc(w.name)}
+          </button>`).join('')}
+      </div>
+    </div>
+
+    <p class="path-eyebrow">Choose your path</p>
     <div class="role-grid">
-      <button class="role-card" data-role="student"><span class="r-emoji">🧑‍🚀</span>I'm a Student</button>
-      <button class="role-card" data-role="parent"><span class="r-emoji">👨‍👩‍👧</span>I'm a Parent</button>
-      <button class="role-card" data-role="teacher"><span class="r-emoji">🧑‍🏫</span>I'm a Teacher</button>
-      <button class="role-card" data-role="admin"><span class="r-emoji">🛠️</span>Admin</button>
+      ${roleCards.map(r => `
+        <button class="role-card ${r.featured ? 'featured' : ''}" data-role="${r.role}">
+          ${r.tag ? `<span class="r-tag">${r.tag}</span>` : ''}
+          <span class="r-emoji-ring">${r.emoji}</span>${esc(r.label)}
+        </button>`).join('')}
     </div>
     <form id="name-form" hidden style="margin-top:1.2rem;display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap">
       <input id="name-input" type="text" maxlength="20" placeholder="Your adventurer name"
@@ -90,6 +130,24 @@ export function landing(el) {
       ${CONFIG.backend === 'firebase' ? 'Signs in with Google via Firebase.' : 'Demo mode — progress saved on this device. Connect Firebase in js/config.js for accounts.'}
     </p>
   </div>`;
+
+  // Tap the mascot/hero for a playful, no-stakes reaction — a little life
+  // before the player has even signed in.
+  const stageEl = el.querySelector('#mascot-stage');
+  const wave = () => {
+    const wrap = el.querySelector('.landing-stage');
+    wrap.classList.remove('celebrating'); void wrap.offsetWidth;
+    wrap.classList.add('celebrating');
+    sfx.levelUp(); confetti(16);
+  };
+  stageEl.addEventListener('click', wave);
+  stageEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wave(); } });
+
+  // World ticker: tap a badge to peek at what it teaches.
+  el.querySelectorAll('.world-badge').forEach(b => b.addEventListener('click', () => {
+    toast(`${b.dataset.worldName} — ${b.dataset.worldDesc}`, 2600);
+  }));
+
   const form = el.querySelector('#name-form');
   let signingIn = false;
   const setBusy = busy => el.querySelectorAll('.role-card').forEach(b => {

@@ -281,14 +281,122 @@ a { color: var(--ocean); }
 .reward-burst { font-size: 3.5rem; animation: burst .6s var(--ease-bounce); }
 @keyframes burst { from { transform: scale(0) rotate(-30deg); } to { transform: scale(1) rotate(0); } }
 
-/* ---------- Auth / landing ---------- */
-.landing { text-align: center; padding: var(--sp-5) var(--sp-3); }
-.landing h1 { font-size: var(--fs-hero); line-height: 1.15; }
-.landing .tagline { color: var(--ink-soft); font-size: 1.1rem; margin: var(--sp-2) 0 var(--sp-4); }
-.role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-2); max-width: 700px; margin: 0 auto; }
-.role-card { background: var(--card); border: 3px solid var(--line); border-radius: var(--r-card); padding: var(--sp-4) var(--sp-2); font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: var(--ink); transition: transform var(--t-fast) var(--ease-bounce), border-color var(--t-fast); }
-.role-card:hover { transform: translateY(-4px); border-color: var(--sunset); }
-.role-card .r-emoji { display: block; font-size: 2.4rem; margin-bottom: .5rem; }
+/* ---------- Auth / landing: game title screen ---------- */
+.landing { position: relative; text-align: center; padding: var(--sp-4) var(--sp-3) var(--sp-5); overflow: hidden; }
+
+/* Distant floating islands drifting behind everything, pure atmosphere */
+.landing-bg-island {
+  position: absolute; z-index: 0; font-size: 3.4rem; opacity: .5; filter: saturate(.7) blur(.3px);
+  animation: bg-island-drift 9s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes bg-island-drift { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+/* Ambient rising particles: coins, stars, sparkles drifting up behind the content */
+.landing-particles { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.landing-particles span {
+  position: absolute; bottom: -10%; font-size: 1.4rem; opacity: .8;
+  animation: particle-rise linear infinite;
+}
+@keyframes particle-rise {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10% { opacity: .85; }
+  90% { opacity: .6; }
+  100% { transform: translateY(-115vh) rotate(60deg); opacity: 0; }
+}
+
+.landing > * { position: relative; z-index: 1; }
+
+/* Chunky layered 3D wordmark, Fall-Guys-style bounce-in */
+.title-logo {
+  font-family: var(--font-display); font-weight: 800; line-height: 1;
+  font-size: clamp(2.6rem, 10vw, 4.2rem); letter-spacing: -.01em;
+  color: var(--sunset);
+  text-shadow:
+    0 1px 0 #fff, 0 2px 0 #ffe3d5, 0 3px 0 #ffe3d5, 0 4px 0 #ffe3d5,
+    0 6px 0 var(--sunset-deep), 0 10px 14px rgba(30,42,74,.25);
+  animation: logo-bounce-in .8s var(--ease-bounce) both;
+}
+.title-logo .word-my { color: var(--jungle); text-shadow: 0 1px 0 #fff, 0 2px 0 #d3f5e7, 0 3px 0 #d3f5e7, 0 4px 0 #d3f5e7, 0 6px 0 var(--jungle-deep), 0 10px 14px rgba(30,42,74,.25); }
+@keyframes logo-bounce-in {
+  0% { transform: translateY(-40px) scale(.7); opacity: 0; }
+  60% { transform: translateY(6px) scale(1.06); opacity: 1; }
+  100% { transform: translateY(0) scale(1); }
+}
+.title-sub { font-family: var(--font-display); font-weight: 700; color: var(--magic-deep); letter-spacing: .04em; margin-top: .3rem;
+  animation: fade-up .7s .25s var(--ease-bounce) both; }
+.landing .tagline { color: var(--ink-soft); font-size: 1.05rem; margin: .4rem 0 var(--sp-3);
+  animation: fade-up .7s .38s var(--ease-bounce) both; }
+@keyframes fade-up { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Mascot + hero mini-stage: the signature interactive moment */
+.landing-stage {
+  max-width: 340px; margin: 0 auto var(--sp-3); position: relative;
+  animation: fade-up .7s .3s var(--ease-bounce) both;
+}
+.landing-stage .stage { padding: var(--sp-3) var(--sp-2) var(--sp-2); cursor: pointer; }
+.landing-hero-row { display: flex; align-items: flex-end; justify-content: center; gap: .4rem; }
+.landing-kancil {
+  font-size: 3.2rem; transform: scaleX(-1); filter: drop-shadow(0 4px 4px rgba(0,0,0,.2));
+  animation: hero-idle 2.8s ease-in-out infinite .3s;
+}
+.tap-hint {
+  font-family: var(--font-display); font-weight: 800; font-size: .78rem; color: var(--magic-deep);
+  margin-top: .3rem; animation: tap-hint-bob 1.6s ease-in-out infinite;
+}
+@keyframes tap-hint-bob { 0%,100% { transform: translateY(0); opacity: .75; } 50% { transform: translateY(-4px); opacity: 1; } }
+.landing-stage.celebrating .hero-svg .hero-body-group { animation: emote-jump .7s var(--ease-bounce); }
+.landing-stage.celebrating .landing-kancil { animation: emote-jelly-mirror .7s var(--ease-bounce); }
+@keyframes emote-jelly-mirror { 0%,100% { transform: scaleX(-1) scale(1,1); } 30% { transform: scaleX(-1) scale(1.2,.82); } 60% { transform: scaleX(-1) scale(.88,1.14); } }
+
+/* World preview ticker: an auto-scrolling level-select strip */
+.world-ticker-wrap {
+  max-width: 560px; margin: 0 auto var(--sp-4); overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  animation: fade-up .7s .5s var(--ease-bounce) both;
+}
+.world-ticker { display: flex; gap: .6rem; width: max-content; animation: ticker-scroll 26s linear infinite; }
+.world-ticker:hover, .world-ticker:focus-within { animation-play-state: paused; }
+.world-badge {
+  flex-shrink: 0; display: flex; align-items: center; gap: .4rem;
+  background: var(--card); border: 2px solid var(--line); border-radius: var(--r-pill);
+  padding: .4rem .8rem .4rem .5rem; font-family: var(--font-display); font-weight: 800; font-size: .8rem;
+  box-shadow: var(--shadow); white-space: nowrap;
+}
+.world-badge .wb-emoji { font-size: 1.1rem; }
+@keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.path-eyebrow {
+  font-family: var(--font-display); font-weight: 800; font-size: .8rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-soft); margin-bottom: .6rem;
+  animation: fade-up .7s .6s var(--ease-bounce) both;
+}
+
+/* Character-select grid: chunky game-lobby cards */
+.role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-2); max-width: 700px; margin: 0 auto;
+  animation: fade-up .7s .68s var(--ease-bounce) both; }
+.role-card {
+  position: relative; background: var(--card); border: 3px solid var(--line); border-radius: var(--r-card);
+  padding: var(--sp-4) var(--sp-2) var(--sp-3); font-family: var(--font-display); font-weight: 800; font-size: 1rem;
+  color: var(--ink); box-shadow: 0 5px 0 var(--line);
+  transition: transform var(--t-fast) var(--ease-bounce), border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.role-card:hover { transform: translateY(-4px) rotate(-1deg); border-color: var(--sunset); box-shadow: 0 7px 0 var(--sunset); }
+.role-card:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--sunset); }
+.role-card .r-emoji-ring {
+  display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto .5rem;
+  border-radius: 50%; background: var(--card-tint); border: 3px solid var(--line);
+  font-size: 2rem; transition: border-color var(--t-fast), transform var(--t-fast) var(--ease-bounce);
+}
+.role-card:hover .r-emoji-ring { border-color: var(--gold); transform: scale(1.08); }
+.role-card.featured { border-color: var(--gold); box-shadow: 0 5px 0 var(--gold-deep); }
+.role-card.featured:hover { box-shadow: 0 7px 0 var(--gold-deep); }
+.role-card .r-tag {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: var(--gold); color: var(--ink); font-size: .62rem; font-weight: 800;
+  padding: .12rem .55rem; border-radius: var(--r-pill); box-shadow: var(--shadow); white-space: nowrap;
+}
 
 /* ---------- Dashboards (parent/teacher/admin) ---------- */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-2); }
