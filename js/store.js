@@ -13,11 +13,12 @@ const LS_KEY = 'eduverse-state-v1';
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
-// Short code a parent types on their phone to link a child's account.
-function makeFamilyCode() {
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no lookalikes
+// Short human-typeable code (family link, duel invite) — no lookalike chars.
+function makeShortCode() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
   return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
+const makeFamilyCode = makeShortCode;
 
 export function defaultProfile(name = 'Adventurer', role = 'student') {
   return {
@@ -66,6 +67,12 @@ class LocalStore {
   }
   async linkChild() { throw new Error('Linking needs Firebase — demo mode monitors this device only.'); }
   email() { return null; }
+  async createDuel() { throw new Error('Online Duel needs Firebase — try the "Same tablet" mode instead.'); }
+  async joinDuel() { throw new Error('Online Duel needs Firebase — try the "Same tablet" mode instead.'); }
+  watchDuel() { return () => {}; }
+  async submitDuelAnswer() {}
+  async advanceDuelRound() {}
+  async finishDuel() {}
 }
 
 class FirebaseStore {
@@ -187,6 +194,40 @@ class FirebaseStore {
     const snap = await this.fs.getDocs(q);
     const me = this.authInst.currentUser?.uid;
     return snap.docs.map(d => ({ name: d.data().name, xp: d.data().xp, me: d.id === me }));
+  }
+
+  // ---------- Online Friend Duel: two devices, one shared room doc ----------
+  async createDuel(hostName, lessonId, questionOrder) {
+    const uid = this.authInst.currentUser.uid;
+    const code = makeShortCode();
+    await this.fs.setDoc(this.fs.doc(this.db, 'duels', code), {
+      hostUid: uid, hostName, guestUid: null, guestName: null,
+      lessonId, questionOrder, currentRound: 0, status: 'waiting',
+      answers: {}, createdAt: Date.now(),
+    });
+    return code;
+  }
+  async joinDuel(code, guestName) {
+    const ref = this.fs.doc(this.db, 'duels', code.trim().toUpperCase());
+    const snap = await this.fs.getDoc(ref);
+    if (!snap.exists()) throw new Error('Duel code not found — check the 6 letters and try again.');
+    const data = snap.data();
+    const uid = this.authInst.currentUser.uid;
+    if (data.guestUid && data.guestUid !== uid) throw new Error('This duel already has two players.');
+    await this.fs.updateDoc(ref, { guestUid: uid, guestName, status: 'active' });
+    return code.trim().toUpperCase();
+  }
+  watchDuel(code, cb) {
+    return this.fs.onSnapshot(this.fs.doc(this.db, 'duels', code), snap => cb(snap.exists() ? snap.data() : null));
+  }
+  async submitDuelAnswer(code, role, roundIdx, correct) {
+    await this.fs.updateDoc(this.fs.doc(this.db, 'duels', code), { [`answers.${roundIdx}.${role}`]: { correct } });
+  }
+  async advanceDuelRound(code, nextRound) {
+    await this.fs.updateDoc(this.fs.doc(this.db, 'duels', code), { currentRound: nextRound });
+  }
+  async finishDuel(code) {
+    await this.fs.updateDoc(this.fs.doc(this.db, 'duels', code), { status: 'finished' });
   }
 }
 

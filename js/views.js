@@ -808,9 +808,10 @@ export function duelHome(el) {
 
   const frame = inner => { el.innerHTML = `${hud()}<div class="card">${inner}</div>`; };
 
-  function renderSetup() {
+  function renderLocalSetup() {
     el.innerHTML = `${hud()}
-    <h2 class="display" style="margin:1rem 0">⚔️ Friend Duel</h2>
+    <button class="btn btn-ghost btn-sm" id="back-to-mode" style="margin:1rem 0">← Back</button>
+    <h2 class="display" style="margin:0 0 1rem">📱 Same Tablet — Pass &amp; Play</h2>
     <p style="color:var(--ink-soft)">Pick a topic you've mastered, then pass the tablet for a best-of-5 showdown. No accounts, no stakes — just bragging rights!</p>
     <div class="card">
       <label style="font-weight:800;display:block;margin-bottom:.4rem">Friend's name</label>
@@ -829,6 +830,7 @@ export function duelHome(el) {
         </div>
       </button>`;
     }).join('') : '<div class="card">Finish a quest first to unlock duel topics!</div>'}`;
+    el.querySelector('#back-to-mode').addEventListener('click', renderModeChoice);
     el.querySelectorAll('.duel-pick').forEach(b => b.addEventListener('click', () => {
       lesson = LESSONS.find(l => l.id === b.dataset.lesson);
       const nameInput = el.querySelector('#p2-name').value.trim();
@@ -920,10 +922,232 @@ export function duelHome(el) {
           <button class="btn" data-route="#/dashboard">Home 🏝️</button>
         </div>
       </div>`);
-    el.querySelector('#rematch').addEventListener('click', renderSetup);
+    el.querySelector('#rematch').addEventListener('click', renderLocalSetup);
   }
 
-  renderSetup();
+  // ---------------- Online mode: two devices, one shared Firestore room ----------------
+  let duelUnsub = null;
+  const stopWatching = () => { if (duelUnsub) { duelUnsub(); duelUnsub = null; } };
+
+  function renderModeChoice() {
+    stopWatching();
+    el.innerHTML = `${hud()}
+    <h2 class="display" style="margin:1rem 0">⚔️ Friend Duel</h2>
+    <p style="color:var(--ink-soft)">No accounts, no stakes — just bragging rights! Pick how you want to play:</p>
+    <button class="card" style="width:100%;text-align:left;cursor:pointer" id="mode-local">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span style="font-size:2rem">📱</span>
+        <div><strong class="display">Same tablet</strong>
+          <div style="color:var(--ink-soft);font-size:.85rem">Pass the tablet back and forth — works offline.</div></div>
+      </div>
+    </button>
+    <button class="card" style="width:100%;text-align:left;cursor:pointer" id="mode-online" ${CONFIG.backend !== 'firebase' ? 'disabled' : ''}>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span style="font-size:2rem">🌐</span>
+        <div><strong class="display">Online — different devices</strong>
+          <div style="color:var(--ink-soft);font-size:.85rem">${CONFIG.backend === 'firebase' ? 'Invite a friend with a private 6-letter code.' : 'Needs Firebase — ask a grown-up to connect it.'}</div></div>
+      </div>
+    </button>`;
+    el.querySelector('#mode-local').addEventListener('click', renderLocalSetup);
+    el.querySelector('#mode-online')?.addEventListener('click', renderOnlineChoice);
+  }
+
+  function renderOnlineChoice() {
+    el.innerHTML = `${hud()}
+    <button class="btn btn-ghost btn-sm" id="back-to-mode" style="margin:1rem 0">← Back</button>
+    <h2 class="display" style="margin:0 0 1rem">🌐 Online Duel</h2>
+    <button class="card" style="width:100%;text-align:left;cursor:pointer" id="go-create">
+      <div style="display:flex;align-items:center;gap:1rem"><span style="font-size:2rem">🎫</span>
+        <div><strong class="display">Host a duel</strong><div style="color:var(--ink-soft);font-size:.85rem">Pick a topic, get a code, share it with your friend.</div></div></div>
+    </button>
+    <button class="card" style="width:100%;text-align:left;cursor:pointer" id="go-join">
+      <div style="display:flex;align-items:center;gap:1rem"><span style="font-size:2rem">🔑</span>
+        <div><strong class="display">Join with a code</strong><div style="color:var(--ink-soft);font-size:.85rem">Your friend sends you their 6-letter code.</div></div></div>
+    </button>`;
+    el.querySelector('#back-to-mode').addEventListener('click', renderModeChoice);
+    el.querySelector('#go-create').addEventListener('click', renderCreateDuelSetup);
+    el.querySelector('#go-join').addEventListener('click', renderJoinCodeEntry);
+  }
+
+  function renderCreateDuelSetup() {
+    el.innerHTML = `${hud()}
+    <button class="btn btn-ghost btn-sm" id="back-to-online" style="margin:1rem 0">← Back</button>
+    <h2 class="display" style="margin:0 0 1rem">🎫 Host a Duel</h2>
+    <p style="color:var(--ink-soft)">Pick a topic you've mastered — your friend will answer the same questions on their own device.</p>
+    ${done.length ? done.map(l => {
+      const world = WORLDS.find(w => w.id === l.worldId);
+      return `
+      <button class="card duel-pick" style="width:100%;text-align:left;cursor:pointer" data-lesson="${l.id}">
+        <div style="display:flex;align-items:center;gap:1rem">
+          <span style="font-size:1.8rem">${world.emoji}</span>
+          <div style="flex:1"><strong class="display">${esc(l.title)}</strong>
+            <div style="color:var(--ink-soft);font-size:.82rem">${esc(world.name)}</div></div>
+          <span class="pill">Host ▶</span>
+        </div>
+      </button>`;
+    }).join('') : '<div class="card">Finish a quest first to unlock duel topics!</div>'}`;
+    el.querySelector('#back-to-online').addEventListener('click', renderOnlineChoice);
+    el.querySelectorAll('.duel-pick').forEach(b => b.addEventListener('click', async () => {
+      const l = LESSONS.find(x => x.id === b.dataset.lesson);
+      const pool = QUIZZES[l.id] || [];
+      const order = Array.from({ length: ROUNDS }, (_, i) => i % pool.length);
+      for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+      try {
+        const code = await store.createDuel(user.name, l.id, order);
+        renderOnlineWaiting(code, l);
+      } catch (e) { toast(e.message, 4000); }
+    }));
+  }
+
+  function renderJoinCodeEntry() {
+    el.innerHTML = `${hud()}
+    <button class="btn btn-ghost btn-sm" id="back-to-online" style="margin:1rem 0">← Back</button>
+    <h2 class="display" style="margin:0 0 1rem">🔑 Join a Duel</h2>
+    <div class="card">
+      <label style="font-weight:800;display:block;margin-bottom:.4rem">Enter your friend's code</label>
+      <form id="join-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="join-code" maxlength="6" placeholder="e.g. K7XM2P" autocapitalize="characters" autocomplete="off"
+          style="border:3px solid var(--line);border-radius:var(--r-pill);padding:.6rem 1rem;font-family:var(--font-display);font-weight:800;letter-spacing:.2em;text-transform:uppercase;width:11ch;text-align:center;background:var(--card);color:var(--ink)" />
+        <button class="btn btn-green" type="submit">Join ▶</button>
+      </form>
+      <p id="join-msg" style="color:var(--lava);font-weight:700;margin-top:.6rem"></p>
+    </div>`;
+    el.querySelector('#back-to-online').addEventListener('click', renderOnlineChoice);
+    el.querySelector('#join-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const code = el.querySelector('#join-code').value.trim().toUpperCase();
+      if (!code) return;
+      try {
+        await store.joinDuel(code, user.name);
+        startOnlineSession(code, 'guest'); // lessonId/questions come from the synced doc
+      } catch (e) { el.querySelector('#join-msg').textContent = e.message; }
+    });
+  }
+
+  function renderOnlineWaiting(code, lesson) {
+    frame(`
+      <div style="text-align:center">
+        <p style="color:var(--ink-soft);font-weight:800">Share this code with your friend</p>
+        <div class="display" style="font-size:2.4rem;letter-spacing:.3em;font-weight:800;color:var(--magic-deep);margin:.6rem 0">${esc(code)}</div>
+        <p style="color:var(--ink-soft)">Topic: <b>${esc(lesson.title)}</b></p>
+        <div style="margin-top:1rem;font-size:1.4rem">⏳ Waiting for your friend to join…</div>
+      </div>`);
+    startOnlineSession(code, 'host');
+  }
+
+  // Reactive render: the UI is a pure function of the latest duel document,
+  // so both devices re-render themselves whenever anything changes — no
+  // manual state machine to keep in sync between two separate clients.
+  function startOnlineSession(code, myRole) {
+    stopWatching();
+    const oppRole = myRole === 'host' ? 'guest' : 'host';
+    let lastRound = -1;
+    duelUnsub = store.watchDuel(code, data => {
+      if (!data) { frame('<p>This duel could not be found — it may have ended.</p>'); return; }
+      if (data.status === 'waiting') return; // host's own waiting screen already showing
+      if (data.status === 'finished') { stopWatching(); renderOnlineResults(data, myRole, code); return; }
+      if (data.currentRound !== lastRound) lastRound = data.currentRound;
+      const roundAnswers = (data.answers && data.answers[data.currentRound]) || {};
+      const meAnswered = !!roundAnswers[myRole];
+      const oppAnswered = !!roundAnswers[oppRole];
+      const oppName = myRole === 'host' ? data.guestName : data.hostName;
+      if (meAnswered && oppAnswered) renderOnlineRoundResult(data, myRole, oppRole, code);
+      else if (meAnswered) renderWaitingForOpponent(oppName, data, code);
+      else renderOnlineQuestion(data, myRole, code);
+    });
+  }
+
+  function renderOnlineQuestion(data, myRole, code) {
+    const pool = QUIZZES[data.lessonId] || [];
+    const q = pool[data.questionOrder[data.currentRound]];
+    const oppName = myRole === 'host' ? data.guestName : data.hostName;
+    frame(`
+      <p style="color:var(--ink-soft);font-weight:800">Round ${data.currentRound + 1} of ${ROUNDS} — vs ${esc(oppName || '…')}</p>
+      <p class="lesson-step" style="margin:1rem 0">${esc(q.q)}</p>
+      <div id="opts"></div>`);
+    const opts = el.querySelector('#opts');
+    q.options.forEach((o, i) => {
+      const b = document.createElement('button');
+      b.className = 'quiz-option'; b.textContent = o;
+      b.addEventListener('click', async ev => {
+        opts.querySelectorAll('button').forEach(x => x.disabled = true);
+        const correct = i === q.answer;
+        if (correct) { b.classList.add('correct'); sfx.correct(); flashEdge('good'); floatText(ev.clientX, ev.clientY, '✓'); }
+        else { b.classList.add('wrong'); opts.children[q.answer].classList.add('correct'); sfx.wrong(); flashEdge('bad'); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        await store.submitDuelAnswer(code, myRole, data.currentRound, correct);
+      });
+      opts.appendChild(b);
+    });
+  }
+
+  function renderWaitingForOpponent(oppName, data, code) {
+    frame(`
+      <div style="text-align:center">
+        <p style="color:var(--ink-soft);font-weight:800">Round ${data.currentRound + 1} of ${ROUNDS}</p>
+        <div style="font-size:2.4rem;margin:.6rem 0">⏳</div>
+        <p>Answer locked in! Waiting for <b>${esc(oppName || 'your friend')}</b>…</p>
+      </div>`);
+  }
+
+  function tallyScores(data) {
+    let h = 0, g = 0;
+    Object.values(data.answers || {}).forEach(r => { if (r.host?.correct) h++; if (r.guest?.correct) g++; });
+    return { h, g };
+  }
+
+  function renderOnlineRoundResult(data, myRole, oppRole, code) {
+    const { h, g } = tallyScores(data);
+    const roundAnswers = data.answers[data.currentRound];
+    const oppName = myRole === 'host' ? data.guestName : data.hostName;
+    const isLast = data.currentRound + 1 >= ROUNDS;
+    frame(`
+      <div style="text-align:center">
+        <h3 class="display">Round ${data.currentRound + 1} result</h3>
+        <div style="display:flex;justify-content:center;gap:2rem;margin:1rem 0">
+          <div><div style="font-size:2rem">${roundAnswers[myRole].correct ? '✅' : '❌'}</div><b>You</b></div>
+          <div style="font-size:1.6rem;color:var(--ink-soft);align-self:center">vs</div>
+          <div><div style="font-size:2rem">${roundAnswers[oppRole].correct ? '✅' : '❌'}</div><b>${esc(oppName)}</b></div>
+        </div>
+        <p class="pill" style="font-size:1rem">Score: ${myRole === 'host' ? `${h} – ${g}` : `${g} – ${h}`}</p>
+        ${myRole === 'host'
+          ? `<button class="btn" id="next-round" style="margin-top:1rem">${isLast ? 'See final result 🏆' : 'Next round ▶'}</button>`
+          : `<p style="color:var(--ink-soft);margin-top:1rem">Waiting for ${esc(data.hostName)} to continue…</p>`}
+      </div>`);
+    el.querySelector('#next-round')?.addEventListener('click', async () => {
+      if (isLast) await store.finishDuel(code);
+      else await store.advanceDuelRound(code, data.currentRound + 1);
+    });
+  }
+
+  async function renderOnlineResults(data, myRole, code) {
+    const { h, g } = tallyScores(data);
+    const myScore = myRole === 'host' ? h : g;
+    const oppScore = myRole === 'host' ? g : h;
+    const oppName = myRole === 'host' ? data.guestName : data.hostName;
+    const iWon = myScore > oppScore, tie = myScore === oppScore;
+    if (iWon) { user.duelWins = (user.duelWins || 0) + 1; await store.saveUser(user); }
+    confetti(iWon ? 50 : 20); sfx.levelUp();
+    frame(`
+      <div style="text-align:center">
+        <div style="font-size:4rem">${tie ? '🤝' : iWon ? '🏆' : '🎮'}</div>
+        <h2 class="display">${tie ? "It's a tie!" : iWon ? 'You win!' : `${esc(oppName)} wins!`}</h2>
+        <p class="lesson-step" style="margin:.8rem 0">Final score: <b>You ${myScore} – ${oppScore} ${esc(oppName)}</b></p>
+        <p style="color:var(--ink-soft)">${iWon ? 'Great match — challenge them again anytime!' : tie ? 'An even match! Run it back?' : 'Good game — you\'ll get them next time!'}</p>
+        <div style="display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+          <button class="btn" data-route="#/dashboard">Home 🏝️</button>
+        </div>
+      </div>`);
+  }
+
+  // Safety net: if the player navigates away (Home, back button, etc.)
+  // while a Firestore listener is still live, drop it — otherwise a late
+  // snapshot could overwrite whatever page they've moved on to.
+  const onHashChange = () => {
+    if (!location.hash.startsWith('#/duel')) { stopWatching(); window.removeEventListener('hashchange', onHashChange); }
+  };
+  window.addEventListener('hashchange', onHashChange);
+
+  renderModeChoice();
 }
 
 // ---------------- Missions page ----------------
