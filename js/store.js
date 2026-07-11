@@ -59,6 +59,7 @@ class LocalStore {
     return u && u.role === 'student' ? [u] : [];
   }
   async linkChild() { throw new Error('Linking needs Firebase — demo mode monitors this device only.'); }
+  email() { return null; }
 }
 
 class FirebaseStore {
@@ -94,6 +95,9 @@ class FirebaseStore {
   }
   async _createProfile(authUser, name, role) {
     localStorage.removeItem('eduverse-pending-role');
+    // Rules forbid self-registering as admin — admin access is granted by
+    // email (CONFIG.adminEmails + firestore.rules), not by profile role.
+    if (role === 'admin') role = 'parent';
     const user = defaultProfile(authUser.displayName || name, role);
     await this.saveUser(user);
     if (user.familyCode) {
@@ -106,7 +110,15 @@ class FirebaseStore {
     if (u) await this.fs.setDoc(this._ref(u.uid), user, { merge: true });
     return user;
   }
+  email() { return this.authInst.currentUser?.email || null; }
   async signIn(name, role) {
+    // Already signed into Google on this device? Reuse the session —
+    // no popup, no repeated login prompts.
+    if (this.authInst.currentUser) {
+      const snap = await this.fs.getDoc(this._ref(this.authInst.currentUser.uid));
+      if (snap.exists()) return snap.data();
+      return this._createProfile(this.authInst.currentUser, name, role);
+    }
     const provider = new this.auth.GoogleAuthProvider();
     // Remember intent so the profile can be created after a redirect round-trip.
     localStorage.setItem('eduverse-pending-role', JSON.stringify({ name, role }));

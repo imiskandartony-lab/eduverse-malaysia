@@ -16,6 +16,10 @@ import { gameForLesson } from './games.js';
 let user = null;
 export const getUser = () => user;
 export const setUser = u => { user = u; };
+export const isAdminUser = () =>
+  user && (user.role === 'admin' || CONFIG.adminEmails.includes(store.email?.() || ''));
+export const homeRoute = () =>
+  !user ? '#/' : user.role === 'student' ? '#/dashboard' : `#/${user.role}`;
 
 const go = route => { location.hash = route; };
 
@@ -65,16 +69,30 @@ export function landing(el) {
   </div>`;
   const form = el.querySelector('#name-form');
   const begin = async (name, role) => {
-    user = await store.signIn(name, role);
+    try {
+      user = await store.signIn(name, role);
+    } catch (e) {
+      toast(`Sign-in failed: ${e.message}`, 4000);
+      return;
+    }
     if (!user) return; // redirect sign-in in progress; page is navigating away
+    // Route by what the account actually is, not the button that was tapped.
+    if (role === 'admin') {
+      if (isAdminUser()) { go('#/admin'); return; }
+      toast('This Google account is not an admin.', 3500);
+      go(homeRoute()); return;
+    }
+    if (user.role !== role) {
+      toast(`This Google account is registered as ${user.role} — opening that dashboard.`, 3500);
+    }
     ensureDailyMissions(user);
     const { streakGrew } = touchStreak(user);
-    if (streakGrew && role === 'student') {
+    if (streakGrew && user.role === 'student') {
       await missionProgress(user, 'login');
       await grant(user, { coins: user.streak * CONFIG.streakBonusCoins, reason: `(day ${user.streak} streak!)` });
     }
     await store.saveUser(user);
-    go(role === 'student' ? '#/dashboard' : `#/${role}`);
+    go(homeRoute());
   };
   el.querySelectorAll('.role-card').forEach(b => b.addEventListener('click', () => {
     const role = b.dataset.role;

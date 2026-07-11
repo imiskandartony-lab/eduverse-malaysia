@@ -22,6 +22,10 @@ export const CONFIG = {
   geminiApiKey: '',
   geminiModel: 'gemini-flash-latest',
 
+  // Google accounts allowed to open the Admin panel (checked in
+  // firestore.rules too — client check is convenience, rules are the lock).
+  adminEmails: ['im.iskandartony@gmail.com'],
+
   // Gamification tuning
   xpPerLevel: 100,        // level = floor(xp / xpPerLevel) + 1
   streakBonusCoins: 5,    // extra coins per consecutive day

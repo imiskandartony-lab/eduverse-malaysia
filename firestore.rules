@@ -8,7 +8,10 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
     function isTeacher() { return signedIn() && role() == 'teacher'; }
-    function isAdmin() { return signedIn() && role() == 'admin'; }
+    function isAdmin() {
+      return signedIn() &&
+        (request.auth.token.email == 'im.iskandartony@gmail.com' || role() == 'admin');
+    }
     function isParentOf(uid) {
       return signedIn() &&
         exists(/databases/$(database)/documents/parents/$(request.auth.uid)) &&

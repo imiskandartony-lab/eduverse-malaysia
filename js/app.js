@@ -51,6 +51,12 @@ async function route() {
 
   if (!match || (!match.public && !user)) { location.hash = '#/'; if (hash === '#/' || !user) V.landing(view); return; }
 
+  // Role guard: admin routes need admin rights; others need a matching role.
+  if (match.role === 'admin' && !V.isAdminUser()) { location.hash = V.homeRoute(); return; }
+  if (match.role && match.role !== 'admin' && user.role !== match.role && !V.isAdminUser()) {
+    location.hash = V.homeRoute(); return;
+  }
+
   const isStudent = user?.role === 'student';
   nav.hidden = !isStudent || hash === '#/';
   if (isStudent) kancil.show(); else kancil.hide();
