@@ -111,6 +111,30 @@ export const LESSONS = [
     practice: { q: 'Which fraction is equivalent to 2/5?', options: ['4/10', '3/7', '2/10', '5/2'], answer: 0, hint: 'Multiply both the top and bottom of 2/5 by 2.' },
   },
   {
+    id: 'fi-2', worldId: 'fraction-island', title: 'Add & Subtract Fractions', year: 5,
+    kssr: 'KSSR Matematik T5 — 2.2: Tambah dan tolak pecahan',
+    xp: 60, coins: 25, difficulty: 2, prerequisite: 'fi-1',
+    intro: 'Two pirate crews want to combine their treasure shares — but fractions only join when their pieces match! Help them add up.',
+    steps: [
+      'Same denominator? Just add the tops: 2/7 + 3/7 = <b>5/7</b>. Subtract the same way: 5/8 − 2/8 = 3/8.',
+      'Different denominators? Make them match first: 1/2 + 1/4 → 2/4 + 1/4 = <b>3/4</b>.',
+      'Always <b>simplify</b> your answer: 2/6 + 2/6 = 4/6 = <b>2/3</b>.',
+    ],
+    practice: { q: '1/3 + 1/6 = ?', options: ['2/9', '1/2', '2/6', '1/9'], answer: 1, hint: 'Change 1/3 into sixths first: 1/3 = 2/6.' },
+  },
+  {
+    id: 'fi-3', worldId: 'fraction-island', title: 'Decimals & Percentages', year: 5,
+    kssr: 'KSSR Matematik T5 — 3.1: Perpuluhan dan peratus',
+    xp: 65, coins: 28, difficulty: 3, prerequisite: 'fi-2',
+    intro: 'The island lighthouse speaks three languages: fractions, decimals and percentages. Learn to translate, and its beam will guide you to the hidden vault!',
+    steps: [
+      'Fractions ↔ decimals: 1/2 = <b>0.5</b>, 1/4 = <b>0.25</b>, 3/10 = <b>0.3</b>, 7/100 = <b>0.07</b>.',
+      'Decimals ↔ percentages: move two places! 0.5 = <b>50%</b>, 0.25 = <b>25%</b>, 0.07 = <b>7%</b>.',
+      'Percent of a number: 50% of 80 = <b>40</b> (half), 10% of 250 = <b>25</b> (divide by 10), 25% of 60 = <b>15</b> (quarter).',
+    ],
+    practice: { q: 'What is 3/4 as a percentage?', options: ['34%', '43%', '75%', '25%'], answer: 2, hint: '3/4 = 0.75 — now move the decimal two places.' },
+  },
+  {
     id: 'bm-1', worldId: 'bm-village', title: 'Kata Nama Am & Khas', year: 5,
     kssr: 'KSSR BM T5 — Tatabahasa: Kata nama am dan kata nama khas',
     xp: 50, coins: 20, difficulty: 1, prerequisite: null,
@@ -133,6 +157,30 @@ export const LESSONS = [
       '<b>kerana</b> — sebab: <i>Saya tidak hadir <b>kerana</b> demam.</i> <b>jika</b> — syarat: <i>Kita berkelah <b>jika</b> cuaca baik.</i> <b>sambil</b> — serentak: <i>Dia menyanyi <b>sambil</b> menari.</i>',
     ],
     practice: { q: 'Emak memasak ____ berbual dengan jiran.', options: ['kerana', 'sambil', 'tetapi', 'jika'], answer: 1, hint: 'Dua perbuatan dilakukan SERENTAK.' },
+  },
+  {
+    id: 'bm-3', worldId: 'bm-village', title: 'Penjodoh Bilangan', year: 5,
+    kssr: 'KSSR BM T5 — Tatabahasa: Penjodoh bilangan',
+    xp: 55, coins: 22, difficulty: 2, prerequisite: 'bm-2',
+    intro: 'Pasar Kampung Bahasa sedang sibuk! Peniaga keliru — sebiji ayam? Seekor kelapa? Bantu mereka menggunakan PENJODOH BILANGAN yang betul!',
+    steps: [
+      '<b>Penjodoh bilangan</b> digunakan sebelum kata nama: se<b>orang</b> guru, se<b>ekor</b> kucing, se<b>buah</b> rumah.',
+      '<b>orang</b> — manusia. <b>ekor</b> — haiwan. <b>buah</b> — benda besar (rumah, kereta, negara). <b>biji</b> — benda kecil bulat (telur, guli, buah-buahan).',
+      '<b>batang</b> — benda panjang (pensel, sungai). <b>helai</b> — benda nipis (kertas, baju, daun). <b>keping</b> — benda pipih (roti, gambar). <b>kuntum</b> — bunga.',
+    ],
+    practice: { q: 'Ibu membeli tiga ____ baju di pasar raya.', options: ['buah', 'biji', 'helai', 'batang'], answer: 2, hint: 'Baju ialah benda yang nipis.' },
+  },
+  {
+    id: 'bm-4', worldId: 'bm-village', title: 'Simpulan Bahasa', year: 5,
+    kssr: 'KSSR BM T5 — Peribahasa: Simpulan bahasa',
+    xp: 60, coins: 25, difficulty: 3, prerequisite: 'bm-3',
+    intro: 'Tok Dalang bercakap dalam teka-teki! "Jangan jadi kaki bangku," katanya sambil ketawa. Pelajari SIMPULAN BAHASA untuk memahami kata-kata orang tua-tua.',
+    steps: [
+      '<b>Simpulan bahasa</b> ialah ungkapan dua patah kata dengan maksud tersirat: <b>kaki bangku</b> = tidak pandai bermain bola/sukan.',
+      '<b>ringan tulang</b> = rajin bekerja. <b>berat tulang</b> = malas. <b>murah hati</b> = pemurah. <b>besar kepala</b> = sombong, degil.',
+      '<b>kaki ayam</b> = tidak berkasut. <b>buah tangan</b> = hadiah/ole-ole. <b>anak emas</b> = orang yang paling disayangi. <b>otak cerdas</b>? Tidak — yang betul <b>cerdik seperti kancil</b>! 🦌',
+    ],
+    practice: { q: '"Ali sangat ____ kerana selalu membantu ibunya di dapur." Pilih simpulan bahasa yang sesuai.', options: ['besar kepala', 'ringan tulang', 'kaki bangku', 'kaki ayam'], answer: 1, hint: 'Ali RAJIN membantu — tulangnya "ringan" untuk bekerja.' },
   },
   {
     id: 'tt-1', worldId: 'tatabahasa-temple', title: 'Imbuhan Awalan "meN-"', year: 6,
@@ -199,10 +247,34 @@ export const QUIZZES = {
     { q: 'Simplify 6/9.', options: ['1/3', '2/3', '3/6', '6/9'], answer: 1, explain: 'Divide both by 3 → 2/3.', hint: 'Both 6 and 9 divide by 3.', difficulty: 2 },
     { q: 'Which is NOT equivalent to 1/4?', options: ['2/8', '3/12', '4/16', '2/6'], answer: 3, explain: '2/6 = 1/3, not 1/4.', hint: 'Check each by simplifying.', difficulty: 3 },
   ],
+  'fi-2': [
+    { q: '3/9 + 4/9 = ?', options: ['7/18', '7/9', '12/9', '1/9'], answer: 1, explain: 'Same denominator — add the tops: 3+4 = 7 → 7/9.', hint: 'The bottom number stays the same.', difficulty: 1 },
+    { q: '7/10 − 3/10 = ?', options: ['4/10', '10/10', '4/20', '3/10'], answer: 0, explain: '7−3 = 4 → 4/10 (= 2/5 simplified).', hint: 'Subtract only the top numbers.', difficulty: 1 },
+    { q: '1/2 + 1/4 = ?', options: ['2/6', '1/6', '3/4', '2/4'], answer: 2, explain: '1/2 = 2/4, so 2/4 + 1/4 = 3/4.', hint: 'Turn 1/2 into quarters first.', difficulty: 2 },
+    { q: '5/6 − 1/3 = ?', options: ['4/3', '1/2', '4/6', '1/3'], answer: 1, explain: '1/3 = 2/6, so 5/6 − 2/6 = 3/6 = 1/2.', hint: 'Change 1/3 into sixths, then simplify.', difficulty: 3 },
+  ],
+  'fi-3': [
+    { q: '1/4 as a decimal is…', options: ['0.14', '0.4', '0.25', '0.75'], answer: 2, explain: '1 ÷ 4 = 0.25.', hint: 'A quarter of 1.00.', difficulty: 1 },
+    { q: '0.6 as a percentage is…', options: ['6%', '60%', '0.6%', '600%'], answer: 1, explain: 'Move two places: 0.6 → 60%.', hint: 'Two hops of the decimal point.', difficulty: 1 },
+    { q: '10% of 250 = ?', options: ['10', '25', '50', '2.5'], answer: 1, explain: '10% = divide by 10 → 25.', hint: 'Just knock one zero off... carefully!', difficulty: 2 },
+    { q: 'A RM80 shirt has a 25% discount. What is the new price?', options: ['RM20', 'RM55', 'RM60', 'RM75'], answer: 2, explain: '25% of 80 = 20, so 80 − 20 = RM60.', hint: 'Find a quarter of RM80 first, then subtract it.', difficulty: 3 },
+  ],
   'bm-1': [
     { q: 'Pilih kata nama am.', options: ['Proton', 'Ali', 'sekolah', 'Ipoh'], answer: 2, explain: '"Sekolah" ialah nama umum.', hint: 'Cari perkataan yang tidak perlu huruf besar.', difficulty: 1 },
     { q: '"____ ialah ibu negara Malaysia." Pilih kata nama khas yang betul.', options: ['bandar', 'Kuala Lumpur', 'negeri', 'jalan'], answer: 1, explain: 'Kuala Lumpur ialah kata nama khas.', hint: 'Nama tempat khusus.', difficulty: 1 },
     { q: 'Ayat manakah yang menggunakan kata nama khas dengan betul?', options: ['saya tinggal di melaka.', 'Adik membaca Buku.', 'Kami melawat Zoo Negara.', 'ali suka Durian.'], answer: 2, explain: '"Zoo Negara" dieja betul dengan huruf besar.', hint: 'Semak penggunaan huruf besar.', difficulty: 3 },
+  ],
+  'bm-3': [
+    { q: 'Datuk memelihara lima ____ lembu.', options: ['orang', 'ekor', 'buah', 'biji'], answer: 1, explain: 'Lembu ialah haiwan → ekor.', hint: 'Penjodoh bilangan untuk haiwan.', difficulty: 1 },
+    { q: 'Kami melawat dua ____ muzium.', options: ['buah', 'keping', 'batang', 'helai'], answer: 0, explain: 'Muzium ialah bangunan besar → buah.', hint: 'Benda besar seperti rumah dan kereta.', difficulty: 1 },
+    { q: 'Adik memetik se____ bunga raya.', options: ['biji', 'helai', 'kuntum', 'keping'], answer: 2, explain: 'Bunga → kuntum.', hint: 'Penjodoh bilangan khas untuk bunga.', difficulty: 2 },
+    { q: 'Ayat manakah yang BETUL?', options: ['Saya makan sekeping telur.', 'Saya makan sebiji telur.', 'Saya makan sebatang telur.', 'Saya makan sehelai telur.'], answer: 1, explain: 'Telur ialah benda kecil bulat → biji.', hint: 'Telur berbentuk bulat.', difficulty: 3 },
+  ],
+  'bm-4': [
+    { q: '"Kaki bangku" bermaksud…', options: ['kaki yang sakit', 'tidak pandai bermain sukan', 'suka duduk', 'pembuat kerusi'], answer: 1, explain: 'Kaki bangku = tidak pandai bermain bola atau sukan.', hint: 'Kakinya kaku seperti kaki bangku!', difficulty: 1 },
+    { q: 'Orang yang sombong dikatakan…', options: ['besar kepala', 'kaki ayam', 'ringan tulang', 'buah tangan'], answer: 0, explain: 'Besar kepala = sombong, tidak mahu mendengar nasihat.', hint: 'Kepalanya "membesar" kerana bangga diri.', difficulty: 1 },
+    { q: 'Mak Cik Minah membawa ____ dari Kelantan untuk jiran-jirannya.', options: ['anak emas', 'buah tangan', 'kaki bangku', 'berat tulang'], answer: 1, explain: 'Buah tangan = hadiah atau ole-ole.', hint: 'Hadiah yang dibawa "di tangan" selepas melancong.', difficulty: 2 },
+    { q: 'Ayat manakah menggunakan simpulan bahasa dengan BETUL?', options: ['Adik kaki ayam kerana pandai menyanyi.', 'Abang ringan tulang kerana selalu tidur.', 'Cikgu murah hati kerana selalu menderma.', 'Ali anak emas kerana selalu dimarahi.'], answer: 2, explain: 'Murah hati = pemurah, suka menderma. Yang lain tidak sepadan maksudnya.', hint: 'Padankan maksud tersirat dengan keterangan ayat.', difficulty: 3 },
   ],
   'tt-1': [
     { q: '"sapu" + meN- = ?', options: ['mensapu', 'menyapu', 'memapu', 'mengsapu'], answer: 1, explain: 'Huruf "s" gugur → menyapu.', hint: 'Huruf s digantikan "ny".', difficulty: 2 },
