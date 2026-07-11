@@ -70,7 +70,6 @@ function hud() {
 
 // ---------------- Landing / auth: game title screen ----------------
 export function landing(el) {
-  const demoHero = { equipped: { ...DEFAULT_EQUIP, hair: 'hair-spikes', shirt: 'shirt-jungle', pants: 'pants-track', glasses: 'glasses-cool' } };
   const particles = ['🪙', '⭐', '✨', '🪙', '⭐'];
   const roleCards = [
     { role: 'student', emoji: '🧑‍🚀', label: "I'm a Student", featured: true, tag: '⭐ Start here' },
@@ -91,17 +90,6 @@ export function landing(el) {
     <div class="title-logo">Edu<span class="word-my">Verse</span></div>
     <div class="title-sub">MALAYSIA</div>
     <p class="tagline">Where learning becomes an adventure — KSSR Year 5 &amp; 6</p>
-
-    <div class="landing-stage">
-      <div class="stage" id="mascot-stage" role="button" tabindex="0" aria-label="Tap Sang Kancil and your hero to say hi">
-        <div class="landing-hero-row">
-          <span class="landing-kancil">🦌</span>
-          <div id="hero-preview">${renderAvatar(demoHero, 96)}</div>
-        </div>
-        <div class="podium"></div>
-      </div>
-      <div class="tap-hint">👉 tap us to say hi!</div>
-    </div>
 
     <p class="path-eyebrow">🗺️ 9 worlds waiting for you</p>
     <div class="world-ticker-wrap">
@@ -130,18 +118,6 @@ export function landing(el) {
       ${CONFIG.backend === 'firebase' ? 'Signs in with Google via Firebase.' : 'Demo mode — progress saved on this device. Connect Firebase in js/config.js for accounts.'}
     </p>
   </div>`;
-
-  // Tap the mascot/hero for a playful, no-stakes reaction — a little life
-  // before the player has even signed in.
-  const stageEl = el.querySelector('#mascot-stage');
-  const wave = () => {
-    const wrap = el.querySelector('.landing-stage');
-    wrap.classList.remove('celebrating'); void wrap.offsetWidth;
-    wrap.classList.add('celebrating');
-    sfx.levelUp(); confetti(16);
-  };
-  stageEl.addEventListener('click', wave);
-  stageEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wave(); } });
 
   // World ticker: tap a badge to peek at what it teaches.
   el.querySelectorAll('.world-badge').forEach(b => b.addEventListener('click', () => {

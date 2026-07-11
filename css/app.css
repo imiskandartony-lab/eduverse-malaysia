@@ -335,26 +335,6 @@ a { color: var(--ocean); }
   animation: fade-up .7s .38s var(--ease-bounce) both; }
 @keyframes fade-up { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* Mascot + hero mini-stage: the signature interactive moment */
-.landing-stage {
-  max-width: 340px; margin: 0 auto var(--sp-3); position: relative;
-  animation: fade-up .7s .3s var(--ease-bounce) both;
-}
-.landing-stage .stage { padding: var(--sp-3) var(--sp-2) var(--sp-2); cursor: pointer; }
-.landing-hero-row { display: flex; align-items: flex-end; justify-content: center; gap: .4rem; }
-.landing-kancil {
-  font-size: 3.2rem; transform: scaleX(-1); filter: drop-shadow(0 4px 4px rgba(0,0,0,.2));
-  animation: hero-idle 2.8s ease-in-out infinite .3s;
-}
-.tap-hint {
-  font-family: var(--font-display); font-weight: 800; font-size: .78rem; color: var(--magic-deep);
-  margin-top: .3rem; animation: tap-hint-bob 1.6s ease-in-out infinite;
-}
-@keyframes tap-hint-bob { 0%,100% { transform: translateY(0); opacity: .75; } 50% { transform: translateY(-4px); opacity: 1; } }
-.landing-stage.celebrating .hero-svg .hero-body-group { animation: emote-jump .7s var(--ease-bounce); }
-.landing-stage.celebrating .landing-kancil { animation: emote-jelly-mirror .7s var(--ease-bounce); }
-@keyframes emote-jelly-mirror { 0%,100% { transform: scaleX(-1) scale(1,1); } 30% { transform: scaleX(-1) scale(1.2,.82); } 60% { transform: scaleX(-1) scale(.88,1.14); } }
-
 /* World preview ticker: an auto-scrolling level-select strip */
 .world-ticker-wrap {
   max-width: 560px; margin: 0 auto var(--sp-4); overflow: hidden;
