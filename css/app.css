@@ -400,7 +400,7 @@ a { color: var(--ocean); }
 }
 
 /* ---------- Dashboards (parent/teacher/admin) ---------- */
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-2); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
 .stat { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); padding: var(--sp-3); }
 .stat .s-num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; }
 .stat .s-label { color: var(--ink-soft); font-size: var(--fs-small); font-weight: 700; }
