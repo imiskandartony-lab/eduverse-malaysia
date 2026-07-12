@@ -1471,6 +1471,16 @@ export function settings(el) {
   const root = document.documentElement;
   el.innerHTML = `${hud()}
   <h2 class="display" style="margin:1rem 0">⚙️ Settings</h2>
+  ${user.role === 'student' ? `
+  <div class="card">
+    <h3 class="display">🧑‍🚀 Your Adventurer Name</h3>
+    <p style="color:var(--ink-soft);font-size:.85rem;margin:.3rem 0 .6rem">This is the name shown in the game — not your real name or email.</p>
+    <form id="rename-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <input id="rename-input" type="text" maxlength="20" value="${esc(user.name)}"
+        style="flex:1;min-width:160px;border:3px solid var(--line);border-radius:var(--r-pill);padding:.6rem 1rem;font-family:inherit;font-weight:700;background:var(--card);color:var(--ink)" />
+      <button class="btn btn-sm" type="submit">Save name</button>
+    </form>
+  </div>` : ''}
   <div class="card">
     <h3 class="display">Accessibility</h3>
     <div style="display:flex;flex-direction:column;gap:.8rem;margin-top:.8rem">
@@ -1510,6 +1520,15 @@ export function settings(el) {
     <button class="btn btn-ghost" id="logout">Log out</button>
   </div>`;
   const persist = () => localStorage.setItem('eduverse-a11y', JSON.stringify(root.dataset));
+  el.querySelector('#rename-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const newName = el.querySelector('#rename-input').value.trim();
+    if (!newName) return;
+    user.name = newName;
+    await store.saveUser(user);
+    toast(`Name updated to ${newName}! 🎉`);
+    settings(el);
+  });
   el.querySelector('#opt-mute').addEventListener('change', e => setMuted(e.target.checked));
   el.querySelector('#opt-music').addEventListener('change', e => setMusicMuted(!e.target.checked));
   el.querySelector('#ai-key-form').addEventListener('submit', e => {

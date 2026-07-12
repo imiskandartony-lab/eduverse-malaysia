@@ -112,7 +112,11 @@ class FirebaseStore {
     // Rules forbid self-registering as admin — admin access is granted by
     // email (CONFIG.adminEmails + firestore.rules), not by profile role.
     if (role === 'admin') role = 'parent';
-    const user = defaultProfile(authUser.displayName || name, role);
+    // Students always keep the adventurer name they typed — never the real
+    // Google account name. Other roles (parent/teacher) default to the
+    // Google name since it's their own dashboard, not a kid's character.
+    const displayName = role === 'student' ? name : (authUser.displayName || name);
+    const user = defaultProfile(displayName, role);
     await this.saveUser(user);
     if (user.familyCode) {
       await this.fs.setDoc(this.fs.doc(this.db, 'codes', user.familyCode), { uid: authUser.uid });
