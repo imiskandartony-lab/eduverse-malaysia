@@ -283,7 +283,10 @@ a { color: var(--ocean); }
 }
 
 /* ---------- Toast & modal ---------- */
-.toast { position: fixed; top: 14px; left: 50%; transform: translate(-50%, -120%); background: var(--ink); color: #fff; padding: .7rem 1.3rem; border-radius: var(--r-pill); font-weight: 800; z-index: 60; transition: transform var(--t-med) var(--ease-bounce); }
+/* top offset clears the iPhone notch/Dynamic Island and Android camera
+   cutouts automatically via the safe-area inset, falling back to 14px
+   on devices that don't report one */
+.toast { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); left: 50%; transform: translate(-50%, -120%); background: var(--ink); color: #fff; padding: .7rem 1.3rem; border-radius: var(--r-pill); font-weight: 800; z-index: 60; transition: transform var(--t-med) var(--ease-bounce); max-width: calc(100vw - 2rem); text-align: center; }
 .toast.show { transform: translate(-50%, 0); }
 .modal-backdrop { position: fixed; inset: 0; background: rgba(14,23,48,.55); z-index: 55; display: grid; place-items: center; padding: var(--sp-3); }
 .modal { background: var(--card); border-radius: var(--r-card); padding: var(--sp-4); max-width: 440px; width: 100%; box-shadow: var(--shadow-pop); text-align: center; }
