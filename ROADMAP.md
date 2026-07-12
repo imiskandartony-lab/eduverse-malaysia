@@ -43,16 +43,18 @@ impact-per-effort; each item is shippable on its own.
 
 ## Tier 3 — Longer-term shine
 
-- [ ] **9. Seasonal events** — Merdeka week (flag-themed items), Hari Raya
-      (ketupat hunt mini-event), year-end "Grand Exam Boss" marathon.
+- [x] **9. Seasonal events** *(shipped 2026-07-12 — Merdeka + Hari Raya exclusive wardrobe items, Grand Exam Boss marathon)*
+      Note: simplified from the original idea — Hari Raya ships as a themed exclusive item during its
+      window (same as Merdeka) rather than a separate ketupat-hunt mini-game, to keep scope shippable.
 - [x] **10. Pet abilities** *(shipped 2026-07-12)* — equipped pets do something: cat finds +5% coins,
       black cat +5% XP, hornbill removes one wrong quiz/boss option, tiger adds +10 boss damage.
-- [ ] **11. Trophy Room page** — a 3D-ish shelf showing every badge, boss
-      defeated, and perfect-score gem; parents can view it too.
-- [ ] **12. Voice input answers** — Web Speech API for spelling/pronunciation
-      questions ("Say the word!"). English Kingdom listening/speaking coverage.
-- [ ] **13. Background music** — gentle chiptune loop per world (WebAudio,
-      generated, no assets), boss battle theme, mute respects settings.
+- [x] **11. Trophy Room page** *(shipped 2026-07-12)* — a shelf showing every badge, boss
+      defeated, and perfect-score gem; parents get a highlights view on their dashboard too.
+- [x] **12. Voice input answers** *(shipped 2026-07-12 — "Speak It!" mini-game)* — Web Speech API for spelling/pronunciation
+      questions ("Say the word!"). Works for English and BM lessons; gracefully falls back
+      (never appears in the game pool) on browsers without speech recognition support.
+- [x] **13. Background music** *(shipped 2026-07-12)* — gentle generated loop per subject (WebAudio,
+      no assets), boss battle theme, separate music toggle in Settings that respects the main mute too.
 - [x] **14. Friend duel (same device)** *(shipped 2026-07-12 — pass-and-play best-of-5, no accounts, bragging-rights win counter)* — pass-the-tablet 5-question duel,
       two heroes side by side. No accounts or chat needed — safe by design.
 

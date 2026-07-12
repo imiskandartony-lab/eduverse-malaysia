@@ -468,6 +468,55 @@ export function mathNinja(mount, { question, correct, wrong }, onDone) {
   setTimeout(() => finish(hits >= need ? 1 : .3), 45000);
 }
 
+// ---------- Speak It!: Web Speech API pronunciation practice ----------
+export function speakChallenge(mount, { question, word, lang }, onDone) {
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const maxAttempts = 3;
+  let attempts = 0, finished = false;
+  const finish = score => { if (finished) return; finished = true; try { recognizer?.stop(); } catch { /* already stopped */ } onDone(score); };
+
+  mount.innerHTML = `
+    <h3 class="display">🎤 Speak It!</h3>
+    <p style="margin:.4rem 0 1rem">${esc(question)}</p>
+    <div style="text-align:center">
+      <div class="speak-word">${esc(word)}</div>
+      <button class="btn btn-purple" id="mic-btn">🎤 Tap and say the word</button>
+      <p id="speak-status" style="margin-top:.8rem;font-weight:800;min-height:1.4em"></p>
+      <button class="btn btn-ghost btn-sm" id="speak-skip" style="margin-top:.4rem">Having trouble? Skip</button>
+    </div>`;
+  const status = mount.querySelector('#speak-status');
+  const micBtn = mount.querySelector('#mic-btn');
+  mount.querySelector('#speak-skip').addEventListener('click', () => finish(0.5));
+
+  if (!Rec) { status.textContent = "This device can't listen — tap Skip to continue."; micBtn.disabled = true; return; }
+
+  const recognizer = new Rec();
+  recognizer.lang = lang || 'en-US';
+  recognizer.maxAlternatives = 3;
+  micBtn.addEventListener('click', () => {
+    if (attempts >= maxAttempts) return;
+    micBtn.disabled = true; status.textContent = '🎙️ Listening...';
+    try { recognizer.start(); } catch { micBtn.disabled = false; }
+  });
+  recognizer.onresult = e => {
+    attempts++;
+    const heard = [...e.results[0]].map(r => r.transcript.toLowerCase().trim());
+    const target = word.toLowerCase();
+    const correct = heard.some(s => s === target || s.includes(target));
+    micBtn.disabled = false;
+    if (correct) {
+      sfx.correct(); status.textContent = '✅ Great pronunciation!';
+      setTimeout(() => finish(Math.max(.5, 1 - (attempts - 1) * .15)), 700);
+    } else if (attempts >= maxAttempts) {
+      sfx.wrong(); status.textContent = `Heard: "${heard[0]}" — nice try!`;
+      setTimeout(() => finish(.3), 900);
+    } else {
+      sfx.wrong(); status.textContent = `Heard: "${heard[0]}" — try again! (${maxAttempts - attempts} left)`;
+    }
+  };
+  recognizer.onerror = () => { micBtn.disabled = false; status.textContent = 'Microphone issue — tap the mic to try again, or Skip.'; };
+}
+
 // Pick a game suited to the lesson and return a runner.
 export function gameForLesson(lesson, quiz) {
   const kinds = ['memory', 'balloon', 'speed', 'catch', 'maze', 'escape', 'ninja'];
@@ -481,8 +530,17 @@ export function gameForLesson(lesson, quiz) {
   // Sentence Builder only when some answer is a short multi-word phrase.
   const phraseHit = phraseCandidate(quiz);
   if (phraseHit) kinds.push('sentence');
+  // Speak It! only when the browser supports speech recognition and the
+  // answer is a single clean word to pronounce.
+  const speechSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  if (speechSupported && w) kinds.push('speak');
   const kind = kinds[Math.floor(Math.random() * kinds.length)];
   if (kind === 'word') return (mount, onDone) => wordBuilder(mount, { question: q0.q, word: w }, onDone);
+  if (kind === 'speak') {
+    const bmWorlds = ['bm-village', 'tatabahasa-temple', 'karangan-kingdom'];
+    const lang = bmWorlds.includes(lesson.worldId) ? 'ms-MY' : 'en-US';
+    return (mount, onDone) => speakChallenge(mount, { question: q0.q, word: w, lang }, onDone);
+  }
   if (kind === 'sentence') return (mount, onDone) => sentenceBuilder(mount, { question: phraseHit.q.q, phrase: phraseHit.phrase }, onDone);
   if (kind === 'ninja') {
     const q = quiz[Math.floor(Math.random() * quiz.length)];

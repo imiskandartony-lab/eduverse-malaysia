@@ -27,6 +27,8 @@ export const CATALOG = [
   { id: 'shirt-kite',   name: 'Wau Jersey',   type: 'shirt', price: 150, rarity: 'rare',      c: '#FFC93C', pattern: 'kite' },
   { id: 'shirt-royal',  name: 'Royal Armour', type: 'shirt', price: 420, rarity: 'legendary', c: '#41496B', pattern: 'armour' },
   { id: 'shirt-melayu', name: 'Baju Melayu',  type: 'shirt', price: 280, rarity: 'epic',      c: '#1F8A70', pattern: 'melayu' },
+  { id: 'shirt-merdeka', name: 'Jalur Gemilang Tee', type: 'shirt', price: 60, rarity: 'rare', c: '#CC0001', pattern: 'merdeka', seasonalOnly: 'merdeka' },
+  { id: 'shirt-raya',    name: 'Baju Raya',          type: 'shirt', price: 80, rarity: 'rare', c: '#2E8B57', pattern: 'raya',    seasonalOnly: 'raya' },
 
   // Pants
   { id: 'pants-navy',  name: 'Navy Shorts',  type: 'pants', price: 0,   rarity: 'common', c: '#31427A' },
@@ -40,6 +42,7 @@ export const CATALOG = [
   { id: 'hat-crown',   name: 'Royal Crown',  type: 'hat', price: 450, rarity: 'legendary', style: 'crown' },
   { id: 'hat-wizard',  name: 'Wizard Hat',   type: 'hat', price: 260, rarity: 'epic',      style: 'wizard' },
   { id: 'hat-tanjak',  name: 'Tanjak',       type: 'hat', price: 300, rarity: 'epic',      style: 'tanjak' },
+  { id: 'hat-merdeka', name: 'Merdeka Bandana', type: 'hat', price: 45, rarity: 'rare', style: 'merdekaband', seasonalOnly: 'merdeka' },
 
   // Glasses
   { id: 'glasses-cool',  name: 'Cool Shades',  type: 'glasses', price: 60,  rarity: 'common', style: 'shades' },
@@ -155,6 +158,11 @@ function hatSvg(part) {
       <path d="M120 24 L142 4 L136 25 Z" fill="#156353"/>
       <path d="M62 38 Q100 27 138 38 L138 44 Q100 32 62 44 Z" fill="#C9A227"/>`;
     case 'wizard': return `<path d="M100 -14 L134 44 Q100 32 66 44 Z" fill="#5B3FA8"/><path d="M58 46 Q100 32 142 46 L142 54 Q100 40 58 54 Z" fill="#7A5BD0"/><circle cx="104" cy="12" r="5" fill="#FFC93C"/>`;
+    case 'merdekaband': return `
+      <path d="M56 62 Q100 46 144 62 L144 72 Q100 58 56 72 Z" fill="#CC0001"/>
+      <path d="M56 72 Q100 58 144 72 L144 78 Q100 66 56 78 Z" fill="#FFFFFF"/>
+      <path d="M56 78 Q100 66 144 78 L144 84 Q100 74 56 84 Z" fill="#010066"/>
+      <circle cx="70" cy="68" r="4" fill="#FFC93C"/>`;
     default: return '';
   }
 }
@@ -169,6 +177,16 @@ function shirtPattern(part) {
   if (!part.pattern) return '';
   if (part.pattern === 'batik') return `<circle cx="82" cy="168" r="7" fill="#B49CFF"/><circle cx="112" cy="182" r="6" fill="#B49CFF"/><circle cx="120" cy="160" r="4" fill="#D9CBFF"/><circle cx="92" cy="190" r="4" fill="#D9CBFF"/>`;
   if (part.pattern === 'kite') return `<path d="M100 156 L114 172 L100 192 L86 172 Z" fill="#E85F2C"/><path d="M100 162 L108 172 L100 184 L92 172 Z" fill="#FFF2CC"/>`;
+  if (part.pattern === 'merdeka') return `
+    <path d="M64 146 L136 146 L136 172 L64 172 Z" fill="#FFFFFF" opacity=".85"/>
+    <path d="M64 172 L136 172 L136 220 L64 220 Z" fill="#010066" opacity=".2"/>
+    <path d="M78 154 l4 -8 4 8 -3 3 h-2 Z" fill="#FFC93C"/>
+    <circle cx="82" cy="149" r="5" fill="#FFC93C"/>`;
+  if (part.pattern === 'raya') return `
+    <path d="M100 150 l6 10 -6 10 -6 -10 Z" fill="#FFC93C"/>
+    <path d="M82 168 l6 10 -6 10 -6 -10 Z" fill="#FFC93C"/>
+    <path d="M118 168 l6 10 -6 10 -6 -10 Z" fill="#FFC93C"/>
+    <path d="M100 186 l6 10 -6 10 -6 -10 Z" fill="#FFC93C"/>`;
   if (part.pattern === 'melayu') return `
     <rect x="96" y="146" width="8" height="34" rx="3" fill="${darken(part.c, .8)}"/>
     <circle cx="100" cy="152" r="2.2" fill="#FFC93C"/><circle cx="100" cy="161" r="2.2" fill="#FFC93C"/><circle cx="100" cy="170" r="2.2" fill="#FFC93C"/>

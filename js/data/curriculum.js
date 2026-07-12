@@ -749,6 +749,23 @@ export const MAP_FINALE = {
   text: 'All nine pieces shimmer and fuse into one radiant map. Sang Kancil beams with pride: "You did not just learn, hero — you rebuilt an entire world of knowledge. This treasure is yours, forever." A legendary Golden Kancil Cloak appears in your wardrobe!',
   itemId: 'wings-kancil-legend',
 };
+// Seasonal events — a themed window each year with exclusive wardrobe items
+// and (for the exam marathon) a special boss encounter.
+export const SEASONAL_EVENTS = [
+  { id: 'merdeka', name: 'Merdeka Week', emoji: '🇲🇾',
+    banner: 'Merdeka Week is here! Limited-time Jalur Gemilang gear is in the shop!',
+    start: { month: 8, day: 25 }, end: { month: 9, day: 1 } },
+  // Aidilfitri shifts every year on the Islamic calendar — these are the
+  // known/projected Gregorian dates; moon-sighting can move it by a day.
+  { id: 'raya', name: 'Hari Raya', emoji: '🌙',
+    banner: 'Selamat Hari Raya! A limited-time Baju Raya is in the shop this week!',
+    dates: ['2026-03-20', '2027-03-09', '2028-02-26', '2029-02-14', '2030-02-04'],
+    windowDaysBefore: 1, windowDaysAfter: 6 },
+  { id: 'examboss', name: 'Grand Exam Boss Marathon', emoji: '📝',
+    banner: 'The Grand Exam Boss has awoken! Defeat it before the year ends for a legendary prize!',
+    start: { month: 11, day: 15 }, end: { month: 12, day: 15 } },
+];
+
 export const SHOP_ITEMS = [
   { id: 'hat-songkok', name: 'Songkok', emoji: '🎩', type: 'hat', price: 80 },
   { id: 'hat-crown', name: 'Royal Crown', emoji: '👑', type: 'hat', price: 300 },

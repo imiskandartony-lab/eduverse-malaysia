@@ -32,7 +32,7 @@ export function defaultProfile(name = 'Adventurer', role = 'student') {
     achievements: [], mapPieces: [], mapComplete: false,
     missions: [], missionsDate: null,
     challenge: null, challengeDate: null, shards: 0, arenaBest: {}, duelWins: 0, photoURL: null,
-    activityLog: [],
+    activityLog: [], bossesDefeated: [], perfectLessons: [], examBossYear: null,
     stats: { correct: 0, wrong: 0, gamesPlayed: 0, minutes: 0, weakTopics: {}, bySubject: {} },
   };
 }
@@ -249,6 +249,9 @@ export function ensureDailyMissions(user) {
   if (user.duelWins === undefined) user.duelWins = 0;
   if (user.photoURL === undefined) user.photoURL = null;
   if (user.activityLog === undefined) user.activityLog = [];
+  if (user.bossesDefeated === undefined) user.bossesDefeated = [];
+  if (user.perfectLessons === undefined) user.perfectLessons = [];
+  if (user.examBossYear === undefined) user.examBossYear = null;
   if (user.stats.bySubject === undefined) user.stats.bySubject = {};
   if (user.missionsDate !== todayStr()) {
     user.missionsDate = todayStr();

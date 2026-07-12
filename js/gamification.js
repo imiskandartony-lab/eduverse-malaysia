@@ -6,7 +6,7 @@ import { CONFIG } from './config.js';
 import { store, ensureDailyMissions } from './store.js';
 import { toast, rewardModal, confetti } from './ui.js';
 import { sfx } from './sounds.js';
-import { WORLDS, LESSONS, MAP_STORY, MAP_FINALE } from './data/curriculum.js';
+import { WORLDS, LESSONS, MAP_STORY, MAP_FINALE, SEASONAL_EVENTS } from './data/curriculum.js';
 import { equippedPetEffect } from './avatar.js';
 
 export const levelFor = xp => Math.floor(xp / CONFIG.xpPerLevel) + 1;
@@ -33,6 +33,7 @@ const ACHIEVEMENTS = [
   { id: 'gamer', name: 'Game On', emoji: '🎮', test: u => u.stats.gamesPlayed >= 3 },
   { id: 'rich', name: 'Coin Collector', emoji: '💰', test: u => u.coins >= 300 },
   { id: 'level-5', name: 'Level 5 Hero', emoji: '🦸', test: u => levelFor(u.xp) >= 5 },
+  { id: 'exam-champion', name: 'Exam Champion', emoji: '📝', test: u => !!u.examBossYear },
 ];
 
 export async function grant(user, { xp = 0, coins = 0, gems = 0, reason = '' }) {
@@ -116,6 +117,25 @@ export async function openChest(user) {
   sfx.chest();
   await grant(user, { ...loot, reason: '(daily treasure!)' });
   return loot;
+}
+
+// ---------- Seasonal events ----------
+export function activeSeasonalEvent(now = new Date()) {
+  const m = now.getMonth() + 1, d = now.getDate();
+  for (const ev of SEASONAL_EVENTS) {
+    if (ev.start && ev.end) {
+      const afterStart = m > ev.start.month || (m === ev.start.month && d >= ev.start.day);
+      const beforeEnd = m < ev.end.month || (m === ev.end.month && d <= ev.end.day);
+      if (afterStart && beforeEnd) return ev;
+    } else if (ev.dates) {
+      const hit = ev.dates.some(ds => {
+        const diffDays = Math.round((now - new Date(ds + 'T00:00:00')) / 864e5);
+        return diffDays >= -ev.windowDaysBefore && diffDays <= ev.windowDaysAfter;
+      });
+      if (hit) return ev;
+    }
+  }
+  return null;
 }
 
 // ---------- Daily Challenge ----------

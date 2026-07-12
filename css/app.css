@@ -470,6 +470,13 @@ body::before { /* sun */
 }
 .ninja-shuriken.sliced { transform: scale(1.4) rotate(35deg); opacity: 0; }
 
+/* ---------- Speak It! ---------- */
+.speak-word {
+  font-family: var(--font-display); font-weight: 800; font-size: 2.2rem;
+  color: var(--magic-deep); background: var(--card-tint); border-radius: var(--r-card);
+  padding: 1rem; margin: 0 auto 1rem; display: inline-block; letter-spacing: .04em;
+}
+
 /* ---------- Catch the Answer ---------- */
 .faller {
   position: absolute; top: -60px; border: none; color: #fff; font-weight: 800;

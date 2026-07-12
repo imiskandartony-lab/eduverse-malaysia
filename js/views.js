@@ -9,9 +9,9 @@ import {
   recommendLesson, worldProgress, maybeUnlockNextWorld, levelFor, xpIntoLevel,
   achievementList, titleFor, canSpin, doSpin, canOpenChest, openChest, SPIN_PRIZES, grant as grantReward,
   maybeRestoreMapPiece, challengeProgress, claimChallenge, rollMysteryReward, claimMysteryReward, SHARDS_FOR_EPIC,
-  logActivity, subjectBreakdown,
+  logActivity, subjectBreakdown, activeSeasonalEvent,
 } from './gamification.js';
-import { sfx, isMuted, setMuted } from './sounds.js';
+import { sfx, isMuted, setMuted, startMusic, stopMusic, isMusicMuted, setMusicMuted } from './sounds.js';
 import { getAiKey, setAiKey } from './ai.js';
 import { toast, rewardModal, speak, esc, confetti, floatText, flashEdge, showCombo } from './ui.js';
 import { gameForLesson } from './games.js';
@@ -173,8 +173,17 @@ export function dashboard(el) {
   const rec = recommendLesson(user);
   const missionsDone = user.missions.filter(m => m.done).length;
   const world = WORLDS.find(w => w.id === (rec?.lesson.worldId)) || WORLDS[0];
+  const seasonal = activeSeasonalEvent();
   el.innerHTML = `
   ${hud()}
+  ${seasonal ? `
+  <button class="card card-tint" style="width:100%;text-align:left;border:3px solid var(--gold);cursor:pointer;margin-top:1rem" id="seasonal-banner">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <span style="font-size:2.2rem">${seasonal.emoji}</span>
+      <div><strong class="display" style="font-size:1.05rem">${esc(seasonal.name)}</strong>
+        <div style="color:var(--ink-soft);font-size:.85rem">${esc(seasonal.banner)}</div></div>
+    </div>
+  </button>` : ''}
   <div class="card card-tint" style="margin-top:1rem;display:flex;gap:1rem;align-items:center">
     <div style="font-size:3rem">🦌</div>
     <div>
@@ -237,6 +246,15 @@ export function dashboard(el) {
       </div>
     </button>
   </div>
+  <button class="card" style="width:100%;text-align:left;cursor:pointer" id="trophy-btn">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <span style="font-size:2rem">🏆</span>
+      <div>
+        <strong class="display" style="font-size:1.05rem">Trophy Room</strong>
+        <div style="color:var(--ink-soft);font-size:.85rem">Every badge, boss defeated and perfect score, all in one place</div>
+      </div>
+    </div>
+  </button>
   <div class="card">
     <h3 class="display">🏅 Achievements</h3>
     <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
@@ -249,6 +267,9 @@ export function dashboard(el) {
   el.querySelector('#continue-btn')?.addEventListener('click', () => go(`#/lesson/${rec.lesson.id}`));
   el.querySelector('#arena-btn').addEventListener('click', () => go('#/arena'));
   el.querySelector('#duel-btn').addEventListener('click', () => go('#/duel'));
+  el.querySelector('#trophy-btn').addEventListener('click', () => go('#/trophies'));
+  el.querySelector('#seasonal-banner')?.addEventListener('click', () =>
+    go(seasonal.id === 'examboss' ? '#/examboss' : '#/avatar'));
   el.querySelector('#claim-challenge')?.addEventListener('click', async () => {
     await claimChallenge(user); dashboard(el);
   });
@@ -384,6 +405,7 @@ function showMapStory(el) {
 export function worldDetail(el, worldId) {
   const w = WORLDS.find(x => x.id === worldId);
   const ls = LESSONS.filter(l => l.worldId === worldId);
+  startMusic(w.subject.toLowerCase());
   el.innerHTML = `
   ${hud()}
   <button class="btn btn-ghost btn-sm" data-route="#/worlds" style="margin:1rem 0">← Map</button>
@@ -479,6 +501,8 @@ export function lessonFlow(el, lessonId) {
   const quiz = QUIZZES[lessonId] || [];
   let stage = 0, stepIdx = 0, quizIdx = 0, quizCorrect = 0, bossHp = 100, gameScore = 0, combo = 0;
   let bossWrong = 0, combo5Fired = false;
+  const lessonMood = WORLDS.find(w => w.id === lesson.worldId)?.subject.toLowerCase();
+  startMusic(lessonMood);
 
   const frame = inner => {
     el.innerHTML = `${hud()}
@@ -590,6 +614,7 @@ export function lessonFlow(el, lessonId) {
     boss() {
       // Named world boss: intro taunt → battle (taunts on block, flinch on
       // hit) → defeat pose. Questions reuse the lesson quiz, shuffled.
+      startMusic('boss');
       const boss = BOSSES[lesson.worldId] || {
         name: 'Shadow Beast', emoji: '🐉', title: 'Guardian of the Quest',
         intro: 'None shall pass without proving their knowledge!',
@@ -619,6 +644,7 @@ export function lessonFlow(el, lessonId) {
       const drawDefeat = () => {
         confetti(24);
         if (bossWrong === 0) challengeProgress(user, 'no_miss_boss');
+        if (!user.bossesDefeated.includes(lesson.worldId)) { user.bossesDefeated.push(lesson.worldId); store.saveUser(user); }
         frame(`
           ${bossHead('defeated', boss.defeat)}
           <div style="text-align:center;margin-top:1rem">
@@ -664,6 +690,7 @@ export function lessonFlow(el, lessonId) {
       met ? drawBoss() : drawIntro();
     },
     async reward() {
+      stopMusic();
       const accuracy = quiz.length ? quizCorrect / quiz.length : 1;
       const bonus = Math.round(lesson.xp * 0.5 * accuracy + lesson.xp * 0.3 * gameScore);
       const firstTime = !user.completedLessons.includes(lesson.id);
@@ -682,6 +709,7 @@ export function lessonFlow(el, lessonId) {
         subject: WORLDS.find(w => w.id === lesson.worldId)?.subject,
         accuracy: Math.round(accuracy * 100),
       });
+      if (accuracy === 1 && !user.perfectLessons.includes(lesson.id)) user.perfectLessons.push(lesson.id);
       if (accuracy === 1) await challengeProgress(user, 'perfect_quiz');
       await challengeProgress(user, 'lessons');
       confetti(40);
@@ -706,6 +734,143 @@ export function lessonFlow(el, lessonId) {
   const order = ['intro', 'learn', 'practice', 'game', 'quiz', 'boss', 'reward'];
   const render = () => stages[order[stage]]();
   render();
+}
+
+// ---------------- Grand Exam Boss Marathon (seasonal, year-end) ----------------
+export function examBoss(el) {
+  const event = activeSeasonalEvent();
+  if (!event || event.id !== 'examboss') { go('#/dashboard'); return; }
+
+  const completedQuizzes = user.completedLessons.map(id => QUIZZES[id]).filter(Boolean).flat();
+  const pool = completedQuizzes.length >= 3 ? completedQuizzes : Object.values(QUIZZES).flat();
+  let deck = [...pool].sort(() => Math.random() - 0.5);
+  const BOSS_HP = 300, DMG = 28;
+  let hp = BOSS_HP, idx = 0;
+  const year = new Date().getFullYear();
+  const alreadyClaimed = user.examBossYear === year;
+
+  const frame = inner => {
+    el.innerHTML = `${hud()}
+      <button class="btn btn-ghost btn-sm" data-route="#/dashboard" style="margin:1rem 0">← Leave</button>
+      <div class="card">${inner}</div>`;
+  };
+
+  function drawIntro() {
+    startMusic('boss');
+    frame(`
+      <div style="text-align:center">
+        <div class="boss-avatar menace" style="font-size:4.5rem">📝👹</div>
+        <div class="boss-name">The Grand Exam Overlord</div>
+        <div class="boss-title">Guardian of the Year-End Marathon</div>
+        <p class="boss-taunt">"Every lesson you've learned... now prove it ALL at once!"</p>
+        <p style="color:var(--ink-soft);margin:.6rem 0">${alreadyClaimed
+          ? "You've already claimed this year's legendary prize — but the Overlord will still battle for glory!"
+          : 'Defeat it before the marathon ends for a one-time legendary prize!'}</p>
+        <button class="btn btn-gold" id="start-exam">⚔️ Begin the Marathon!</button>
+      </div>`);
+    el.querySelector('#start-exam').addEventListener('click', () => drawQuestion());
+  }
+
+  function nextQuestion() {
+    if (idx >= deck.length) { deck = deck.concat([...pool].sort(() => Math.random() - 0.5)); }
+    return deck[idx % deck.length];
+  }
+
+  function drawQuestion(taunt) {
+    const q = nextQuestion();
+    frame(`
+      <div style="text-align:center">
+        <div class="boss-avatar menace" style="font-size:3.6rem">📝👹</div>
+        ${taunt ? `<p class="boss-taunt">"${esc(taunt)}"</p>` : ''}
+        <div class="boss-hp" role="progressbar" aria-valuenow="${hp}" aria-valuemax="${BOSS_HP}" style="margin:.8rem 0"><span style="width:${(hp / BOSS_HP) * 100}%"></span></div>
+      </div>
+      <p class="lesson-step" style="margin:.6rem 0">${esc(q.q)}</p>
+      <div id="opts"></div>`);
+    const opts = el.querySelector('#opts');
+    q.options.forEach((o, i) => {
+      const b = document.createElement('button');
+      b.className = 'quiz-option'; b.textContent = o;
+      b.addEventListener('click', ev => {
+        idx++;
+        if (i === q.answer) {
+          hp = Math.max(0, hp - DMG);
+          sfx.bossHit(); flashEdge('good'); floatText(ev.clientX, ev.clientY, `💥 -${DMG}`, 'var(--sunset-deep)');
+          if (hp <= 0) drawVictory(); else drawQuestion('Impossible... my power wanes!');
+        } else {
+          sfx.wrong(); flashEdge('bad'); floatText(ev.clientX, ev.clientY, '🛡️', 'var(--lava)');
+          toast(q.explain, 2400);
+          drawQuestion('Ha! You cannot master every subject at once!');
+        }
+      });
+      opts.appendChild(b);
+    });
+  }
+
+  async function drawVictory() {
+    stopMusic(); confetti(60); sfx.levelUp();
+    let bonusText;
+    if (!alreadyClaimed) {
+      user.examBossYear = year;
+      await grant(user, { xp: 300, coins: 200, gems: 5, reason: '(Grand Exam Boss defeated!)' });
+      bonusText = `You claimed this year's LEGENDARY prize: +300 XP, +200 🪙, +5 💎!`;
+    } else {
+      await grant(user, { xp: 40, coins: 20, reason: '(Grand Exam Boss — rematch)' });
+      bonusText = "You've already claimed this year's big prize, but here's something for the rematch!";
+    }
+    frame(`
+      <div style="text-align:center">
+        <div style="font-size:4rem">🏆</div>
+        <h2 class="display">Marathon Complete!</h2>
+        <p class="lesson-step" style="margin:.8rem 0">${esc(bonusText)}</p>
+        <button class="btn" data-route="#/dashboard">Home 🏝️</button>
+      </div>`);
+  }
+
+  drawIntro();
+}
+
+// ---------------- Trophy Room: shared render, used by student page + parent view ----------------
+function renderTrophyContent(target) {
+  const achievements = achievementList(target);
+  const bossEntries = WORLDS.map(w => ({ world: w, boss: BOSSES[w.id], defeated: (target.bossesDefeated || []).includes(w.id) }));
+  const perfect = (target.perfectLessons || []).map(id => LESSONS.find(l => l.id === id)).filter(Boolean);
+  const bestCombo = Object.values(target.arenaBest || {}).reduce((m, v) => Math.max(m, v), 0);
+  return `
+    <div class="card">
+      <h3 class="display">🏅 Achievements (${achievements.filter(a => a.owned).length}/${achievements.length})</h3>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
+        ${achievements.map(a => `<span class="pill" title="${esc(a.name)}" style="${a.owned ? '' : 'opacity:.35;filter:grayscale(1)'}">${a.emoji} ${esc(a.name)}</span>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="display">⚔️ Bosses Defeated (${bossEntries.filter(b => b.defeated).length}/${bossEntries.length})</h3>
+      <div class="stat-grid" style="margin-top:.6rem">
+        ${bossEntries.map(b => `
+          <div class="stat" style="${b.defeated ? '' : 'opacity:.4;filter:grayscale(1)'}" title="${esc(b.world.name)}">
+            <div class="s-num" style="font-size:1.6rem">${b.boss?.emoji || '🐉'}</div>
+            <div class="s-label">${esc(b.boss?.name || '???')}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="display">💎 Perfect Quests (${perfect.length})</h3>
+      ${perfect.length ? `<ul style="margin:.5rem 0 0 1.2rem">${perfect.map(l => `<li>${esc(l.title)}</li>`).join('')}</ul>` : '<p style="color:var(--ink-soft)">Score 100% on a quiz to earn your first perfect gem!</p>'}
+    </div>
+    <div class="card">
+      <h3 class="display">🎮 Records</h3>
+      <div class="stat-grid">
+        <div class="stat"><div class="s-num">🔥${target.streak || 0}</div><div class="s-label">Current streak</div></div>
+        <div class="stat"><div class="s-num">⚔️${target.duelWins || 0}</div><div class="s-label">Duels won</div></div>
+        <div class="stat"><div class="s-num">🗺️${(target.mapPieces || []).length}/9</div><div class="s-label">Story pieces</div></div>
+        <div class="stat"><div class="s-num">🏆×${bestCombo}</div><div class="s-label">Best arena combo</div></div>
+      </div>
+    </div>`;
+}
+
+export function trophyRoom(el) {
+  el.innerHTML = `${hud()}
+  <h2 class="display" style="margin:1rem 0">🏆 Trophy Room</h2>
+  ${renderTrophyContent(user)}`;
 }
 
 // ---------------- Practice Arena: no-stakes endless drilling ----------------
@@ -1176,7 +1341,10 @@ export function avatar(el, _m, activeTab = 'shirt') {
   if (refund) { store.saveUser(user); toast(`Wardrobe upgraded! ${refund} 🪙 refunded for retired items`); }
 
   const render = () => {
-    const parts = CATALOG.filter(p => p.type === activeTab && (!p.storyOnly || user.owned.includes(p.id)));
+    const activeEvent = activeSeasonalEvent();
+    const parts = CATALOG.filter(p => p.type === activeTab
+      && (!p.storyOnly || user.owned.includes(p.id))
+      && (!p.seasonalOnly || user.owned.includes(p.id) || activeEvent?.id === p.seasonalOnly));
     el.innerHTML = `${hud()}
     <h2 class="display" style="margin:1rem 0">🎭 Hero Studio</h2>
     <div class="editor">
@@ -1209,6 +1377,7 @@ export function avatar(el, _m, activeTab = 'shirt') {
               <div class="p-preview">${partPreview(p)}</div>
               <div class="p-name">${esc(p.name)}</div>
               <div class="p-rarity">${p.rarity}</div>
+              ${p.seasonalOnly ? '<div class="p-effect" style="color:var(--sunset-deep)">🎉 Limited time!</div>' : ''}
               ${p.effectDesc ? `<div class="p-effect">✨ ${esc(p.effectDesc)}</div>` : ''}
               <button class="btn btn-sm ${owned ? 'btn-green' : 'btn-gold'}" data-part="${p.id}" style="margin-top:.4rem"
                 ${!owned && user.coins < p.price ? 'disabled' : ''}>
@@ -1306,6 +1475,7 @@ export function settings(el) {
     <h3 class="display">Accessibility</h3>
     <div style="display:flex;flex-direction:column;gap:.8rem;margin-top:.8rem">
       <label><input type="checkbox" id="opt-mute" ${isMuted() ? 'checked' : ''}/> 🔇 Mute sounds</label>
+      <label><input type="checkbox" id="opt-music" ${isMusicMuted() ? '' : 'checked'}/> 🎵 Background music</label>
       <label><input type="checkbox" id="opt-dark" ${root.dataset.theme === 'dark' ? 'checked' : ''}/> 🌙 Night Quest (dark mode)</label>
       <label><input type="checkbox" id="opt-dys" ${root.dataset.font === 'dyslexic' ? 'checked' : ''}/> 📖 Dyslexia-friendly spacing</label>
       <label><input type="checkbox" id="opt-cb" ${root.dataset.colorblind === 'on' ? 'checked' : ''}/> 🎨 Colour-blind safe palette</label>
@@ -1341,6 +1511,7 @@ export function settings(el) {
   </div>`;
   const persist = () => localStorage.setItem('eduverse-a11y', JSON.stringify(root.dataset));
   el.querySelector('#opt-mute').addEventListener('change', e => setMuted(e.target.checked));
+  el.querySelector('#opt-music').addEventListener('change', e => setMusicMuted(!e.target.checked));
   el.querySelector('#ai-key-form').addEventListener('submit', e => {
     e.preventDefault();
     const v = el.querySelector('#ai-key-input').value.trim();
@@ -1422,6 +1593,15 @@ export async function parent(el, _m, selectedIdx = 0) {
     <h3 class="display">🗺️ Adventure map progress</h3>
     <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.2rem">Lessons completed per world (green ring = world finished)</p>
     ${worldMapStrip(child)}
+  </div>
+  <div class="card">
+    <h3 class="display">🏆 Trophy highlights</h3>
+    <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.4rem">
+      ⚔️ ${(child.bossesDefeated || []).length}/9 bosses defeated · 💎 ${(child.perfectLessons || []).length} perfect-score quests
+    </p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      ${WORLDS.map(w => `<span class="pill" title="${esc(w.name)}" style="${(child.bossesDefeated || []).includes(w.id) ? '' : 'opacity:.35;filter:grayscale(1)'}">${BOSSES[w.id]?.emoji || '🐉'}</span>`).join('')}
+    </div>
   </div>
   <div class="card">
     <h3 class="display">🔍 Topics needing attention</h3>
