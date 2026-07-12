@@ -4,6 +4,7 @@ import { store, ensureDailyMissions } from './store.js';
 import * as V from './views.js';
 import { initKancilWidget } from './ai.js';
 import { stopMusic } from './sounds.js';
+import './install.js'; // registers the beforeinstallprompt listener as early as possible
 
 const view = document.getElementById('view');
 const nav = document.getElementById('bottom-nav');

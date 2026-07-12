@@ -13,6 +13,7 @@ import {
 } from './gamification.js';
 import { sfx, isMuted, setMuted, startMusic, stopMusic, isMusicMuted, setMusicMuted } from './sounds.js';
 import { getAiKey, setAiKey } from './ai.js';
+import { isStandalone, isIOS, canPromptInstall, promptInstall, isInstallDismissed, dismissInstallCard } from './install.js';
 import { toast, rewardModal, speak, esc, confetti, floatText, flashEdge, showCombo } from './ui.js';
 import { gameForLesson } from './games.js';
 
@@ -102,6 +103,24 @@ export function landing(el) {
       </div>
     </div>
 
+    ${(!isStandalone() && !isInstallDismissed() && (isIOS() || canPromptInstall())) ? `
+    <div class="card install-card">
+      <button class="install-close" id="install-close" aria-label="Dismiss">✕</button>
+      <div style="display:flex;align-items:center;gap:1rem;text-align:left">
+        <img src="assets/icons/icon.svg" alt="" width="52" height="52" style="border-radius:16px;box-shadow:var(--shadow);flex-shrink:0" />
+        <div>
+          <strong class="display" style="font-size:1.05rem">📲 Install EduVerse</strong>
+          <div style="color:var(--ink-soft);font-size:.85rem">Play offline, launch instantly — no browser bars, just the adventure.</div>
+        </div>
+      </div>
+      ${isIOS() ? `
+      <p style="margin-top:.7rem;font-size:.85rem;color:var(--ink-soft)">
+        Tap <b>Share</b> <span style="display:inline-block;border:2px solid var(--ink-soft);border-radius:6px;padding:0 .3em">⬆︎</span>
+        at the bottom of Safari, then <b>"Add to Home Screen"</b>.
+      </p>` : `
+      <button class="btn btn-gold btn-sm" id="install-btn" style="margin-top:.7rem">Install now</button>`}
+    </div>` : ''}
+
     <p class="path-eyebrow">Choose your path</p>
     <div class="role-grid">
       ${roleCards.map(r => `
@@ -124,6 +143,16 @@ export function landing(el) {
   el.querySelectorAll('.world-badge').forEach(b => b.addEventListener('click', () => {
     toast(`${b.dataset.worldName} — ${b.dataset.worldDesc}`, 2600);
   }));
+
+  el.querySelector('#install-close')?.addEventListener('click', () => {
+    dismissInstallCard();
+    el.querySelector('.install-card').remove();
+  });
+  el.querySelector('#install-btn')?.addEventListener('click', async () => {
+    const outcome = await promptInstall();
+    if (outcome === 'accepted') { toast('🎉 Installed! Look for EduVerse on your home screen.'); el.querySelector('.install-card')?.remove(); }
+    else if (outcome === 'dismissed') toast('No worries — you can install anytime from here.');
+  });
 
   const form = el.querySelector('#name-form');
   let signingIn = false;

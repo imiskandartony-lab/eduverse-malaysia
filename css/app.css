@@ -359,6 +359,15 @@ a { color: var(--ocean); }
 .world-badge .wb-emoji { font-size: 1.1rem; }
 @keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
+.install-card {
+  position: relative; max-width: 480px; margin: 0 auto var(--sp-4); text-align: left;
+  border: 3px solid var(--gold); animation: fade-up .7s .55s var(--ease-bounce) both;
+}
+.install-close {
+  position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%;
+  border: none; background: var(--card-tint); color: var(--ink-soft); font-size: .8rem; line-height: 1;
+}
+
 .path-eyebrow {
   font-family: var(--font-display); font-weight: 800; font-size: .8rem; letter-spacing: .12em;
   text-transform: uppercase; color: var(--ink-soft); margin-bottom: .6rem;
