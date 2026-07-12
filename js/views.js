@@ -1,7 +1,7 @@
 // EduVerse Malaysia — view renderers (SPA, hash-routed)
 
 import { WORLDS, LESSONS, QUIZZES, BOSSES, MAP_STORY, MAP_FINALE } from './data/curriculum.js';
-import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe, DEFAULT_EQUIP, fileToAvatarDataURL } from './avatar.js';
+import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe, DEFAULT_EQUIP, fileToAvatarDataURL, equippedPetEffect } from './avatar.js';
 import { store, ensureDailyMissions, touchStreak } from './store.js';
 import { CONFIG } from './config.js';
 import {
@@ -460,6 +460,18 @@ function showMysteryBox(user) {
   });
 }
 
+// Hornbill pet perk: cross out one wrong option before the student answers.
+function hornbillEliminate(opts, q) {
+  if (equippedPetEffect(user) !== 'eliminate') return;
+  const wrongIdx = q.options.map((_, i) => i).filter(i => i !== q.answer);
+  const pick = wrongIdx[Math.floor(Math.random() * wrongIdx.length)];
+  const btn = opts.children[pick];
+  if (!btn) return;
+  btn.disabled = true;
+  btn.classList.add('eliminated');
+  btn.innerHTML += ' <span class="elim-tag">🦜</span>';
+}
+
 // ---------------- Lesson flow: intro → learn → practice → game → quiz → boss → reward ----------------
 export function lessonFlow(el, lessonId) {
   const lesson = LESSONS.find(l => l.id === lessonId);
@@ -572,6 +584,7 @@ export function lessonFlow(el, lessonId) {
         });
         opts.appendChild(b);
       });
+      hornbillEliminate(opts, q);
       el.querySelector('#hint').addEventListener('click', () => rewardModal('🦌', 'Hint!', esc(q.hint)));
     },
     boss() {
@@ -628,9 +641,10 @@ export function lessonFlow(el, lessonId) {
           b.addEventListener('click', ev => {
             bi++;
             if (i === q.answer) {
-              bossHp = Math.max(0, bossHp - CONFIG.bossDamagePerCorrect);
+              const dmg = CONFIG.bossDamagePerCorrect + (equippedPetEffect(user) === 'bossdmg' ? 10 : 0);
+              bossHp = Math.max(0, bossHp - dmg);
               sfx.bossHit(); flashEdge('good');
-              floatText(ev.clientX, ev.clientY, `💥 -${CONFIG.bossDamagePerCorrect}`, 'var(--sunset-deep)');
+              floatText(ev.clientX, ev.clientY, `💥 -${dmg}`, 'var(--sunset-deep)');
               recordAnswer(user, lessonId, true);
               if (bossHp <= 0) drawDefeat();
               else drawBoss(pick(boss.hits), 'hit');
@@ -645,6 +659,7 @@ export function lessonFlow(el, lessonId) {
           });
           opts.appendChild(b);
         });
+        hornbillEliminate(opts, q);
       };
       met ? drawBoss() : drawIntro();
     },
@@ -1194,6 +1209,7 @@ export function avatar(el, _m, activeTab = 'shirt') {
               <div class="p-preview">${partPreview(p)}</div>
               <div class="p-name">${esc(p.name)}</div>
               <div class="p-rarity">${p.rarity}</div>
+              ${p.effectDesc ? `<div class="p-effect">✨ ${esc(p.effectDesc)}</div>` : ''}
               <button class="btn btn-sm ${owned ? 'btn-green' : 'btn-gold'}" data-part="${p.id}" style="margin-top:.4rem"
                 ${!owned && user.coins < p.price ? 'disabled' : ''}>
                 ${equipped ? (removable ? 'Take off' : 'Wearing') : owned ? 'Wear' : p.price === 0 ? 'Free' : `${p.price} 🪙`}

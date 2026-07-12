@@ -45,8 +45,8 @@ impact-per-effort; each item is shippable on its own.
 
 - [ ] **9. Seasonal events** — Merdeka week (flag-themed items), Hari Raya
       (ketupat hunt mini-event), year-end "Grand Exam Boss" marathon.
-- [ ] **10. Pet abilities** — equipped pets do something: cat finds +5% coins,
-      hornbill gives one free hint per quiz, tiger adds boss damage.
+- [x] **10. Pet abilities** *(shipped 2026-07-12)* — equipped pets do something: cat finds +5% coins,
+      black cat +5% XP, hornbill removes one wrong quiz/boss option, tiger adds +10 boss damage.
 - [ ] **11. Trophy Room page** — a 3D-ish shelf showing every badge, boss
       defeated, and perfect-score gem; parents can view it too.
 - [ ] **12. Voice input answers** — Web Speech API for spelling/pronunciation

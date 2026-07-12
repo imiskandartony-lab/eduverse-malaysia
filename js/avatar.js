@@ -50,11 +50,15 @@ export const CATALOG = [
   { id: 'wings-gold', name: 'Golden Wings', type: 'wings', price: 500, rarity: 'legendary', c: '#FFC93C' },
   { id: 'wings-kancil-legend', name: 'Kancil\'s Cloak', type: 'wings', price: 0, rarity: 'legendary', c: '#8C6CF5', storyOnly: true },
 
-  // Pets (companions)
-  { id: 'pet-cat',      name: 'Kucing Oren', type: 'pet', price: 150, rarity: 'rare',      emoji: '🐱' },
-  { id: 'pet-hornbill', name: 'Hornbill',    type: 'pet', price: 250, rarity: 'epic',      emoji: '🦜' },
-  { id: 'pet-tiger',    name: 'Harimau Cub', type: 'pet', price: 400, rarity: 'legendary', emoji: '🐯' },
-  { id: 'pet-kucing-hitam', name: 'Kucing Hitam', type: 'pet', price: 200, rarity: 'rare', emoji: '🐈‍⬛' },
+  // Pets (companions) — each equipped pet grants a small passive perk.
+  { id: 'pet-cat',      name: 'Kucing Oren', type: 'pet', price: 150, rarity: 'rare',      emoji: '🐱',
+    effect: 'coins5', effectDesc: '+5% bonus coins on every reward' },
+  { id: 'pet-hornbill', name: 'Hornbill',    type: 'pet', price: 250, rarity: 'epic',      emoji: '🦜',
+    effect: 'eliminate', effectDesc: 'Removes one wrong answer from quiz & boss questions' },
+  { id: 'pet-tiger',    name: 'Harimau Cub', type: 'pet', price: 400, rarity: 'legendary', emoji: '🐯',
+    effect: 'bossdmg', effectDesc: '+10 extra damage per boss hit' },
+  { id: 'pet-kucing-hitam', name: 'Kucing Hitam', type: 'pet', price: 200, rarity: 'rare', emoji: '🐈‍⬛',
+    effect: 'xp5', effectDesc: '+5% bonus XP on every reward' },
 
   // Emotes
   { id: 'emote-jump', name: 'Victory Jump', type: 'emote', price: 0,   rarity: 'common', anim: 'jump' },
@@ -75,6 +79,12 @@ export const CATEGORIES = [
 ];
 
 export const findPart = id => CATALOG.find(p => p.id === id);
+
+// The equipped pet's passive effect id ('coins5' | 'xp5' | 'eliminate' | 'bossdmg' | null).
+export function equippedPetEffect(user) {
+  const pet = user.equipped?.pet && findPart(user.equipped.pet);
+  return pet?.effect || null;
+}
 
 // Free starter parts every hero owns.
 export const STARTERS = ['skin-tan', 'hair-crop', 'shirt-sun', 'pants-navy', 'emote-jump'];

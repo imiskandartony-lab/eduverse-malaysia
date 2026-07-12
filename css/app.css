@@ -107,6 +107,8 @@ a { color: var(--ocean); }
   transition: border-color var(--t-fast), transform var(--t-fast) var(--ease-bounce);
 }
 .quiz-option:hover { border-color: var(--ocean); transform: translateX(4px); }
+.quiz-option.eliminated { opacity: .45; text-decoration: line-through; cursor: not-allowed; }
+.quiz-option .elim-tag { float: right; text-decoration: none; }
 .quiz-option.correct { border-color: var(--jungle); background: color-mix(in srgb, var(--jungle) 14%, var(--card)); }
 .quiz-option.wrong { border-color: var(--lava); background: color-mix(in srgb, var(--lava) 12%, var(--card)); animation: shake .3s; }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
@@ -203,6 +205,7 @@ a { color: var(--ocean); }
 .part-card .p-preview { height: 58px; display: grid; place-items: center; }
 .part-card .p-name { font-weight: 800; font-size: .78rem; line-height: 1.2; min-height: 2em; }
 .part-card .p-rarity { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.part-card .p-effect { font-size: .68rem; color: var(--jungle-deep); font-weight: 700; margin-top: .3rem; line-height: 1.25; }
 .part-card.r-common { border-color: var(--line); }
 .part-card.r-rare { border-color: var(--ocean); }
 .part-card.r-epic { border-color: var(--magic); }

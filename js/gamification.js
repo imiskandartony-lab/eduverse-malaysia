@@ -7,6 +7,7 @@ import { store, ensureDailyMissions } from './store.js';
 import { toast, rewardModal, confetti } from './ui.js';
 import { sfx } from './sounds.js';
 import { WORLDS, LESSONS, MAP_STORY, MAP_FINALE } from './data/curriculum.js';
+import { equippedPetEffect } from './avatar.js';
 
 export const levelFor = xp => Math.floor(xp / CONFIG.xpPerLevel) + 1;
 export const xpIntoLevel = xp => xp % CONFIG.xpPerLevel;
@@ -37,6 +38,10 @@ const ACHIEVEMENTS = [
 export async function grant(user, { xp = 0, coins = 0, gems = 0, reason = '' }) {
   // Comeback day: everything earned today is double XP (see store.touchStreak).
   if (xp && user.comebackDate === today()) { xp *= 2; reason += ' ⚡×2'; }
+  // Pet perks: Kucing Oren bumps coins, Kucing Hitam bumps XP, both +5%.
+  const petFx = equippedPetEffect(user);
+  if (coins && petFx === 'coins5') { coins = Math.round(coins * 1.05); reason += ' 🐱'; }
+  if (xp && petFx === 'xp5') { xp = Math.round(xp * 1.05); reason += ' 🐈‍⬛'; }
   const beforeLevel = levelFor(user.xp);
   user.xp += xp; user.coins += coins; user.gems += gems;
   user.level = levelFor(user.xp);
