@@ -424,7 +424,11 @@ table.report th { font-family: var(--font-display); }
 /* ---------- Mini-game canvas ---------- */
 .game-wrap { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); padding: var(--sp-3); }
 .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
-.memory-card { aspect-ratio: 1; font-size: 1.5rem; display: grid; place-items: center; background: var(--magic); color: #fff; border: none; border-radius: var(--r-btn); font-weight: 800; }
+.memory-card {
+  aspect-ratio: 1; font-size: clamp(.62rem, 3.4vw, 1.5rem); display: grid; place-items: center;
+  background: var(--magic); color: #fff; border: none; border-radius: var(--r-btn); font-weight: 800;
+  padding: .25rem; overflow: hidden; text-align: center; line-height: 1.1; word-break: break-word; hyphens: auto;
+}
 /* A literal rotateY(180deg) would mirror the revealed word backwards —
    animate through the flip instead of resting on it, so the label
    always ends up readable. */

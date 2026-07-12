@@ -77,7 +77,10 @@ export function balloonPop(mount, { question, correct, wrong }, onDone) {
   };
 
   const timer = setInterval(() => {
-    if (spawned >= items.length * 2 || popped >= need) { if (popped >= need) finish(); return; }
+    // Keep spawning (recycled from the same pool) for as long as the round
+    // lasts — a slow answer used to permanently stop new balloons once a
+    // fixed spawn cap was hit, leaving the field empty until the 45s timeout.
+    if (popped >= need) { finish(); return; }
     const item = items[spawned % items.length]; spawned++;
     const b = document.createElement('button');
     b.className = 'balloon';
@@ -493,12 +496,24 @@ export function speakChallenge(mount, { question, word, lang }, onDone) {
   const recognizer = new Rec();
   recognizer.lang = lang || 'en-US';
   recognizer.maxAlternatives = 3;
+  let gotResult = false, watchdog = null;
   micBtn.addEventListener('click', () => {
     if (attempts >= maxAttempts) return;
-    micBtn.disabled = true; status.textContent = '🎙️ Listening...';
-    try { recognizer.start(); } catch { micBtn.disabled = false; }
+    micBtn.disabled = true; status.textContent = '🎙️ Listening...'; gotResult = false;
+    try { recognizer.start(); } catch { micBtn.disabled = false; return; }
+    // Some devices/browsers never fire onresult or onerror (silent stall) —
+    // this watchdog guarantees the mic button always recovers.
+    clearTimeout(watchdog);
+    watchdog = setTimeout(() => {
+      if (!gotResult && !finished) {
+        try { recognizer.stop(); } catch { /* already stopped */ }
+        micBtn.disabled = false;
+        status.textContent = "Didn't catch that — tap the mic to try again, or Skip.";
+      }
+    }, 7000);
   });
   recognizer.onresult = e => {
+    gotResult = true; clearTimeout(watchdog);
     attempts++;
     const heard = [...e.results[0]].map(r => r.transcript.toLowerCase().trim());
     const target = word.toLowerCase();
@@ -514,7 +529,15 @@ export function speakChallenge(mount, { question, word, lang }, onDone) {
       sfx.wrong(); status.textContent = `Heard: "${heard[0]}" — try again! (${maxAttempts - attempts} left)`;
     }
   };
-  recognizer.onerror = () => { micBtn.disabled = false; status.textContent = 'Microphone issue — tap the mic to try again, or Skip.'; };
+  recognizer.onerror = () => {
+    gotResult = true; clearTimeout(watchdog);
+    micBtn.disabled = false; status.textContent = 'Microphone issue — tap the mic to try again, or Skip.';
+  };
+  // Belt-and-suspenders: if recognition ends with no result and no error
+  // event at all (observed on some Android WebViews), still recover.
+  recognizer.onend = () => {
+    if (!gotResult) { clearTimeout(watchdog); micBtn.disabled = false; }
+  };
 }
 
 // Pick a game suited to the lesson and return a runner.
