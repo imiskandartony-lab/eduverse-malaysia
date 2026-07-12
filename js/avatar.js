@@ -1,6 +1,7 @@
 // EduVerse Malaysia — character system
 // Renders a layered SVG "blocky-bean" hero (chunky head, capsule body) that
 // equips catalog parts. One renderer, many layers — new items are data.
+import { petIcon } from './assets.js';
 
 // ---------- Catalog ----------
 // rarity: common | rare | epic | legendary
@@ -306,7 +307,7 @@ export function renderAvatar(user, size = 220) {
       ${glassesSvg(glasses)}
       ${hatSvg(hat)}
     </g>
-    ${pet ? `<text x="166" y="252" font-size="34" class="hero-pet">${pet.emoji}</text>` : ''}
+    ${pet ? `<text x="166" y="252" font-size="34" class="hero-pet">${petIcon(pet)}</text>` : ''}
   </svg>`;
 }
 

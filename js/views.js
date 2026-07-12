@@ -14,6 +14,7 @@ import {
 import { sfx, isMuted, setMuted, startMusic, stopMusic, isMusicMuted, setMusicMuted } from './sounds.js';
 import { getAiKey, setAiKey } from './ai.js';
 import { isStandalone, isIOS, canPromptInstall, promptInstall, isInstallDismissed, dismissInstallCard } from './install.js';
+import { worldIcon, bossIcon, petIcon, achievementIcon, appIconUrl, getOverrides, setIconOverride, setAppIconOverride } from './assets.js';
 import { toast, rewardModal, speak, esc, confetti, floatText, flashEdge, showCombo } from './ui.js';
 import { gameForLesson } from './games.js';
 
@@ -98,7 +99,7 @@ export function landing(el) {
       <div class="world-ticker" id="world-ticker">
         ${[...WORLDS, ...WORLDS].map(w => `
           <button type="button" class="world-badge" data-world-name="${esc(w.name)}" data-world-desc="${esc(w.desc)}">
-            <span class="wb-emoji">${w.emoji}</span>${esc(w.name)}
+            <span class="wb-emoji">${worldIcon(w)}</span>${esc(w.name)}
           </button>`).join('')}
       </div>
     </div>
@@ -107,7 +108,7 @@ export function landing(el) {
     <div class="card install-card">
       <button class="install-close" id="install-close" aria-label="Dismiss">✕</button>
       <div style="display:flex;align-items:center;gap:1rem;text-align:left">
-        <img src="assets/icons/icon.svg" alt="" width="52" height="52" style="border-radius:16px;box-shadow:var(--shadow);flex-shrink:0" />
+        <img src="${appIconUrl()}" alt="" width="52" height="52" style="border-radius:16px;box-shadow:var(--shadow);flex-shrink:0" />
         <div>
           <strong class="display" style="font-size:1.05rem">📲 Install EduVerse</strong>
           <div style="color:var(--ink-soft);font-size:.85rem">Play offline, launch instantly — no browser bars, just the adventure.</div>
@@ -223,7 +224,7 @@ export function dashboard(el) {
   ${rec ? `
   <button class="card" style="width:100%;text-align:left;border:3px solid var(--gold);cursor:pointer" id="continue-btn">
     <div style="display:flex;align-items:center;gap:1rem">
-      <span style="font-size:2.4rem">${world.emoji}</span>
+      <span style="font-size:2.4rem">${worldIcon(world)}</span>
       <div>
         <strong class="display" style="font-size:1.15rem">▶ Continue: ${esc(rec.lesson.title)}</strong>
         <div style="color:var(--ink-soft);font-size:.88rem">${esc(world.name)} · +${rec.lesson.xp} XP · +${rec.lesson.coins} 🪙</div>
@@ -289,7 +290,7 @@ export function dashboard(el) {
     <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
       ${achievementList(user).map(a => `
         <span class="pill" title="${esc(a.name)}" style="${a.owned ? '' : 'opacity:.35;filter:grayscale(1)'}">
-          ${a.emoji} ${esc(a.name)}</span>`).join('')}
+          ${achievementIcon(a)} ${esc(a.name)}</span>`).join('')}
     </div>
   </div>`;
   renderMissions(el.querySelector('#mission-list'));
@@ -376,7 +377,7 @@ export function worlds(el) {
       </div>
     </div>
     <div class="map-pieces">
-      ${WORLDS.map(w => `<span class="map-piece ${pieces.includes(w.id) ? 'restored' : ''}" title="${esc(w.name)}">${pieces.includes(w.id) ? w.emoji : '❔'}</span>`).join('')}
+      ${WORLDS.map(w => `<span class="map-piece ${pieces.includes(w.id) ? 'restored' : ''}" title="${esc(w.name)}">${pieces.includes(w.id) ? worldIcon(w) : '❔'}</span>`).join('')}
     </div>
   </button>
   <div class="worldmap">
@@ -391,7 +392,7 @@ export function worlds(el) {
       return `
       <button class="world-node ${complete ? 'done' : ''} ${current ? 'current' : ''} ${unlocked ? '' : 'locked'}"
         data-world="${w.id}" ${unlocked ? '' : 'disabled'} aria-label="${esc(w.name)}${unlocked ? '' : ', locked'}">
-        <span class="w-emoji">${w.emoji}</span>
+        <span class="w-emoji">${worldIcon(w)}</span>
         <span>
           <span class="w-title" style="color:${w.color}">${esc(w.name)}</span><br>
           <span class="w-sub">${esc(w.desc)}</span>
@@ -439,7 +440,7 @@ export function worldDetail(el, worldId) {
   ${hud()}
   <button class="btn btn-ghost btn-sm" data-route="#/worlds" style="margin:1rem 0">← Map</button>
   <div class="card card-tint" style="text-align:center">
-    <div style="font-size:3.4rem">${w.emoji}</div>
+    <div style="font-size:3.4rem">${worldIcon(w)}</div>
     <h2 class="display">${esc(w.name)}</h2>
     <p style="color:var(--ink-soft)">${esc(w.desc)} · ${esc(w.subject)}</p>
   </div>
@@ -655,7 +656,7 @@ export function lessonFlow(el, lessonId) {
 
       const bossHead = (state, line) => `
         <div style="text-align:center">
-          <div class="boss-avatar ${state}">${boss.emoji}</div>
+          <div class="boss-avatar ${state}">${bossIcon(lesson.worldId, boss)}</div>
           <div class="boss-name">${esc(boss.name)}</div>
           <div class="boss-title">${esc(boss.title)}</div>
           ${line ? `<p class="boss-taunt">“${esc(line)}”</p>` : ''}
@@ -868,7 +869,7 @@ function renderTrophyContent(target) {
     <div class="card">
       <h3 class="display">🏅 Achievements (${achievements.filter(a => a.owned).length}/${achievements.length})</h3>
       <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
-        ${achievements.map(a => `<span class="pill" title="${esc(a.name)}" style="${a.owned ? '' : 'opacity:.35;filter:grayscale(1)'}">${a.emoji} ${esc(a.name)}</span>`).join('')}
+        ${achievements.map(a => `<span class="pill" title="${esc(a.name)}" style="${a.owned ? '' : 'opacity:.35;filter:grayscale(1)'}">${achievementIcon(a)} ${esc(a.name)}</span>`).join('')}
       </div>
     </div>
     <div class="card">
@@ -876,7 +877,7 @@ function renderTrophyContent(target) {
       <div class="stat-grid" style="margin-top:.6rem">
         ${bossEntries.map(b => `
           <div class="stat" style="${b.defeated ? '' : 'opacity:.4;filter:grayscale(1)'}" title="${esc(b.world.name)}">
-            <div class="s-num" style="font-size:1.6rem">${b.boss?.emoji || '🐉'}</div>
+            <div class="s-num" style="font-size:1.6rem">${b.boss ? bossIcon(b.world.id, b.boss) : '🐉'}</div>
             <div class="s-label">${esc(b.boss?.name || '???')}</div>
           </div>`).join('')}
       </div>
@@ -914,7 +915,7 @@ export function arenaHome(el) {
     return `
     <button class="card arena-pick" style="width:100%;text-align:left;cursor:pointer" data-lesson="${l.id}">
       <div style="display:flex;align-items:center;gap:1rem">
-        <span style="font-size:1.8rem">${world.emoji}</span>
+        <span style="font-size:1.8rem">${worldIcon(world)}</span>
         <div style="flex:1">
           <strong class="display">${esc(l.title)}</strong>
           <div style="color:var(--ink-soft);font-size:.82rem">${esc(world.name)}</div>
@@ -1014,7 +1015,7 @@ export function duelHome(el) {
       return `
       <button class="card duel-pick" style="width:100%;text-align:left;cursor:pointer" data-lesson="${l.id}">
         <div style="display:flex;align-items:center;gap:1rem">
-          <span style="font-size:1.8rem">${world.emoji}</span>
+          <span style="font-size:1.8rem">${worldIcon(world)}</span>
           <div style="flex:1"><strong class="display">${esc(l.title)}</strong>
             <div style="color:var(--ink-soft);font-size:.82rem">${esc(world.name)}</div></div>
           <span class="pill">Pick ▶</span>
@@ -1170,7 +1171,7 @@ export function duelHome(el) {
       return `
       <button class="card duel-pick" style="width:100%;text-align:left;cursor:pointer" data-lesson="${l.id}">
         <div style="display:flex;align-items:center;gap:1rem">
-          <span style="font-size:1.8rem">${world.emoji}</span>
+          <span style="font-size:1.8rem">${worldIcon(world)}</span>
           <div style="flex:1"><strong class="display">${esc(l.title)}</strong>
             <div style="color:var(--ink-soft);font-size:.82rem">${esc(world.name)}</div></div>
           <span class="pill">Host ▶</span>
@@ -1359,7 +1360,7 @@ function partPreview(p) {
   if (p.type === 'skin') return `<span class="swatch" style="background:${p.c}"></span>`;
   if (p.type === 'shirt' || p.type === 'pants') return `<span class="swatch" style="background:${p.c}"></span>`;
   if (p.type === 'hair') return `<span class="swatch" style="background:${p.c};border-radius:50% 50% 30% 30%"></span>`;
-  if (p.type === 'pet') return `<span style="font-size:2rem">${p.emoji}</span>`;
+  if (p.type === 'pet') return `<span style="font-size:2rem">${petIcon(p)}</span>`;
   if (p.type === 'wings') return `<span style="font-size:1.8rem">🪽</span>`;
   const icons = { hat: { songkok: '🎩', cap: '🧢', crown: '👑', wizard: '🧙', tanjak: '👳' }, glasses: { shades: '🕶️', round: '👓' }, emote: { jump: '🤸', spin: '🌀', jelly: '🪼' } };
   return `<span style="font-size:1.8rem">${(icons[p.type] || {})[p.style || p.anim] || '✨'}</span>`;
@@ -1648,7 +1649,7 @@ export async function parent(el, _m, selectedIdx = 0) {
       ⚔️ ${(child.bossesDefeated || []).length}/9 bosses defeated · 💎 ${(child.perfectLessons || []).length} perfect-score quests
     </p>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-      ${WORLDS.map(w => `<span class="pill" title="${esc(w.name)}" style="${(child.bossesDefeated || []).includes(w.id) ? '' : 'opacity:.35;filter:grayscale(1)'}">${BOSSES[w.id]?.emoji || '🐉'}</span>`).join('')}
+      ${WORLDS.map(w => `<span class="pill" title="${esc(w.name)}" style="${(child.bossesDefeated || []).includes(w.id) ? '' : 'opacity:.35;filter:grayscale(1)'}">${BOSSES[w.id] ? bossIcon(w.id, BOSSES[w.id]) : '🐉'}</span>`).join('')}
     </div>
   </div>
   <div class="card">
@@ -1665,7 +1666,7 @@ export async function parent(el, _m, selectedIdx = 0) {
   </div>
   <div class="card">
     <h3 class="display">🏅 Recent achievements</h3>
-    <p>${child.achievements.length ? achievementList(child).filter(a => a.owned).map(a => `${a.emoji} ${a.name}`).join(' · ') : 'None yet — encourage the first quest!'}</p>
+    <p>${child.achievements.length ? achievementList(child).filter(a => a.owned).map(a => `${achievementIcon(a)} ${a.name}`).join(' · ') : 'None yet — encourage the first quest!'}</p>
   </div>
   <div class="card"><button class="btn btn-green" id="report">⬇️ Download report</button></div>`;
   el.querySelector('#logout').addEventListener('click', doLogout);
@@ -1723,28 +1724,126 @@ export function teacher(el) {
 }
 
 // ---------------- Admin panel ----------------
-export function admin(el) {
-  el.innerHTML = `
-  <div class="hud"><span class="pill">🛠️ Admin Panel</span><span class="spacer"></span>
-    <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
-  <div class="stat-grid">
-    <div class="stat"><div class="s-num">${LESSONS.length}</div><div class="s-label">Lessons</div></div>
-    <div class="stat"><div class="s-num">${Object.values(QUIZZES).flat().length}</div><div class="s-label">Quiz questions</div></div>
-    <div class="stat"><div class="s-num">${WORLDS.length}</div><div class="s-label">Worlds</div></div>
-    <div class="stat"><div class="s-num">${CATALOG.length}</div><div class="s-label">Wardrobe items</div></div>
-  </div>
-  <div class="card">
-    <h3 class="display">📚 Curriculum content</h3>
-    <div style="overflow-x:auto"><table class="report">
-      <thead><tr><th>Lesson</th><th>World</th><th>Year</th><th>KSSR mapping</th><th>Quiz Qs</th></tr></thead>
-      <tbody>${LESSONS.map(l => `
-        <tr><td>${esc(l.title)}</td><td>${esc(WORLDS.find(w => w.id === l.worldId).name)}</td>
-        <td>${l.year}</td><td style="font-size:.8rem">${esc(l.kssr)}</td><td>${(QUIZZES[l.id] || []).length}</td></tr>`).join('')}
-      </tbody></table></div>
-    <p style="color:var(--ink-soft);margin-top:.8rem;font-size:.85rem">
-      Content lives in <code>js/data/curriculum.js</code> (or Firestore <code>lessons</code>/<code>quizzes</code> collections when Firebase is connected).</p>
+// One row in an icon-customization section: current icon, an emoji text
+// input, Save, and a Reset that only appears once that item is overridden.
+function iconRow(section, key, name, current, isOverridden) {
+  return `
+  <div class="icon-row" data-section="${section}" data-key="${esc(key)}">
+    <span class="icon-row-current">${current}</span>
+    <span class="icon-row-name">${esc(name)}</span>
+    <input type="text" class="icon-row-input" maxlength="8" placeholder="paste emoji" />
+    <button class="btn btn-sm" data-save="${section}:${esc(key)}">Save</button>
+    ${isOverridden ? `<button class="btn btn-ghost btn-sm" data-reset="${section}:${esc(key)}">↩ Reset</button>` : ''}
   </div>`;
-  el.querySelector('#logout').addEventListener('click', doLogout);
+}
+
+export function admin(el) {
+  const render = () => {
+    const ov = getOverrides();
+    el.innerHTML = `
+    <div class="hud"><span class="pill">🛠️ Admin Panel</span><span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="s-num">${LESSONS.length}</div><div class="s-label">Lessons</div></div>
+      <div class="stat"><div class="s-num">${Object.values(QUIZZES).flat().length}</div><div class="s-label">Quiz questions</div></div>
+      <div class="stat"><div class="s-num">${WORLDS.length}</div><div class="s-label">Worlds</div></div>
+      <div class="stat"><div class="s-num">${CATALOG.length}</div><div class="s-label">Wardrobe items</div></div>
+    </div>
+
+    <div class="card">
+      <h3 class="display">🖼️ App Icon</h3>
+      <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.6rem">
+        Shown in the browser tab and on the landing page's install card.
+        <b>Note:</b> a device that has already added EduVerse to its home screen
+        won't retroactively update that icon — that's a platform limit on every PWA, not a bug here.
+      </p>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <img src="${appIconUrl()}" alt="" width="56" height="56" style="border-radius:16px;box-shadow:var(--shadow)" />
+        <button class="btn btn-sm" id="upload-app-icon">Upload new icon</button>
+        <input type="file" id="app-icon-input" accept="image/*" hidden />
+        ${ov.appIcon ? `<button class="btn btn-ghost btn-sm" id="reset-app-icon">↩ Reset to original</button>` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="display">🗺️ World Icons</h3>
+      <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.6rem">Appear on the Adventure Map, world &amp; lesson screens, the landing-page world ticker, and the parent dashboard.</p>
+      <div class="icon-row-list">
+        ${WORLDS.map(w => iconRow('worlds', w.id, w.name, worldIcon(w), !!ov.worlds?.[w.id])).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="display">⚔️ Boss Icons</h3>
+      <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.6rem">Shown during boss battles and in the Trophy Room / parent dashboard's defeated-bosses list.</p>
+      <div class="icon-row-list">
+        ${WORLDS.filter(w => BOSSES[w.id]).map(w => iconRow('bosses', w.id, `${BOSSES[w.id].name} (${w.name})`, bossIcon(w.id, BOSSES[w.id]), !!ov.bosses?.[w.id])).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="display">🐾 Pet Icons</h3>
+      <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.6rem">Shown in the Hero Studio wardrobe and beside the hero wherever a pet is equipped.</p>
+      <div class="icon-row-list">
+        ${CATALOG.filter(p => p.type === 'pet').map(p => iconRow('pets', p.id, p.name, petIcon(p), !!ov.pets?.[p.id])).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="display">🏅 Achievement Icons</h3>
+      <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.6rem">Shown on the student dashboard, the Trophy Room, and the parent dashboard.</p>
+      <div class="icon-row-list">
+        ${achievementList(user).map(a => iconRow('achievements', a.id, a.name, achievementIcon(a), !!ov.achievements?.[a.id])).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="display">📚 Curriculum content</h3>
+      <div style="overflow-x:auto"><table class="report">
+        <thead><tr><th>Lesson</th><th>World</th><th>Year</th><th>KSSR mapping</th><th>Quiz Qs</th></tr></thead>
+        <tbody>${LESSONS.map(l => `
+          <tr><td>${esc(l.title)}</td><td>${esc(WORLDS.find(w => w.id === l.worldId).name)}</td>
+          <td>${l.year}</td><td style="font-size:.8rem">${esc(l.kssr)}</td><td>${(QUIZZES[l.id] || []).length}</td></tr>`).join('')}
+        </tbody></table></div>
+      <p style="color:var(--ink-soft);margin-top:.8rem;font-size:.85rem">
+        Content lives in <code>js/data/curriculum.js</code> (or Firestore <code>lessons</code>/<code>quizzes</code> collections when Firebase is connected).</p>
+    </div>`;
+
+    el.querySelector('#logout').addEventListener('click', doLogout);
+
+    el.querySelectorAll('[data-save]').forEach(b => b.addEventListener('click', async () => {
+      const [section, key] = b.dataset.save.split(':');
+      const input = b.closest('.icon-row').querySelector('.icon-row-input');
+      const value = input.value.trim();
+      if (!value) return;
+      await setIconOverride(section, key, value);
+      toast('Icon updated! 🎉');
+      render();
+    }));
+    el.querySelectorAll('[data-reset]').forEach(b => b.addEventListener('click', async () => {
+      const [section, key] = b.dataset.reset.split(':');
+      await setIconOverride(section, key, null);
+      toast('Reset to original.');
+      render();
+    }));
+    el.querySelector('#upload-app-icon').addEventListener('click', () => el.querySelector('#app-icon-input').click());
+    el.querySelector('#app-icon-input').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await fileToAvatarDataURL(file, 192, 0.85);
+        await setAppIconOverride(dataUrl);
+        toast('App icon updated! 🎉');
+        render();
+      } catch (err) { toast(err.message, 3500); }
+    });
+    el.querySelector('#reset-app-icon')?.addEventListener('click', async () => {
+      await setAppIconOverride(null);
+      toast('Reset to original.');
+      render();
+    });
+  };
+  render();
 }
 
 // ---------------- Helpers ----------------
@@ -1792,7 +1891,7 @@ function worldMapStrip(child) {
       const done = ls.filter(l => child.completedLessons.includes(l.id)).length;
       const complete = ls.length > 0 && done === ls.length;
       return `<span class="pill" style="${complete ? `border:2px solid var(--jungle);` : ''}" title="${esc(w.name)}">
-        ${w.emoji} ${done}/${ls.length || '—'}</span>`;
+        ${worldIcon(w)} ${done}/${ls.length || '—'}</span>`;
     }).join('')}
   </div>`;
 }
@@ -1806,7 +1905,7 @@ function activityTimeline(child) {
       const date = new Date(a.at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' });
       return `<div style="display:flex;align-items:center;gap:.6rem;padding:.35rem 0;border-bottom:1px solid var(--line)">
         <span style="color:var(--ink-soft);font-size:.78rem;width:4.2em;flex-shrink:0">${date}</span>
-        <span>${world?.emoji || '📘'}</span>
+        <span>${world ? worldIcon(world) : '📘'}</span>
         <span style="flex:1">${esc(a.title)}</span>
         <b style="color:${accColor(a.accuracy)}">${a.accuracy}%</b>
       </div>`;

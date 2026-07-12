@@ -5,6 +5,7 @@ import * as V from './views.js';
 import { initKancilWidget } from './ai.js';
 import { stopMusic } from './sounds.js';
 import './install.js'; // registers the beforeinstallprompt listener as early as possible
+import { loadAssetOverrides, appIconUrl, getOverrides } from './assets.js';
 
 const view = document.getElementById('view');
 const nav = document.getElementById('bottom-nav');
@@ -91,6 +92,14 @@ window.addEventListener('hashchange', route);
 
 // Boot: restore session if one exists
 (async () => {
+  await loadAssetOverrides();
+  // The browser-tab favicon can be swapped live; an already-installed home
+  // screen icon (from manifest.json) cannot be changed retroactively — that
+  // is a platform limitation, not something a web app can override.
+  if (getOverrides().appIcon) {
+    const link = document.querySelector('link[rel="icon"]');
+    if (link) link.href = appIconUrl();
+  }
   const u = await store.getUser();
   if (u) {
     V.setUser(ensureDailyMissions(u));

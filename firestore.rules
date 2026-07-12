@@ -57,6 +57,13 @@ service cloud.firestore {
     match /rewards/{id}   { allow read: if signedIn(); allow write: if isAdmin(); }
     match /missions/{id}  { allow read: if signedIn(); allow write: if isAdmin(); }
 
+    // Admin-customizable icons (worlds, bosses, pets, achievements, app icon).
+    // One shared document; read by everyone, written by admin only.
+    match /assetOverrides/{doc} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
     // Leaderboards: read-only to clients; written by trusted tooling/admin.
     match /leaderboards/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
 

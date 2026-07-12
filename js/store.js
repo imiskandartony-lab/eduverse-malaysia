@@ -74,6 +74,13 @@ class LocalStore {
   async submitDuelAnswer() {}
   async advanceDuelRound() {}
   async finishDuel() {}
+  async getAssetOverrides() {
+    try { return JSON.parse(localStorage.getItem('eduverse-asset-overrides') || '{}'); }
+    catch { return {}; }
+  }
+  async saveAssetOverrides(overrides) {
+    localStorage.setItem('eduverse-asset-overrides', JSON.stringify(overrides));
+  }
 }
 
 class FirebaseStore {
@@ -233,6 +240,13 @@ class FirebaseStore {
   }
   async finishDuel(code) {
     await this.fs.updateDoc(this.fs.doc(this.db, 'duels', code), { status: 'finished' });
+  }
+  async getAssetOverrides() {
+    const snap = await this.fs.getDoc(this.fs.doc(this.db, 'assetOverrides', 'config'));
+    return snap.exists() ? snap.data() : {};
+  }
+  async saveAssetOverrides(overrides) {
+    await this.fs.setDoc(this.fs.doc(this.db, 'assetOverrides', 'config'), overrides);
   }
 }
 

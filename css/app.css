@@ -408,6 +408,19 @@ table.report { width: 100%; border-collapse: collapse; font-size: .95rem; }
 table.report th, table.report td { text-align: left; padding: .55rem .6rem; border-bottom: 2px solid var(--line); }
 table.report th { font-family: var(--font-display); }
 
+/* ---------- Admin: icon customization rows ---------- */
+.icon-row-list { display: flex; flex-direction: column; gap: .5rem; }
+.icon-row {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  padding: .5rem; border-radius: 12px; background: var(--card-tint);
+}
+.icon-row-current { font-size: 1.6rem; width: 2ch; text-align: center; flex-shrink: 0; }
+.icon-row-name { flex: 1 1 140px; font-weight: 700; font-size: .9rem; min-width: 120px; }
+.icon-row-input {
+  width: 6ch; text-align: center; font-size: 1.2rem; border: 2px solid var(--line);
+  border-radius: 10px; padding: .3rem; background: var(--card); color: var(--ink); font-family: inherit;
+}
+
 /* ---------- Mini-game canvas ---------- */
 .game-wrap { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); padding: var(--sp-3); }
 .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
