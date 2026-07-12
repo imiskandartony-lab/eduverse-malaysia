@@ -437,6 +437,19 @@ table.report th { font-family: var(--font-display); }
 @keyframes card-flip { 0% { transform: rotateY(0deg); } 50% { transform: rotateY(90deg); } 100% { transform: rotateY(0deg); } }
 .balloon-field { position: relative; height: 380px; overflow: hidden; border-radius: var(--r-btn); background: linear-gradient(180deg, var(--sky-hi), var(--sky-lo)); }
 .balloon { position: absolute; bottom: -70px; width: 62px; height: 76px; border-radius: 50% 50% 48% 48%; border: none; color: #fff; font-weight: 800; font-size: 1rem; animation: rise linear forwards; }
+
+/* Quick-answer shortcut: for a confident student who doesn't want to wait
+   for the right balloon to float by. */
+.chip-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+.answer-chip {
+  border: 3px solid var(--line); background: var(--card); color: var(--ink);
+  border-radius: var(--r-pill); padding: .5rem 1rem; font-weight: 800; font-size: .95rem;
+  transition: transform var(--t-fast) var(--ease-bounce), border-color var(--t-fast);
+}
+.answer-chip:hover:not(:disabled) { border-color: var(--ocean); transform: translateY(-2px); }
+.answer-chip:disabled { cursor: default; }
+.answer-chip.chip-correct { border-color: var(--jungle); background: color-mix(in srgb, var(--jungle) 14%, var(--card)); }
+.answer-chip.chip-wrong { border-color: var(--lava); background: color-mix(in srgb, var(--lava) 12%, var(--card)); }
 @keyframes rise { to { transform: translateY(-480px); } }
 
 /* ---------- Game-world atmosphere ---------- */

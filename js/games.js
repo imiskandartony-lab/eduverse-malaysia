@@ -58,29 +58,61 @@ export function memoryMatch(mount, pairs, onDone) {
 
 // ---------- Balloon Pop: pop only correct answers ----------
 export function balloonPop(mount, { question, correct, wrong }, onDone) {
-  let popped = 0, mistakes = 0, spawned = 0;
+  let popped = 0, mistakes = 0, spawned = 0, done = false;
   const need = correct.length;
+  // A confident student already knows the answer and shouldn't have to wait
+  // for that specific balloon to spawn and float by — a static row of
+  // answer chips lets them confirm it immediately instead.
+  const uniqueItems = [...new Map([...correct.map(t => [t, true]), ...wrong.map(t => [t, false])]).entries()]
+    .sort(() => Math.random() - 0.5);
   mount.innerHTML = `
     <h3 class="display">🎈 Balloon Pop</h3>
     <p style="margin:.4rem 0 1rem">${esc(question)} — pop the <b>correct</b> balloons!</p>
     <div class="balloon-field" aria-label="Balloon game area"></div>
-    <p class="game-status" style="margin-top:.6rem;font-weight:800"></p>`;
+    <p class="game-status" style="margin-top:.6rem;font-weight:800"></p>
+    <p style="margin:.8rem 0 .4rem;font-weight:800;color:var(--ink-soft)">⚡ Already sure? Tap it:</p>
+    <div class="chip-row"></div>`;
   const field = mount.querySelector('.balloon-field');
   const status = mount.querySelector('.game-status');
+  const chipRow = mount.querySelector('.chip-row');
   const colors = ['var(--lava)', 'var(--ocean)', 'var(--jungle)', 'var(--magic)', 'var(--sunset)'];
   const items = [...correct.map(t => ({ t, ok: true })), ...wrong.map(t => ({ t, ok: false }))]
     .sort(() => Math.random() - 0.5);
 
   const finish = () => {
+    if (done) return;
+    done = true;
     clearInterval(timer);
     onDone(Math.max(0, (popped - mistakes * 0.5) / need));
   };
+
+  const resolve = (ok, x, y) => {
+    if (ok) {
+      popped++; sfx.correct(popped); floatText(x, y, '🎈 +1');
+      status.textContent = `✅ ${popped}/${need} popped!`;
+      if (popped >= need) finish();
+    } else {
+      mistakes++; sfx.wrong(); floatText(x, y, '✗', 'var(--lava)');
+      status.textContent = '❌ Oops, that one was wrong!';
+    }
+  };
+
+  uniqueItems.forEach(([text, ok]) => {
+    const chip = document.createElement('button');
+    chip.className = 'answer-chip'; chip.textContent = text;
+    chip.addEventListener('click', ev => {
+      chip.disabled = true; chip.classList.add(ok ? 'chip-correct' : 'chip-wrong');
+      const r = chip.getBoundingClientRect();
+      resolve(ok, r.left + r.width / 2, r.top);
+    });
+    chipRow.appendChild(chip);
+  });
 
   const timer = setInterval(() => {
     // Keep spawning (recycled from the same pool) for as long as the round
     // lasts — a slow answer used to permanently stop new balloons once a
     // fixed spawn cap was hit, leaving the field empty until the 45s timeout.
-    if (popped >= need) { finish(); return; }
+    if (popped >= need || done) { if (popped >= need) finish(); return; }
     const item = items[spawned % items.length]; spawned++;
     const b = document.createElement('button');
     b.className = 'balloon';
@@ -88,17 +120,7 @@ export function balloonPop(mount, { question, correct, wrong }, onDone) {
     b.style.left = Math.random() * 80 + 5 + '%';
     b.style.background = colors[spawned % colors.length];
     b.style.animationDuration = 4 + Math.random() * 2 + 's';
-    b.addEventListener('click', ev => {
-      b.remove();
-      if (item.ok) {
-        popped++; sfx.correct(popped); floatText(ev.clientX, ev.clientY, '🎈 +1');
-        status.textContent = `✅ ${popped}/${need} popped!`;
-        if (popped >= need) finish();
-      } else {
-        mistakes++; sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
-        status.textContent = '❌ Oops, that one was wrong!';
-      }
-    });
+    b.addEventListener('click', ev => { b.remove(); resolve(item.ok, ev.clientX, ev.clientY); });
     b.addEventListener('animationend', () => b.remove());
     field.appendChild(b);
   }, 900);

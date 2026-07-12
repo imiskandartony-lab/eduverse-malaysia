@@ -348,7 +348,7 @@ export const LESSONS = [
       '<b>Ayat majmuk pancangan</b> menyisipkan satu ayat kecil (klausa) ke dalam ayat utama menggunakan kata hubung pancangan: <b>yang, bahawa, jika, kerana, walaupun, apabila</b>.',
       'Contoh pancangan: <i>"Murid <b>yang</b> rajin itu mendapat hadiah."</i> Klausa "yang rajin itu" menerangkan "murid".',
     ],
-    practice: { q: 'Pilih ayat majmuk pancangan yang betul.', options: ['Saya makan dan adik minum.', 'Dia menangis kerana kalah.', 'Kami berlari lalu berhenti.', 'Ibu memasak atau berehat.'], answer: 1, hint: 'Cari ayat yang menggunakan "kerana" untuk menyisipkan sebab, bukan sekadar "dan/atau".' },
+    practice: { q: 'Ayat manakah tergolong dalam AYAT MAJMUK PANCANGAN?', options: ['Abang menyapu dan adik mengemas bilik.', 'Murid itu gembira apabila mendapat markah tertinggi.', 'Kucing itu tidur di atas tikar.', 'Kami berehat lalu bersiap untuk pulang.'], answer: 1, hint: 'Cari kata hubung pancangan seperti "apabila", "jika" atau "walaupun" yang menyisipkan satu klausa ke dalam ayat utama.' },
   },
   {
     id: 'ek-y6-1', worldId: 'english-kingdom', title: 'Modal Verbs', year: 6,
