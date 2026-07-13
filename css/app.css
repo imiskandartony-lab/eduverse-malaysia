@@ -475,7 +475,10 @@ a { color: var(--ocean); }
 .role-card.featured { border-color: var(--gold); box-shadow: 0 5px 0 var(--gold-deep); }
 .role-card.featured:hover { box-shadow: 0 7px 0 var(--gold-deep); }
 .role-card .r-tag {
-  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  /* Fully inside the card's top padding — the card has overflow:hidden
+     (needed for the hover shine sweep), so anything straddling its edge
+     like the old `top: -10px` got clipped into an ugly half-cut ribbon. */
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
   background: var(--gold); color: var(--ink); font-size: .62rem; font-weight: 800;
   padding: .12rem .55rem; border-radius: var(--r-pill); box-shadow: var(--shadow); white-space: nowrap;
 }
