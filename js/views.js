@@ -86,11 +86,14 @@ function hud() {
 // ---------------- Landing / auth: game title screen ----------------
 export function landing(el) {
   const particles = ['🪙', '⭐', '✨', '🪙', '⭐'];
+  // Admin is deliberately not shown here — customers shouldn't see a button
+  // that isn't for them. The developer reveals it with a hidden gesture
+  // (tap the mascot 5 times), same trick as Android's "tap build number to
+  // unlock developer options" — see the mascot click listener below.
   const roleCards = [
     { role: 'student', emoji: '🧑‍🚀', label: "I'm a Student", featured: true, tag: '⭐ Start here' },
     { role: 'parent', emoji: '👨‍👩‍👧', label: "I'm a Parent" },
     { role: 'teacher', emoji: '🧑‍🏫', label: "I'm a Teacher" },
-    { role: 'admin', emoji: '🛠️', label: 'Admin' },
   ];
 
   el.innerHTML = `
@@ -146,7 +149,7 @@ export function landing(el) {
     </div>` : ''}
 
     <p class="path-eyebrow">Choose your path</p>
-    <div class="role-grid">
+    <div class="role-grid" id="role-grid">
       ${roleCards.map(r => `
         <button class="role-card ${r.featured ? 'featured' : ''}" data-role="${r.role}">
           ${r.tag ? `<span class="r-tag">${r.tag}</span>` : ''}
@@ -216,14 +219,38 @@ export function landing(el) {
     await store.saveUser(user);
     go(homeRoute());
   };
-  el.querySelectorAll('.role-card').forEach(b => b.addEventListener('click', () => {
+  // Delegated (not per-button) so the Admin card, added later by the mascot
+  // tap gesture, is clickable without re-wiring anything.
+  const roleGrid = el.querySelector('#role-grid');
+  roleGrid.addEventListener('click', e => {
+    const b = e.target.closest('.role-card');
+    if (!b) return;
     const role = b.dataset.role;
     if (role === 'student') { form.hidden = false; el.querySelector('#name-input').focus(); }
     else begin(role[0].toUpperCase() + role.slice(1), role);
-  }));
+  });
   form.addEventListener('submit', e => {
     e.preventDefault();
     begin(el.querySelector('#name-input').value.trim() || 'Adventurer', 'student');
+  });
+
+  // Hidden developer entry point: tap the mascot 5 times within 3s to reveal
+  // the Admin card. Customers never see it; isAdminUser() (email allowlist)
+  // still gates actual access either way, so this is purely about not
+  // showing a button that isn't meant for them.
+  let mascotTaps = 0, mascotTapTimer = null;
+  el.querySelector('.landing-mascot')?.addEventListener('click', () => {
+    mascotTaps++;
+    clearTimeout(mascotTapTimer);
+    mascotTapTimer = setTimeout(() => { mascotTaps = 0; }, 3000);
+    if (mascotTaps >= 5 && !roleGrid.querySelector('[data-role="admin"]')) {
+      mascotTaps = 0;
+      roleGrid.insertAdjacentHTML('beforeend', `
+        <button class="role-card" data-role="admin">
+          <span class="r-emoji-ring">🛠️</span>Admin
+        </button>`);
+      toast('🛠️ Admin access revealed');
+    }
   });
 }
 
