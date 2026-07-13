@@ -6,6 +6,7 @@ import { initKancilWidget } from './ai.js';
 import { stopMusic } from './sounds.js';
 import './install.js'; // registers the beforeinstallprompt listener as early as possible
 import { loadAssetOverrides, appIconUrl, getOverrides } from './assets.js';
+import { maybeCelebratePremium } from './payments.js';
 
 const view = document.getElementById('view');
 const nav = document.getElementById('bottom-nav');
@@ -37,15 +38,15 @@ const routes = [
   { re: /^#\/worlds$/, render: el => V.worlds(el), role: 'student' },
   { re: /^#\/world\/([\w-]+)$/, render: (el, m) => V.worldDetail(el, m[1]), role: 'student' },
   { re: /^#\/lesson\/([\w-]+)$/, render: (el, m) => V.lessonFlow(el, m[1]), role: 'student' },
-  { re: /^#\/missions$/, render: el => V.missions(el), role: 'student' },
-  { re: /^#\/arena$/, render: el => V.arenaHome(el), role: 'student' },
-  { re: /^#\/arena\/([\w-]+)$/, render: (el, m) => V.arenaPlay(el, m[1]), role: 'student' },
-  { re: /^#\/duel$/, render: el => V.duelHome(el), role: 'student' },
-  { re: /^#\/trophies$/, render: el => V.trophyRoom(el), role: 'student' },
-  { re: /^#\/examboss$/, render: el => V.examBoss(el), role: 'student' },
-  { re: /^#\/spin$/, render: el => V.spin(el), role: 'student' },
-  { re: /^#\/avatar$/, render: el => V.avatar(el), role: 'student' },
-  { re: /^#\/leaderboard$/, render: el => V.leaderboard(el), role: 'student' },
+  { re: /^#\/missions$/, render: el => V.missions(el), role: 'student', premiumOnly: true },
+  { re: /^#\/arena$/, render: el => V.arenaHome(el), role: 'student', premiumOnly: true },
+  { re: /^#\/arena\/([\w-]+)$/, render: (el, m) => V.arenaPlay(el, m[1]), role: 'student', premiumOnly: true },
+  { re: /^#\/duel$/, render: el => V.duelHome(el), role: 'student', premiumOnly: true },
+  { re: /^#\/trophies$/, render: el => V.trophyRoom(el), role: 'student', premiumOnly: true },
+  { re: /^#\/examboss$/, render: el => V.examBoss(el), role: 'student', premiumOnly: true },
+  { re: /^#\/spin$/, render: el => V.spin(el), role: 'student', premiumOnly: true },
+  { re: /^#\/avatar$/, render: el => V.avatar(el), role: 'student', premiumOnly: true },
+  { re: /^#\/leaderboard$/, render: el => V.leaderboard(el), role: 'student', premiumOnly: true },
   { re: /^#\/settings$/, render: el => V.settings(el) },
   { re: /^#\/parent$/, render: el => V.parent(el), role: 'parent' },
   { re: /^#\/teacher$/, render: el => V.teacher(el), role: 'teacher' },
@@ -63,6 +64,14 @@ async function route() {
   if (match.role === 'admin' && !V.isAdminUser()) { location.hash = V.homeRoute(); return; }
   if (match.role && match.role !== 'admin' && user.role !== match.role && !V.isAdminUser()) {
     location.hash = V.homeRoute(); return;
+  }
+
+  // Premium-only student features (missions, avatar, Arena, Duel, Trophy
+  // Room, etc.) — the 3 free-trial worlds stay fully playable regardless.
+  if (match.premiumOnly && !user.premium && !V.isAdminUser()) {
+    location.hash = '#/dashboard';
+    await V.requirePremiumGate();
+    return;
   }
 
   const isStudent = user?.role === 'student';
@@ -111,4 +120,6 @@ window.addEventListener('hashchange', route);
     }
   }
   route();
+  // Fires only when returning from a ToyyibPay checkout redirect; no-op otherwise.
+  maybeCelebratePremium(fresh => V.setUser(fresh));
 })();

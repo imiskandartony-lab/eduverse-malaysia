@@ -55,6 +55,16 @@ export async function applyDailyLogin() {
 
 const go = route => { location.hash = route; };
 
+// Shared premium gate for router-blocked features and parent/teacher
+// actions alike — shows the paywall and, if the user taps "Unlock Now",
+// kicks off checkout. Never throws; callers just check the return value.
+export async function requirePremiumGate() {
+  if (user?.premium || isAdminUser()) return true;
+  const choice = await paywallModal(CONFIG.premiumPriceRM);
+  if (choice === 'checkout') await startPremiumCheckout(user, store.getUid());
+  return false;
+}
+
 
 function hud() {
   return `
@@ -429,11 +439,7 @@ export function worlds(el) {
   </div>`;
   el.querySelectorAll('.world-node:not(:disabled)').forEach(n => {
     n.addEventListener('click', async () => {
-      if (n.dataset.premium === 'true') {
-        const choice = await paywallModal(CONFIG.premiumPriceRM);
-        if (choice === 'checkout') await startPremiumCheckout(user, store.getUid());
-        return;
-      }
+      if (n.dataset.premium === 'true') { await requirePremiumGate(); return; }
       go(`#/world/${n.dataset.world}`);
     });
   });
@@ -470,11 +476,7 @@ export function worldDetail(el, worldId) {
   // view is the only place that's supposed to grant access.
   if (!user.unlockedWorlds.includes(w.id)) {
     const needsPremium = !user.premium && !FREE_WORLD_IDS.includes(w.id);
-    if (needsPremium) {
-      paywallModal(CONFIG.premiumPriceRM).then(choice => {
-        if (choice === 'checkout') startPremiumCheckout(user, store.getUid());
-      });
-    }
+    if (needsPremium) requirePremiumGate();
     go('#/worlds');
     return;
   }
@@ -777,10 +779,7 @@ export function lessonFlow(el, lessonId) {
         reason: '(quest complete!)',
       });
       const worldLock = await maybeUnlockNextWorld(user, lesson.worldId);
-      if (worldLock === 'premium-required') {
-        const choice = await paywallModal(CONFIG.premiumPriceRM);
-        if (choice === 'checkout') await startPremiumCheckout(user, store.getUid());
-      }
+      if (worldLock === 'premium-required') await requirePremiumGate();
       await maybeRestoreMapPiece(user, lesson.worldId);
       logActivity(user, {
         lessonId: lesson.id, title: lesson.title, worldId: lesson.worldId,
@@ -1645,6 +1644,7 @@ export async function parent(el, _m, selectedIdx = 0) {
     el.querySelector('#logout').addEventListener('click', doLogout);
     el.querySelector('#link-form').addEventListener('submit', async e => {
       e.preventDefault();
+      if (!(await requirePremiumGate())) return;
       try {
         await store.linkChild(el.querySelector('#link-code').value);
         toast('Linked! 🎉');
@@ -1718,7 +1718,10 @@ export async function parent(el, _m, selectedIdx = 0) {
   </div>
   <div class="card"><button class="btn btn-green" id="report">⬇️ Download report</button></div>`;
   el.querySelector('#logout').addEventListener('click', doLogout);
-  el.querySelector('#report').addEventListener('click', () => downloadReport(child));
+  el.querySelector('#report').addEventListener('click', async () => {
+    if (!(await requirePremiumGate())) return;
+    downloadReport(child);
+  });
   el.querySelectorAll('[data-child]').forEach(b =>
     b.addEventListener('click', () => parent(el, null, Number(b.dataset.child))));
   // Inline form instead of window.prompt(), which installed PWAs and some
@@ -1731,6 +1734,7 @@ export async function parent(el, _m, selectedIdx = 0) {
   });
   el.querySelector('#add-child-form')?.addEventListener('submit', async e => {
     e.preventDefault();
+    if (!(await requirePremiumGate())) return;
     const code = el.querySelector('#add-child-code').value.trim();
     if (!code) return;
     try { await store.linkChild(code); toast('Linked! 🎉'); parent(el); }
@@ -1767,8 +1771,10 @@ export function teacher(el) {
     </div>
   </div>`;
   el.querySelector('#logout').addEventListener('click', doLogout);
-  el.querySelector('#hw-assign').addEventListener('click', () =>
-    toast('📨 Homework assigned! (Connect Firebase to notify students)'));
+  el.querySelector('#hw-assign').addEventListener('click', async () => {
+    if (!(await requirePremiumGate())) return;
+    toast('📨 Homework assigned! (Connect Firebase to notify students)');
+  });
 }
 
 // ---------------- Admin panel ----------------

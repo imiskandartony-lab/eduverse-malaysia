@@ -58,6 +58,33 @@ export function paywallModal(priceRM) {
   });
 }
 
+// Shown once, right after a payment is confirmed (see payments.js
+// maybeCelebratePremium). Same wording works for any role — the account
+// that paid is the one that unlocks, whichever of student/parent/teacher it is.
+export function premiumUnlockedModal() {
+  return new Promise(resolve => {
+    const root = document.getElementById('modal-root');
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    wrap.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true" aria-label="Premium Unlocked">
+        <div class="reward-burst">🎉</div>
+        <h2>Congratulations!</h2>
+        <p style="margin:.6rem 0 1.2rem">
+          Premium is unlocked on this account — forever! Every world, mission,
+          avatar item, Practice Arena battle, Friend Duel, and the Trophy Room
+          are all open now. Enjoy the full adventure!
+        </p>
+        <button class="btn btn-gold">Let's go! 🚀</button>
+      </div>`;
+    root.appendChild(wrap);
+    confetti(40);
+    const close = () => { wrap.remove(); resolve(); };
+    wrap.querySelector('button').addEventListener('click', close);
+    wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
+  });
+}
+
 // Lightweight emoji confetti — no library needed, respects reduced motion.
 export function confetti(count = 24) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
