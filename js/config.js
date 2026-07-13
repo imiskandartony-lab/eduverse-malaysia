@@ -3,7 +3,7 @@
 
 // Bump on every content/feature release so parents/teachers can see what's
 // current on the landing page footer. Follows semver: major.minor.patch.
-export const APP_VERSION = '1.6.1';
+export const APP_VERSION = '1.7.0';
 
 export const CONFIG = {
   // Set to 'firebase' after filling in firebaseConfig below.
@@ -49,4 +49,9 @@ export const CONFIG = {
   // payments/api/webhook.js).
   familyBundlePriceRM: 19.90,
   paymentsApiUrl: 'https://payments-gilt.vercel.app',
+
+  // Web Push — public key only (safe to ship in client code, unlike the
+  // matching private key which stays server-side in payments/ env vars).
+  // See js/push.js and payments/api/streak-reminder.js.
+  vapidPublicKey: 'BLdfFnBskAarpB_VLNecJLYO8gfK0FBTyyQgF6o9tpozjW-Nc0If4a1fVIgDIv6IeC5wsJLNLfGZZZ3rmD3POpQ',
 };

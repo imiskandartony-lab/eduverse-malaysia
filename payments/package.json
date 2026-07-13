@@ -6,6 +6,7 @@
   "description": "Serverless bridge between EduVerse Malaysia's web app and ToyyibPay — never expose the ToyyibPay secret key or Firebase service account to the browser.",
   "dependencies": {
     "busboy": "^1.6.0",
-    "firebase-admin": "^12.1.0"
+    "firebase-admin": "^12.1.0",
+    "web-push": "^3.6.7"
   }
 }

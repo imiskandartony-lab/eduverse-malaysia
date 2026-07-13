@@ -77,8 +77,22 @@ web flow.
 - [ ] Android currently has no purchase flow (on hold) — Play Store builds
       must use Google Play Billing when that resumes, not ToyyibPay
       (Play policy requirement for unlocking in-app digital content)
+- [ ] Two plans exist: individual (`js/config.js` `premiumPriceRM`) and
+      family bundle (`familyBundlePriceRM`, parent-only, cascades to linked
+      children via `payments/api/webhook.js`) — keep prices in sync with
+      `payments/api/create-bill.js`'s `PRICES` map if either changes
 
-## 8. Android app (Capacitor) — do not skip this
+## 8. Analytics & push notifications (`js/analytics.js`, `js/push.js`)
+
+- [ ] New funnel-relevant actions (a new paid feature, a new signup path)
+      should get a `track()` call — see the four existing events (`sign_up`,
+      `paywall_shown`, `begin_checkout`, `purchase`) for the pattern
+- [ ] `payments/api/streak-reminder.js` (daily Vercel Cron, see
+      `payments/vercel.json`) only reminds students — if reminder copy or
+      targeting logic changes, redeploy `payments/` (see step 7's note on
+      when that's needed)
+
+## 9. Android app (Capacitor) — do not skip this
 
 The native app does **not** auto-update from the web deploy. It ships its
 own APK/AAB build from a snapshot of the web assets. Every release needs:
@@ -96,7 +110,7 @@ own APK/AAB build from a snapshot of the web assets. Every release needs:
 - [ ] If shipping to Play Store: upload the new signed `.aab` as a new
       release in Play Console
 
-## 9. Deploy & verify
+## 10. Deploy & verify
 
 - [ ] Commit and push to `origin/main` (GitHub Pages auto-deploys)
 - [ ] Check the GitHub Pages build succeeded

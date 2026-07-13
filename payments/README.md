@@ -17,6 +17,13 @@ folder and deploys to Vercel's free tier independently of GitHub Pages.
   callback body blindly) and, if genuinely paid, sets
   `users/{uid}.premium = true` in Firestore via the Admin SDK (which bypasses
   the client-side rule that blocks users from setting this field themselves).
+  For the family plan, also grants premium to every uid in `parents/{uid}.children`.
+- `GET /api/streak-reminder` — a **daily Vercel Cron job** (see `vercel.json`,
+  runs 11:00 UTC / 7pm MYT). Finds students whose streak breaks at midnight
+  if they don't play, and sends each a Web Push notification via the
+  `web-push` library. Rejects any request without Vercel's auto-injected
+  `Authorization: Bearer $CRON_SECRET` header, so it can't be triggered by
+  anyone who finds the URL.
 
 ## One-time setup
 
@@ -49,6 +56,14 @@ folder and deploys to Vercel's free tier independently of GitHub Pages.
      tell ToyyibPay where to send its webhook)
    - `ALLOWED_ORIGIN` — your app's origin, e.g.
      `https://imiskandartony-lab.github.io` (or `*` while testing)
+   - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` — generate once with
+     `npx web-push generate-vapid-keys`. The public key also goes into
+     `js/config.js`'s `vapidPublicKey` (safe to ship in client code); the
+     private key stays here only.
+   - `CRON_SECRET` — any random string (e.g. `openssl rand -hex 24`). Vercel
+     automatically sends it as `Authorization: Bearer <value>` on cron
+     requests once this env var exists — that's what `streak-reminder.js`
+     checks against.
 3. Redeploy after adding env vars (Vercel doesn't hot-reload them).
 
 ### 4. Wire it into the app

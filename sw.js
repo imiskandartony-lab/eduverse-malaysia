@@ -1,11 +1,11 @@
 // EduVerse Malaysia — service worker (offline-first)
-const CACHE = 'eduverse-v58';
+const CACHE = 'eduverse-v59';
 const CORE = [
   './', './index.html', './manifest.json',
   './css/tokens.css', './css/app.css',
   './js/app.js', './js/views.js', './js/store.js',
   './js/gamification.js', './js/games.js', './js/ai.js', './js/ui.js',
-  './js/config.js', './js/sounds.js', './js/avatar.js', './js/assets.js', './js/install.js', './js/payments.js', './js/analytics.js', './js/data/curriculum.js',
+  './js/config.js', './js/sounds.js', './js/avatar.js', './js/assets.js', './js/install.js', './js/payments.js', './js/analytics.js', './js/push.js', './js/data/curriculum.js',
   './assets/icons/icon.svg',
   './vendor/capacitor/core.js', './vendor/capacitor/firebase-authentication.js', './vendor/capacitor/definitions.js',
 ];
@@ -45,4 +45,21 @@ self.addEventListener('fetch', e => {
       return cached || fresh;
     })
   );
+});
+
+// Streak-reminder push (sent by payments/api/streak-reminder.js, a daily
+// Vercel Cron job) — shows a notification even while the app is closed.
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch { /* ignore malformed payloads */ }
+  e.waitUntil(self.registration.showNotification(data.title || 'EduVerse Malaysia', {
+    body: data.body || '',
+    icon: './assets/icons/icon.svg',
+    badge: './assets/icons/icon.svg',
+  }));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.openWindow('./'));
 });

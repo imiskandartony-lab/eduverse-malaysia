@@ -20,6 +20,7 @@ import { gameForLesson } from './games.js';
 import { startPremiumCheckout } from './payments.js';
 import { FREE_WORLD_IDS } from './data/curriculum.js';
 import { track } from './analytics.js';
+import { pushSupported, enableStreakReminders, disableStreakReminders } from './push.js';
 
 let user = null;
 export const getUser = () => user;
@@ -1634,6 +1635,12 @@ export function settings(el) {
       <button class="btn btn-sm btn-purple" type="submit">Save</button>
     </form>
   </div>
+  ${user.role === 'student' && pushSupported() ? `
+  <div class="card">
+    <h3 class="display">🔔 Streak Reminders</h3>
+    <p style="color:var(--ink-soft);font-size:.85rem;margin:.3rem 0 .8rem">Get a notification if your streak is about to break — only ever about your streak, nothing else.</p>
+    <label><input type="checkbox" id="opt-push" ${user.pushSubscription ? 'checked' : ''}/> Remind me before I lose my streak</label>
+  </div>` : ''}
   ${user.role === 'student' && user.familyCode ? `
   <div class="card card-tint" style="text-align:center">
     <h3 class="display">👨‍👩‍👧 Family Code</h3>
@@ -1665,6 +1672,14 @@ export function settings(el) {
   el.querySelector('#opt-dys').addEventListener('change', e => { root.dataset.font = e.target.checked ? 'dyslexic' : ''; persist(); });
   el.querySelector('#opt-cb').addEventListener('change', e => { root.dataset.colorblind = e.target.checked ? 'on' : ''; persist(); });
   el.querySelector('#opt-size').addEventListener('change', e => { root.dataset.fontsize = e.target.value; persist(); });
+  el.querySelector('#opt-push')?.addEventListener('change', async e => {
+    if (e.target.checked) {
+      const ok = await enableStreakReminders(user);
+      if (!ok) e.target.checked = false;
+    } else {
+      await disableStreakReminders(user);
+    }
+  });
   el.querySelector('#logout').addEventListener('click', doLogout);
 }
 
