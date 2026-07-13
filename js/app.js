@@ -103,7 +103,9 @@ window.addEventListener('hashchange', route);
   const u = await store.getUser();
   if (u) {
     V.setUser(ensureDailyMissions(u));
-    await V.applyDailyLogin(); // streak/shields also count when the landing is skipped
+    // A failed streak/coin write here must never strand a returning user on
+    // a blank/stuck load — they're already authenticated, so still route them.
+    try { await V.applyDailyLogin(); } catch { /* see toast in views.js begin() for the sign-in path */ }
     if (!location.hash || location.hash === '#/') {
       location.hash = u.role === 'student' ? '#/dashboard' : `#/${u.role}`;
     }

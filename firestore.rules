@@ -27,9 +27,12 @@ service cloud.firestore {
         && request.resource.data.premium == false;
       // Premium is granted server-side only (payments webhook via Admin SDK,
       // which bypasses these rules) — a signed-in user can never flip it
-      // themselves, even through a merge write.
+      // themselves, even through a merge write. get(key, default) is required
+      // here: accounts created before this field existed have no `premium`
+      // key at all, and dot-accessing a truly missing map key throws in
+      // Firestore rules (denying the write) instead of reading as false.
       allow update: if (isSelf(uid) && request.resource.data.role == resource.data.role
-          && request.resource.data.premium == resource.data.premium)
+          && request.resource.data.get('premium', false) == resource.data.get('premium', false))
         || isAdmin();
       allow delete: if isAdmin();
     }

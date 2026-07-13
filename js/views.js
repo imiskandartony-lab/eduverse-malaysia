@@ -184,7 +184,13 @@ export function landing(el) {
       return;
     } finally { signingIn = false; setBusy(false); }
     if (!user) return;
-    await applyDailyLogin();
+    try {
+      await applyDailyLogin();
+    } catch (e) {
+      // A failed streak/coin write here must never strand the player on the
+      // login screen — they're already signed in, so still route them home.
+      toast('Signed in! (Some sync failed — try refreshing if anything looks off.)', 4000);
+    }
     // Route by what the account actually is, not the button that was tapped.
     if (role === 'admin') {
       if (isAdminUser()) { go('#/admin'); return; }
