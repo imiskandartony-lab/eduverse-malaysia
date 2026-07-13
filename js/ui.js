@@ -85,6 +85,30 @@ export function premiumUnlockedModal() {
   });
 }
 
+// Explains what still needs to be done to reach a world that's locked by
+// progression (not premium) — e.g. "Finish Grammar Forest first (2/5 done)".
+export function lockedWorldInfoModal({ worldName, worldEmoji, prevName, done, total }) {
+  return new Promise(resolve => {
+    const root = document.getElementById('modal-root');
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    const body = prevName
+      ? `Finish every quest in <b>${prevName}</b> first${total ? ` (${done}/${total} done)` : ''} — it unlocks automatically the moment you complete it!`
+      : `Keep adventuring — this world unlocks once you finish the ones before it!`;
+    wrap.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true" aria-label="${worldName} locked">
+        <div class="reward-burst">${worldEmoji || '🔒'}</div>
+        <h2>${worldName}</h2>
+        <p style="margin:.6rem 0 1.2rem">${body}</p>
+        <button class="btn btn-gold">Got it!</button>
+      </div>`;
+    root.appendChild(wrap);
+    const close = () => { wrap.remove(); resolve(); };
+    wrap.querySelector('button').addEventListener('click', close);
+    wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
+  });
+}
+
 // Lightweight emoji confetti — no library needed, respects reduced motion.
 export function confetti(count = 24) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;

@@ -15,7 +15,7 @@ import { sfx, isMuted, setMuted, startMusic, stopMusic, isMusicMuted, setMusicMu
 import { getAiKey, setAiKey } from './ai.js';
 import { isStandalone, isIOS, canPromptInstall, promptInstall, isInstallDismissed, dismissInstallCard } from './install.js';
 import { worldIcon, bossIcon, petIcon, achievementIcon, appIconUrl, getOverrides, setIconOverride, setAppIconOverride } from './assets.js';
-import { toast, rewardModal, paywallModal, speak, esc, confetti, floatText, flashEdge, showCombo } from './ui.js';
+import { toast, rewardModal, paywallModal, lockedWorldInfoModal, speak, esc, confetti, floatText, flashEdge, showCombo } from './ui.js';
 import { gameForLesson } from './games.js';
 import { startPremiumCheckout } from './payments.js';
 import { FREE_WORLD_IDS } from './data/curriculum.js';
@@ -424,7 +424,7 @@ export function worlds(el) {
       const needsPremium = !unlocked && !user.premium && !FREE_WORLD_IDS.includes(w.id);
       return `
       <button class="world-node ${complete ? 'done' : ''} ${current ? 'current' : ''} ${unlocked ? '' : 'locked'}"
-        data-world="${w.id}" data-premium="${needsPremium}" ${unlocked || needsPremium ? '' : 'disabled'}
+        data-world="${w.id}" data-premium="${needsPremium}"
         aria-label="${esc(w.name)}${unlocked ? '' : needsPremium ? ', premium' : ', locked'}">
         <span class="w-emoji">${worldIcon(w)}</span>
         <span>
@@ -437,10 +437,16 @@ export function worlds(el) {
       </button>`;
     }).join('')}
   </div>`;
-  el.querySelectorAll('.world-node:not(:disabled)').forEach(n => {
+  el.querySelectorAll('.world-node').forEach(n => {
     n.addEventListener('click', async () => {
+      const w = WORLDS.find(x => x.id === n.dataset.world);
+      if (user.unlockedWorlds.includes(w.id)) { go(`#/world/${w.id}`); return; }
       if (n.dataset.premium === 'true') { await requirePremiumGate(); return; }
-      go(`#/world/${n.dataset.world}`);
+      // Progression-locked (not premium) — explain exactly what unlocks it.
+      const idx = WORLDS.findIndex(x => x.id === w.id);
+      const prev = WORLDS[idx - 1];
+      const { done, total } = prev ? worldProgress(user, prev.id) : {};
+      await lockedWorldInfoModal({ worldName: w.name, worldEmoji: worldIcon(w), prevName: prev?.name, done, total });
     });
   });
   el.querySelector('#map-story-btn').addEventListener('click', () => showMapStory(el));

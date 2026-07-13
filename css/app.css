@@ -102,7 +102,7 @@ a { color: var(--ocean); }
 .world-node .w-sub { color: var(--ink-soft); font-size: var(--fs-small); }
 .world-node.done { border-color: var(--jungle); }
 .world-node.current { border-color: var(--gold); animation: pulse 2.4s infinite; }
-.world-node.locked { opacity: .55; filter: saturate(.4); cursor: not-allowed; }
+.world-node.locked { opacity: .55; filter: saturate(.4); cursor: pointer; }
 .world-node .w-lock { margin-left: auto; font-size: 1.4rem; }
 @keyframes pulse { 0%,100% { box-shadow: var(--shadow); } 50% { box-shadow: 0 6px 0 rgba(255,201,60,.55), 0 0 0 8px rgba(255,201,60,.18); } }
 

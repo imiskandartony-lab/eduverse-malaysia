@@ -34,8 +34,6 @@ export default async function handler(req, res) {
     let transactions;
     try { transactions = JSON.parse(text); } catch { transactions = null; }
     const paidTxn = Array.isArray(transactions) && transactions.find(t => t.billpaymentStatus === '1');
-    // TEMP DEBUG — remove once premium-granting is confirmed working.
-    console.log('webhook debug:', JSON.stringify({ billcode, transactions, paidTxn }));
     if (!paidTxn) return res.status(200).json({ ok: true, granted: false });
 
     // This is the Firebase uid we passed as billExternalReferenceNo in create-bill.js.
@@ -43,10 +41,8 @@ export default async function handler(req, res) {
     if (!uid) return res.status(200).json({ ok: true, granted: false });
 
     await getFirestore().collection('users').doc(uid).set({ premium: true }, { merge: true });
-    console.log('webhook debug: granted premium to uid', uid);
     return res.status(200).json({ ok: true, granted: true });
   } catch (e) {
-    console.log('webhook debug: caught error', e.message);
     return res.status(500).json({ error: 'Verification failed' });
   }
 }
