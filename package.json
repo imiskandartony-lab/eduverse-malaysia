@@ -1,6 +1,6 @@
 {
   "name": "eduverse-webapps",
-  "version": "1.5.4",
+  "version": "1.6.0",
   "description": "*\"Where Learning Becomes an Adventure\"* — a gamified PWA for Malaysian **KSSR Semakan** Year 5 & 6 students covering **Bahasa Melayu, English, Mathematics, Science, Reka Bentuk dan Teknologi, Geografi and Music**, built to run entirely on **free-tier services (RM0)**.",
   "main": "sw.js",
   "directories": {

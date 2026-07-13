@@ -5,6 +5,7 @@
 import { CONFIG } from './config.js';
 import { store } from './store.js';
 import { toast, premiumUnlockedModal } from './ui.js';
+import { track } from './analytics.js';
 
 // Starts a ToyyibPay checkout for the signed-in user and redirects the
 // browser to the hosted payment page. The payments backend's webhook marks
@@ -15,6 +16,7 @@ export async function startPremiumCheckout(user, uid) {
     toast('Payments aren\'t set up yet — check back soon!');
     return;
   }
+  track('begin_checkout', { role: user.role, value: CONFIG.premiumPriceRM, currency: 'MYR' });
   try {
     const res = await fetch(`${CONFIG.paymentsApiUrl}/api/create-bill`, {
       method: 'POST',
@@ -48,6 +50,7 @@ export async function maybeCelebratePremium(onFreshUser) {
   for (let attempt = 0; attempt < 10; attempt++) {
     const fresh = await store.getUser();
     if (fresh?.premium) {
+      track('purchase', { role: fresh.role, value: CONFIG.premiumPriceRM, currency: 'MYR' });
       onFreshUser(fresh);
       await premiumUnlockedModal();
       return;

@@ -19,6 +19,7 @@ import { toast, rewardModal, paywallModal, lockedWorldInfoModal, speak, esc, con
 import { gameForLesson } from './games.js';
 import { startPremiumCheckout } from './payments.js';
 import { FREE_WORLD_IDS } from './data/curriculum.js';
+import { track } from './analytics.js';
 
 let user = null;
 export const getUser = () => user;
@@ -60,6 +61,7 @@ const go = route => { location.hash = route; };
 // kicks off checkout. Never throws; callers just check the return value.
 export async function requirePremiumGate() {
   if (user?.premium || isAdminUser()) return true;
+  track('paywall_shown', { role: user?.role });
   const choice = await paywallModal(CONFIG.premiumPriceRM);
   if (choice === 'checkout') await startPremiumCheckout(user, store.getUid());
   return false;

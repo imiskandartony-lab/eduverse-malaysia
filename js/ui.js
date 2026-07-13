@@ -44,7 +44,8 @@ export function paywallModal(priceRM) {
           You've explored the free starter worlds — great job! Unlock all 13 worlds,
           every subject and mini-game, forever, for one small payment.
         </p>
-        <p style="font-size:1.6rem;font-weight:800;margin-bottom:1rem">RM${priceRM.toFixed(2)} <span style="font-size:.85rem;font-weight:600;color:var(--ink-soft)">/ lifetime</span></p>
+        <p style="font-size:1.6rem;font-weight:800;margin-bottom:.3rem">RM${priceRM.toFixed(2)} <span style="font-size:.85rem;font-weight:600;color:var(--ink-soft)">/ lifetime</span></p>
+        <p style="font-size:.78rem;color:var(--ink-soft);margin-bottom:1rem">🛡️ Not right for your child? Full refund within 7 days, no questions asked.</p>
         <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
           <button class="btn btn-gold" data-choice="checkout">Unlock Now 🚀</button>
           <button class="btn" data-choice="cancel">Maybe later</button>

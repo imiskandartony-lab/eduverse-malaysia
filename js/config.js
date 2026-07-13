@@ -3,7 +3,7 @@
 
 // Bump on every content/feature release so parents/teachers can see what's
 // current on the landing page footer. Follows semver: major.minor.patch.
-export const APP_VERSION = '1.5.4';
+export const APP_VERSION = '1.6.0';
 
 export const CONFIG = {
   // Set to 'firebase' after filling in firebaseConfig below.
@@ -17,6 +17,10 @@ export const CONFIG = {
     storageBucket: 'eduverse-155a0.firebasestorage.app',
     messagingSenderId: '727852493060',
     appId: '1:727852493060:web:24e4d1d4eb0c46f9d7c851',
+    // Empty until Google Analytics is enabled for this Firebase project
+    // (Console → Project settings → Integrations → Google Analytics).
+    // Analytics events silently no-op while this is blank — see js/analytics.js.
+    measurementId: '',
   },
 
   // Google Gemini free-tier API key (https://aistudio.google.com/apikey).

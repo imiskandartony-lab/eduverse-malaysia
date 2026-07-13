@@ -4,6 +4,7 @@
 
 import { CONFIG } from './config.js';
 import { DAILY_MISSION_POOL, DAILY_CHALLENGE_POOL, FREE_WORLD_IDS } from './data/curriculum.js';
+import { track } from './analytics.js';
 
 // Loaded lazily, only inside the native app shell — the hosted web build
 // never touches these (Capacitor.isNativePlatform() is false there).
@@ -144,6 +145,7 @@ class FirebaseStore {
     if (user.familyCode) {
       await this.fs.setDoc(this.fs.doc(this.db, 'codes', user.familyCode), { uid: authUser.uid });
     }
+    track('sign_up', { role });
     return user;
   }
   async saveUser(user) {
