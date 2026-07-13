@@ -892,7 +892,7 @@ function renderTrophyContent(target) {
       <div class="stat-grid">
         <div class="stat"><div class="s-num">🔥${target.streak || 0}</div><div class="s-label">Current streak</div></div>
         <div class="stat"><div class="s-num">⚔️${target.duelWins || 0}</div><div class="s-label">Duels won</div></div>
-        <div class="stat"><div class="s-num">🗺️${(target.mapPieces || []).length}/9</div><div class="s-label">Story pieces</div></div>
+        <div class="stat"><div class="s-num">🗺️${(target.mapPieces || []).length}/${WORLDS.length}</div><div class="s-label">Story pieces</div></div>
         <div class="stat"><div class="s-num">🏆×${bestCombo}</div><div class="s-label">Best arena combo</div></div>
       </div>
     </div>`;
@@ -1647,7 +1647,7 @@ export async function parent(el, _m, selectedIdx = 0) {
   <div class="card">
     <h3 class="display">🏆 Trophy highlights</h3>
     <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.4rem">
-      ⚔️ ${(child.bossesDefeated || []).length}/9 bosses defeated · 💎 ${(child.perfectLessons || []).length} perfect-score quests
+      ⚔️ ${(child.bossesDefeated || []).length}/${WORLDS.length} bosses defeated · 💎 ${(child.perfectLessons || []).length} perfect-score quests
     </p>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap">
       ${WORLDS.map(w => `<span class="pill" title="${esc(w.name)}" style="${(child.bossesDefeated || []).includes(w.id) ? '' : 'opacity:.35;filter:grayscale(1)'}">${BOSSES[w.id] ? bossIcon(w.id, BOSSES[w.id]) : '🐉'}</span>`).join('')}
@@ -1858,7 +1858,7 @@ const weakList = u => {
     ? `<ul style="margin:.5rem 0 0 1.2rem">${w.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`
     : '<p style="color:var(--ink-soft)">No weak topics detected — great work!</p>';
 };
-const SUBJECT_EMOJI = { English: '🔤', Mathematics: '🔢', 'Bahasa Melayu': '🗣️' };
+const SUBJECT_EMOJI = { English: '🔤', Mathematics: '🔢', 'Bahasa Melayu': '🗣️', Science: '🔬', 'Reka Bentuk dan Teknologi': '🔧', Geografi: '🗺️', Music: '🎵' };
 const accColor = pct => pct >= 80 ? 'var(--jungle-deep)' : pct >= 60 ? 'var(--gold-deep)' : 'var(--lava)';
 
 function subjectCards(child) {
@@ -1919,7 +1919,7 @@ function engagementSnapshot(child) {
     <div class="stat"><div class="s-num">🔥${child.streak || 0}</div><div class="s-label">Day streak</div></div>
     <div class="stat"><div class="s-num">🛡️${child.shields || 0}</div><div class="s-label">Streak shields</div></div>
     <div class="stat"><div class="s-num">⚔️${child.duelWins || 0}</div><div class="s-label">Duels won</div></div>
-    <div class="stat"><div class="s-num">🗺️${(child.mapPieces || []).length}/9</div><div class="s-label">Story pieces</div></div>
+    <div class="stat"><div class="s-num">🗺️${(child.mapPieces || []).length}/${WORLDS.length}</div><div class="s-label">Story pieces</div></div>
   </div>`;
 }
 function demoChildData() {
@@ -1953,7 +1953,7 @@ function downloadReport(child) {
     `Student: ${child.name}`,
     `Lessons completed: ${child.completedLessons.length}`,
     `Overall accuracy: ${accuracy(child)}%`,
-    `Streak: ${child.streak} days · Shields: ${child.shields || 0} · Duel wins: ${child.duelWins || 0} · Story pieces: ${(child.mapPieces || []).length}/9`,
+    `Streak: ${child.streak} days · Shields: ${child.shields || 0} · Duel wins: ${child.duelWins || 0} · Story pieces: ${(child.mapPieces || []).length}/${WORLDS.length}`,
     '',
     'Accuracy by subject:',
     ...(subjects.length ? subjects.map(s => `  - ${s.subject}: ${s.accuracy}% (${s.correct}/${s.correct + s.wrong})`) : ['  (no quiz data yet)']),
