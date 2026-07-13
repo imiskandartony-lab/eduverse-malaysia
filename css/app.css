@@ -299,11 +299,20 @@ a { color: var(--ocean); }
 }
 
 /* ---------- Toast & modal ---------- */
-/* top offset clears the iPhone notch/Dynamic Island and Android camera
-   cutouts automatically via the safe-area inset, falling back to 14px
-   on devices that don't report one */
-.toast { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); left: 50%; transform: translate(-50%, -120%); background: var(--ink); color: #fff; padding: .7rem 1.3rem; border-radius: var(--r-pill); font-weight: 800; z-index: 60; transition: transform var(--t-med) var(--ease-bounce); max-width: calc(100vw - 2rem); text-align: center; }
-.toast.show { transform: translate(-50%, 0); }
+/* Bottom-anchored, clear of the status bar/notch entirely (the previous
+   top placement also had a bug: it never fully cleared the viewport when
+   hidden, leaving a permanent sliver visible at the top on every screen).
+   Sits above the bottom nav + Sang Kancil widget when those are present;
+   opacity/visibility are a hard guarantee it's gone when not shown, not
+   just relying on the slide transform. */
+.toast {
+  position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); left: 50%;
+  transform: translate(-50%, 12px); opacity: 0; visibility: hidden;
+  background: var(--ink); color: #fff; padding: .7rem 1.3rem; border-radius: var(--r-pill);
+  font-weight: 800; z-index: 60; transition: transform var(--t-med) var(--ease-bounce), opacity var(--t-med), visibility var(--t-med);
+  max-width: calc(100vw - 2rem); text-align: center;
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
 .modal-backdrop { position: fixed; inset: 0; background: rgba(14,23,48,.55); z-index: 55; display: grid; place-items: center; padding: var(--sp-3); }
 .modal { background: var(--card); border-radius: var(--r-card); padding: var(--sp-4); max-width: 440px; width: 100%; box-shadow: var(--shadow-pop); text-align: center; }
 .reward-burst { font-size: 3.5rem; animation: burst .6s var(--ease-bounce); }
