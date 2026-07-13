@@ -1,5 +1,5 @@
 // EduVerse Malaysia — service worker (offline-first)
-const CACHE = 'eduverse-v45';
+const CACHE = 'eduverse-v46';
 const CORE = [
   './', './index.html', './manifest.json',
   './css/tokens.css', './css/app.css',
@@ -7,6 +7,7 @@ const CORE = [
   './js/gamification.js', './js/games.js', './js/ai.js', './js/ui.js',
   './js/config.js', './js/sounds.js', './js/avatar.js', './js/assets.js', './js/install.js', './js/data/curriculum.js',
   './assets/icons/icon.svg',
+  './vendor/capacitor/core.js', './vendor/capacitor/firebase-authentication.js', './vendor/capacitor/definitions.js',
 ];
 
 self.addEventListener('install', e => {

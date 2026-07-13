@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">EduVerse Malaysia</string>
+    <string name="title_activity_main">EduVerse Malaysia</string>
+    <string name="package_name">com.eduversemalaysia.app</string>
+    <string name="custom_url_scheme">com.eduversemalaysia.app</string>
+</resources>

@@ -1,0 +1,35 @@
+{
+  "name": "eduverse-webapps",
+  "version": "1.0.0",
+  "description": "*\"Where Learning Becomes an Adventure\"* — a gamified PWA for Malaysian **KSSR Semakan** Year 5 & 6 students covering **Bahasa Melayu, English and Mathematics**, built to run entirely on **free-tier services (RM0)**.",
+  "main": "sw.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:www": "node scripts/build-www.js",
+    "cap:sync": "npm run build:www && npx cap sync"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imiskandartony-lab/eduverse-malaysia.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/imiskandartony-lab/eduverse-malaysia/issues"
+  },
+  "homepage": "https://github.com/imiskandartony-lab/eduverse-malaysia#readme",
+  "dependencies": {
+    "@capacitor-firebase/authentication": "^8.3.0",
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.1"
+  }
+}

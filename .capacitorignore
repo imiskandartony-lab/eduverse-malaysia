@@ -1,0 +1,13 @@
+node_modules
+android
+ios
+.git
+.claude
+.github
+package.json
+package-lock.json
+capacitor.config.json
+.capacitorignore
+.gitignore
+ROADMAP.md
+*.md

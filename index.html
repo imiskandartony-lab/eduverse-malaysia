@@ -14,6 +14,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/app.css" />
+  <!-- Lets the native-app build's Capacitor plugin (bare "@capacitor/core"
+       import) resolve without a bundler. Harmless on the plain web build,
+       which never imports it. Bundled locally (not CDN) so it works offline
+       and isn't at the mercy of jsDelivr availability inside the WebView. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@capacitor/core": "./vendor/capacitor/core.js"
+    }
+  }
+  </script>
 </head>
 <body>
   <div id="app" class="app">

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "727852493060",
+    "project_id": "eduverse-155a0",
+    "storage_bucket": "eduverse-155a0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:727852493060:android:e27ec55f1d1307c3d7c851",
+        "android_client_info": {
+          "package_name": "com.eduversemalaysia.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "727852493060-98o08fnbohbp9go2d3p2lbelcrn75mne.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.eduversemalaysia.app",
+            "certificate_hash": "49b3abd077930a4bd3e343d8a28d80d50294d79a"
+          }
+        },
+        {
+          "client_id": "727852493060-jdkua16paddoate8o0u50fm546onrhd9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBA3HrTURltM7RyNapbMmP4koPfrf4YP4o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "727852493060-jdkua16paddoate8o0u50fm546onrhd9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

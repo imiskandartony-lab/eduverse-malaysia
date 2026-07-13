@@ -5,6 +5,18 @@
 import { CONFIG } from './config.js';
 import { DAILY_MISSION_POOL, DAILY_CHALLENGE_POOL } from './data/curriculum.js';
 
+// Loaded lazily, only inside the native app shell — the hosted web build
+// never touches these (Capacitor.isNativePlatform() is false there).
+let nativeAuthMod = null;
+async function loadNativeAuth() {
+  if (nativeAuthMod) return nativeAuthMod;
+  const core = await import('@capacitor/core');
+  if (!core.Capacitor.isNativePlatform()) return null;
+  const plugin = await import('../vendor/capacitor/firebase-authentication.js');
+  nativeAuthMod = { Capacitor: core.Capacitor, FirebaseAuthentication: plugin.FirebaseAuthentication };
+  return nativeAuthMod;
+}
+
 // Days since epoch — used to rotate the daily challenge deterministically
 // (same challenge for everyone on a given day, no randomness needed).
 function dayIndex() { return Math.floor(Date.now() / 864e5); }
@@ -152,34 +164,61 @@ class FirebaseStore {
       if (snap.exists()) return snap.data();
       return this._createProfile(this.authInst.currentUser, name, role);
     }
-    const provider = new this.auth.GoogleAuthProvider();
-    // Always show Google's account chooser — without this, Google silently
-    // re-signs-in with whichever account the browser/device remembers, so
-    // logging out would never actually offer a different email.
-    provider.setCustomParameters({ prompt: 'select_account' });
-    // Remember intent so the profile can be created even if the tab reloads
-    // mid sign-in (getUser() finishes the job on return).
-    localStorage.setItem('eduverse-pending-role', JSON.stringify({ name, role }));
+    // Inside the native app shell, the web popup/redirect flow breaks
+    // ("missing initial state" — WebView session storage doesn't survive
+    // the OAuth hop). Native Google Sign-In hands back an idToken instead,
+    // which we exchange for a Firebase credential — same Firestore session
+    // either way, views.js/gamification.js never need to know the difference.
+    const native = await loadNativeAuth();
     let cred;
-    try {
-      cred = await this.auth.signInWithPopup(this.authInst, provider);
-    } catch (e) {
-      // NOTE: no signInWithRedirect fallback — redirect sign-in silently fails
-      // on modern browsers when authDomain (firebaseapp.com) differs from the
-      // site origin (github.io), which caused an endless login loop.
-      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
-        throw new Error('Sign-in window was closed. Tap the button once and finish signing in.');
+    if (native) {
+      localStorage.setItem('eduverse-pending-role', JSON.stringify({ name, role }));
+      let result;
+      try {
+        result = await native.FirebaseAuthentication.signInWithGoogle();
+      } catch (e) {
+        if (e.message?.includes('cancel')) {
+          throw new Error('Sign-in was cancelled. Tap the button and pick an account to continue.');
+        }
+        throw e;
       }
-      if (e.code === 'auth/popup-blocked') {
-        throw new Error('Your browser blocked the sign-in window. Allow pop-ups for this site, then try again.');
+      const idToken = result.credential?.idToken;
+      if (!idToken) throw new Error('Google sign-in did not return a token — try again.');
+      const credential = this.auth.GoogleAuthProvider.credential(idToken);
+      cred = await this.auth.signInWithCredential(this.authInst, credential);
+    } else {
+      const provider = new this.auth.GoogleAuthProvider();
+      // Always show Google's account chooser — without this, Google silently
+      // re-signs-in with whichever account the browser/device remembers, so
+      // logging out would never actually offer a different email.
+      provider.setCustomParameters({ prompt: 'select_account' });
+      // Remember intent so the profile can be created even if the tab reloads
+      // mid sign-in (getUser() finishes the job on return).
+      localStorage.setItem('eduverse-pending-role', JSON.stringify({ name, role }));
+      try {
+        cred = await this.auth.signInWithPopup(this.authInst, provider);
+      } catch (e) {
+        // NOTE: no signInWithRedirect fallback — redirect sign-in silently fails
+        // on modern browsers when authDomain (firebaseapp.com) differs from the
+        // site origin (github.io), which caused an endless login loop.
+        if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+          throw new Error('Sign-in window was closed. Tap the button once and finish signing in.');
+        }
+        if (e.code === 'auth/popup-blocked') {
+          throw new Error('Your browser blocked the sign-in window. Allow pop-ups for this site, then try again.');
+        }
+        throw e;
       }
-      throw e;
     }
     const snap = await this.fs.getDoc(this._ref(cred.user.uid));
     if (snap.exists()) { localStorage.removeItem('eduverse-pending-role'); return snap.data(); }
     return this._createProfile(cred.user, name, role);
   }
-  async signOut() { await this.auth.signOut(this.authInst); }
+  async signOut() {
+    const native = await loadNativeAuth();
+    if (native) { try { await native.FirebaseAuthentication.signOut(); } catch {} }
+    await this.auth.signOut(this.authInst);
+  }
   async linkChild(code) {
     const snap = await this.fs.getDoc(this.fs.doc(this.db, 'codes', code.trim().toUpperCase()));
     if (!snap.exists()) throw new Error('Code not found — check the 6 letters on your child\'s Settings page.');
