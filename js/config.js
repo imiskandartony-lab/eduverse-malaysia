@@ -3,7 +3,7 @@
 
 // Bump on every content/feature release so parents/teachers can see what's
 // current on the landing page footer. Follows semver: major.minor.patch.
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.3.0';
 
 export const CONFIG = {
   // Set to 'firebase' after filling in firebaseConfig below.

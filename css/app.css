@@ -509,6 +509,24 @@ table.report th { font-family: var(--font-display); }
 @keyframes card-flip { 0% { transform: rotateY(0deg); } 50% { transform: rotateY(90deg); } 100% { transform: rotateY(0deg); } }
 .balloon-field { position: relative; height: 380px; overflow: hidden; border-radius: var(--r-btn); background: linear-gradient(180deg, var(--sky-hi), var(--sky-lo)); }
 .balloon { position: absolute; bottom: -70px; width: 62px; height: 76px; border-radius: 50% 50% 48% 48%; border: none; color: #fff; font-weight: 800; font-size: 1rem; animation: rise linear forwards; }
+.sort-tray { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.sort-chip {
+  border: 2px solid var(--border); border-radius: var(--r-btn); background: var(--card); color: var(--ink);
+  padding: .5rem .9rem; font-weight: 700; font-family: inherit; cursor: pointer;
+}
+.sort-chip.selected { border-color: var(--ocean); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ocean) 25%, transparent); }
+.sort-chip.correct { border-color: var(--jungle); background: color-mix(in srgb, var(--jungle) 14%, var(--card)); }
+.sort-chip.wrong { border-color: var(--lava); background: color-mix(in srgb, var(--lava) 12%, var(--card)); animation: shake .3s; }
+.sort-bins { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+.sort-bin {
+  border: 2px dashed var(--border); border-radius: var(--r-btn); padding: var(--sp-3); text-align: center;
+  font-weight: 800; cursor: pointer; transition: transform .15s ease;
+}
+.sort-bin:hover { transform: translateY(-2px); }
+.sort-bin-correct { color: var(--jungle); border-color: var(--jungle); }
+.sort-bin-wrong { color: var(--lava); border-color: var(--lava); }
+.tf-buttons { display: flex; gap: var(--sp-2); }
+.tf-buttons .btn { flex: 1; }
 
 /* Quick-answer shortcut: for a confident student who doesn't want to wait
    for the right balloon to float by. */

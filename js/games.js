@@ -225,6 +225,98 @@ export function catchAnswer(mount, { question, correct, wrong }, onDone) {
   setTimeout(() => { if (caught < need) finish(); }, 40000);
 }
 
+// ---------- Sort It!: tap each option into the Correct or Wrong bin ----------
+export function sortBins(mount, { question, correct, wrong }, onDone) {
+  const items = [...correct.map(t => ({ t, ok: true })), ...wrong.map(t => ({ t, ok: false }))]
+    .sort(() => Math.random() - 0.5);
+  let sorted = 0, mistakes = 0;
+  mount.innerHTML = `
+    <h3 class="display">🗂️ Sort It!</h3>
+    <p style="margin:.4rem 0 1rem">${esc(question)} — tap each into the right bin.</p>
+    <div class="sort-tray"></div>
+    <div class="sort-bins">
+      <div class="sort-bin sort-bin-correct">✅ Correct</div>
+      <div class="sort-bin sort-bin-wrong">❌ Wrong</div>
+    </div>
+    <p class="game-status" style="margin-top:.6rem;font-weight:800"></p>`;
+  const tray = mount.querySelector('.sort-tray');
+  const status = mount.querySelector('.game-status');
+  const binCorrect = mount.querySelector('.sort-bin-correct');
+  const binWrong = mount.querySelector('.sort-bin-wrong');
+  let selected = null;
+  items.forEach((item, idx) => {
+    const chip = document.createElement('button');
+    chip.className = 'sort-chip';
+    chip.textContent = item.t;
+    chip.dataset.idx = idx;
+    tray.appendChild(chip);
+  });
+  // Tap a chip to select it, then tap a bin to place it — reliable across mouse and touch.
+  tray.addEventListener('click', ev => {
+    const chip = ev.target.closest('.sort-chip');
+    if (!chip || chip.disabled) return;
+    tray.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selected = chip;
+  });
+  const pick = isCorrectBin => ev => {
+    if (!selected || selected.disabled) return;
+    const chip = selected;
+    const item = items[Number(chip.dataset.idx)];
+    chip.disabled = true;
+    const hit = isCorrectBin === item.ok;
+    if (hit) {
+      sorted++; sfx.correct(sorted); floatText(ev.clientX, ev.clientY, '🗂️ +1');
+      chip.classList.add('correct');
+    } else {
+      mistakes++; sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
+      chip.classList.add('wrong');
+    }
+    status.textContent = `${sorted + mistakes}/${items.length} sorted`;
+    chip.remove();
+    selected = null;
+    if (sorted + mistakes >= items.length) {
+      setTimeout(() => onDone(Math.max(.2, sorted / items.length)), 400);
+    }
+  };
+  binCorrect.addEventListener('click', pick(true));
+  binWrong.addEventListener('click', pick(false));
+}
+
+// ---------- True/False Blitz: rapid-fire judge each statement ----------
+export function trueFalseBlitz(mount, quiz, onDone) {
+  // Build a mixed set of true statements (correct answer) and false ones
+  // (a wrong option swapped in), so the game works for any subject's MCQ quiz.
+  const rounds = quiz.slice(0, 5).map(q => {
+    const useTrue = Math.random() < 0.5;
+    const opt = useTrue ? q.options[q.answer] : q.options.filter((_, i) => i !== q.answer)[0];
+    return { q: q.q, opt, isTrue: useTrue };
+  });
+  let i = 0, score = 0;
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    mount.innerHTML = `
+      <h3 class="display">⏱️ True or False Blitz — ${i + 1}/${rounds.length}</h3>
+      <p class="lesson-step" style="margin:.6rem 0 1rem">${esc(r.q)}</p>
+      <p style="font-weight:800;font-size:1.1rem;margin-bottom:1rem">"${esc(r.opt)}"</p>
+      <div class="tf-buttons">
+        <button class="btn" data-val="true">✅ True</button>
+        <button class="btn" data-val="false">❌ False</button>
+      </div>`;
+    mount.querySelectorAll('[data-val]').forEach(b => {
+      b.addEventListener('click', ev => {
+        const guess = b.dataset.val === 'true';
+        if (guess === r.isTrue) {
+          score++; sfx.correct(i); floatText(ev.clientX, ev.clientY, '✓');
+        } else { sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        setTimeout(() => { i++; render(); }, 500);
+      });
+    });
+  };
+  render();
+}
+
 // ---------- Maze: reach the treasure; a locked door needs a correct answer ----------
 export function maze(mount, question, onDone) {
   // 0 floor · 1 wall · D door · T treasure · S start
@@ -564,7 +656,7 @@ export function speakChallenge(mount, { question, word, lang }, onDone) {
 
 // Pick a game suited to the lesson and return a runner.
 export function gameForLesson(lesson, quiz) {
-  const kinds = ['memory', 'balloon', 'speed', 'catch', 'maze', 'escape', 'ninja'];
+  const kinds = ['memory', 'balloon', 'speed', 'catch', 'maze', 'escape', 'ninja', 'sort', 'truefalse'];
   // Word Builder only when the correct answer is one clean word (3-10 letters).
   const q0 = quiz[0];
   const w = q0 && q0.options[q0.answer];
@@ -587,6 +679,14 @@ export function gameForLesson(lesson, quiz) {
     return (mount, onDone) => speakChallenge(mount, { question: q0.q, word: w, lang }, onDone);
   }
   if (kind === 'sentence') return (mount, onDone) => sentenceBuilder(mount, { question: phraseHit.q.q, phrase: phraseHit.phrase }, onDone);
+  if (kind === 'sort') {
+    const q = quiz[Math.floor(Math.random() * quiz.length)];
+    return (mount, onDone) => sortBins(mount, {
+      question: q.q, correct: [q.options[q.answer]],
+      wrong: q.options.filter((_, i) => i !== q.answer),
+    }, onDone);
+  }
+  if (kind === 'truefalse') return (mount, onDone) => trueFalseBlitz(mount, [...quiz].sort(() => Math.random() - 0.5), onDone);
   if (kind === 'ninja') {
     const q = quiz[Math.floor(Math.random() * quiz.length)];
     return (mount, onDone) => mathNinja(mount, {
