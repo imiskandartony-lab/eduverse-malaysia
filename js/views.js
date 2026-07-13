@@ -83,6 +83,11 @@ export function landing(el) {
 
   el.innerHTML = `
   <div class="landing">
+    <div class="landing-aurora" aria-hidden="true">
+      <span class="aurora-blob aurora-1"></span>
+      <span class="aurora-blob aurora-2"></span>
+      <span class="aurora-blob aurora-3"></span>
+    </div>
     <span class="landing-bg-island" style="left:6%;top:6%;animation-delay:-1s">🏝️</span>
     <span class="landing-bg-island" style="right:8%;top:14%;font-size:2.6rem;animation-delay:-4s">🏔️</span>
     <span class="landing-bg-island" style="left:12%;top:58%;font-size:2.2rem;animation-delay:-6.5s">☁️</span>
@@ -90,11 +95,17 @@ export function landing(el) {
       ${particles.map((p, i) => `<span style="left:${8 + i * 20}%;animation-duration:${9 + i * 2}s;animation-delay:${-i * 3}s">${p}</span>`).join('')}
     </div>
 
+    <div class="landing-mascot" aria-hidden="true"><span class="mascot-glow"></span><span class="mascot-emoji">🦌</span></div>
     <div class="title-logo">Edu<span class="word-my">Verse</span></div>
     <div class="title-sub">MALAYSIA</div>
     <p class="tagline">Where learning becomes an adventure — KSSR Year 5 &amp; 6</p>
 
-    <p class="path-eyebrow">🗺️ ${WORLDS.length} worlds waiting for you</p>
+    <div class="trust-strip">
+      <span class="trust-chip">🗺️ ${WORLDS.length} Worlds</span>
+      <span class="trust-chip">✅ KSSR Aligned</span>
+      <span class="trust-chip">🆓 Free to Play</span>
+    </div>
+
     <div class="world-ticker-wrap">
       <div class="world-ticker" id="world-ticker">
         ${[...WORLDS, ...WORLDS].map(w => `
@@ -133,7 +144,7 @@ export function landing(el) {
     <form id="name-form" hidden style="margin-top:1.2rem;display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap">
       <input id="name-input" type="text" maxlength="20" placeholder="Your adventurer name"
         style="border:3px solid var(--line);border-radius:var(--r-pill);padding:.7rem 1.1rem;font-family:inherit;font-weight:700;background:var(--card);color:var(--ink)" />
-      <button class="btn" type="submit">Begin Adventure! 🚀</button>
+      <button class="btn btn-cta" type="submit">Begin Adventure! 🚀</button>
     </form>
     <p style="margin-top:1.5rem;color:var(--ink-soft);font-size:.85rem">
       ${CONFIG.backend === 'firebase' ? 'Signs in with Google via Firebase.' : 'Demo mode — progress saved on this device. Connect Firebase in js/config.js for accounts.'}
