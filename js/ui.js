@@ -29,6 +29,35 @@ export function rewardModal(emoji, title, text) {
   });
 }
 
+// Premium paywall — shown when a free-trial user tries to unlock a world
+// beyond their starter set. Resolves 'checkout' | 'cancel'.
+export function paywallModal(priceRM) {
+  return new Promise(resolve => {
+    const root = document.getElementById('modal-root');
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    wrap.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true" aria-label="Unlock Premium">
+        <div class="reward-burst">💎</div>
+        <h2>Unlock the Full Adventure!</h2>
+        <p style="margin:.6rem 0 1.2rem">
+          You've explored the free starter worlds — great job! Unlock all 13 worlds,
+          every subject and mini-game, forever, for one small payment.
+        </p>
+        <p style="font-size:1.6rem;font-weight:800;margin-bottom:1rem">RM${priceRM.toFixed(2)} <span style="font-size:.85rem;font-weight:600;color:var(--ink-soft)">/ lifetime</span></p>
+        <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-gold" data-choice="checkout">Unlock Now 🚀</button>
+          <button class="btn" data-choice="cancel">Maybe later</button>
+        </div>
+      </div>`;
+    root.appendChild(wrap);
+    const close = choice => { wrap.remove(); resolve(choice); };
+    wrap.querySelectorAll('[data-choice]').forEach(b =>
+      b.addEventListener('click', () => close(b.dataset.choice)));
+    wrap.addEventListener('click', e => { if (e.target === wrap) close('cancel'); });
+  });
+}
+
 // Lightweight emoji confetti — no library needed, respects reduced motion.
 export function confetti(count = 24) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;

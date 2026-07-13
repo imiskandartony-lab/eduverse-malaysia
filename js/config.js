@@ -3,7 +3,7 @@
 
 // Bump on every content/feature release so parents/teachers can see what's
 // current on the landing page footer. Follows semver: major.minor.patch.
-export const APP_VERSION = '1.3.0';
+export const APP_VERSION = '1.4.0';
 
 export const CONFIG = {
   // Set to 'firebase' after filling in firebaseConfig below.
@@ -34,4 +34,11 @@ export const CONFIG = {
   xpPerLevel: 100,        // level = floor(xp / xpPerLevel) + 1
   streakBonusCoins: 5,    // extra coins per consecutive day
   bossDamagePerCorrect: 34,
+
+  // Premium lifetime unlock (ToyyibPay on web; Google Play Billing later for
+  // the Android build — see RELEASE_CHECKLIST.md). Currently pointed at the
+  // ToyyibPay SANDBOX (dev.toyyibpay.com, set via payments/ env vars) — swap
+  // TOYYIBPAY_BASE_URL/keys in Vercel to go live with real payments.
+  premiumPriceRM: 9.90,
+  paymentsApiUrl: 'https://payments-gilt.vercel.app',
 };

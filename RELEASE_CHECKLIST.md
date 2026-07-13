@@ -61,7 +61,24 @@ web flow.
       verify no hardcoded subject/world list)
 - [ ] Pass-device local mode picks up new lessons the same way
 
-## 7. Android app (Capacitor) — do not skip this
+## 7. Premium / paywall (`js/data/curriculum.js` FREE_WORLD_IDS, `firestore.rules`, `payments/`)
+
+- [ ] If you add a new world, decide whether it's a free-trial world or
+      premium-gated (default: only the 3 starter worlds in `FREE_WORLD_IDS`
+      are free — everything else requires `user.premium`)
+- [ ] Any new route that renders lesson/world content directly (bypassing
+      `#/worlds`) must re-check `user.unlockedWorlds`/`user.premium` itself —
+      see the guards in `worldDetail()`/`lessonFlow()` in `js/views.js`
+- [ ] `firestore.rules` still blocks clients from writing their own
+      `premium` field (only the `payments/` webhook, via Admin SDK, may set it)
+- [ ] The `payments/` serverless backend is a **separate Vercel deployment**
+      from GitHub Pages — it only needs redeploying if `payments/api/*.js`
+      itself changes, not on every content release
+- [ ] Android currently has no purchase flow (on hold) — Play Store builds
+      must use Google Play Billing when that resumes, not ToyyibPay
+      (Play policy requirement for unlocking in-app digital content)
+
+## 8. Android app (Capacitor) — do not skip this
 
 The native app does **not** auto-update from the web deploy. It ships its
 own APK/AAB build from a snapshot of the web assets. Every release needs:
@@ -79,7 +96,7 @@ own APK/AAB build from a snapshot of the web assets. Every release needs:
 - [ ] If shipping to Play Store: upload the new signed `.aab` as a new
       release in Play Console
 
-## 8. Deploy & verify
+## 9. Deploy & verify
 
 - [ ] Commit and push to `origin/main` (GitHub Pages auto-deploys)
 - [ ] Check the GitHub Pages build succeeded

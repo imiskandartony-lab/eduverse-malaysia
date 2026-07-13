@@ -15,8 +15,10 @@ import { sfx, isMuted, setMuted, startMusic, stopMusic, isMusicMuted, setMusicMu
 import { getAiKey, setAiKey } from './ai.js';
 import { isStandalone, isIOS, canPromptInstall, promptInstall, isInstallDismissed, dismissInstallCard } from './install.js';
 import { worldIcon, bossIcon, petIcon, achievementIcon, appIconUrl, getOverrides, setIconOverride, setAppIconOverride } from './assets.js';
-import { toast, rewardModal, speak, esc, confetti, floatText, flashEdge, showCombo } from './ui.js';
+import { toast, rewardModal, paywallModal, speak, esc, confetti, floatText, flashEdge, showCombo } from './ui.js';
 import { gameForLesson } from './games.js';
+import { startPremiumCheckout } from './payments.js';
+import { FREE_WORLD_IDS } from './data/curriculum.js';
 
 let user = null;
 export const getUser = () => user;
@@ -401,9 +403,13 @@ export function worlds(el) {
       const { done, total } = worldProgress(user, w.id);
       const complete = total > 0 && done === total;
       const current = unlocked && !complete;
+      // Not-yet-unlocked worlds are either "keep progressing" (still in the
+      // free trial path) or "premium required" — different lock icon/tap action.
+      const needsPremium = !unlocked && !user.premium && !FREE_WORLD_IDS.includes(w.id);
       return `
       <button class="world-node ${complete ? 'done' : ''} ${current ? 'current' : ''} ${unlocked ? '' : 'locked'}"
-        data-world="${w.id}" ${unlocked ? '' : 'disabled'} aria-label="${esc(w.name)}${unlocked ? '' : ', locked'}">
+        data-world="${w.id}" data-premium="${needsPremium}" ${unlocked || needsPremium ? '' : 'disabled'}
+        aria-label="${esc(w.name)}${unlocked ? '' : needsPremium ? ', premium' : ', locked'}">
         <span class="w-emoji">${worldIcon(w)}</span>
         <span>
           <span class="w-title" style="color:${w.color}">${esc(w.name)}</span><br>
@@ -411,12 +417,20 @@ export function worlds(el) {
         </span>
         ${unlocked
           ? `<span class="w-progress">${total ? `${done}/${total}` : 'soon!'}</span>`
-          : '<span class="w-lock">🔒</span>'}
+          : needsPremium ? '<span class="w-lock">💎</span>' : '<span class="w-lock">🔒</span>'}
       </button>`;
     }).join('')}
   </div>`;
-  el.querySelectorAll('.world-node:not(.locked)').forEach(n =>
-    n.addEventListener('click', () => go(`#/world/${n.dataset.world}`)));
+  el.querySelectorAll('.world-node:not(:disabled)').forEach(n => {
+    n.addEventListener('click', async () => {
+      if (n.dataset.premium === 'true') {
+        const choice = await paywallModal(CONFIG.premiumPriceRM);
+        if (choice === 'checkout') await startPremiumCheckout(user, store.getUid());
+        return;
+      }
+      go(`#/world/${n.dataset.world}`);
+    });
+  });
   el.querySelector('#map-story-btn').addEventListener('click', () => showMapStory(el));
 }
 
@@ -446,6 +460,18 @@ function showMapStory(el) {
 
 export function worldDetail(el, worldId) {
   const w = WORLDS.find(x => x.id === worldId);
+  // Guard direct hash navigation (e.g. a bookmarked/typed URL) — the map
+  // view is the only place that's supposed to grant access.
+  if (!user.unlockedWorlds.includes(w.id)) {
+    const needsPremium = !user.premium && !FREE_WORLD_IDS.includes(w.id);
+    if (needsPremium) {
+      paywallModal(CONFIG.premiumPriceRM).then(choice => {
+        if (choice === 'checkout') startPremiumCheckout(user, store.getUid());
+      });
+    }
+    go('#/worlds');
+    return;
+  }
   const ls = LESSONS.filter(l => l.worldId === worldId);
   startMusic(w.subject.toLowerCase());
   el.innerHTML = `
@@ -539,7 +565,7 @@ function hornbillEliminate(opts, q) {
 // ---------------- Lesson flow: intro → learn → practice → game → quiz → boss → reward ----------------
 export function lessonFlow(el, lessonId) {
   const lesson = LESSONS.find(l => l.id === lessonId);
-  if (!lesson) { go('#/worlds'); return; }
+  if (!lesson || !user.unlockedWorlds.includes(lesson.worldId)) { go('#/worlds'); return; }
   const quiz = QUIZZES[lessonId] || [];
   let stage = 0, stepIdx = 0, quizIdx = 0, quizCorrect = 0, bossHp = 100, gameScore = 0, combo = 0;
   let bossWrong = 0, combo5Fired = false;
@@ -744,7 +770,11 @@ export function lessonFlow(el, lessonId) {
         gems: accuracy === 1 ? 1 : 0,
         reason: '(quest complete!)',
       });
-      await maybeUnlockNextWorld(user, lesson.worldId);
+      const worldLock = await maybeUnlockNextWorld(user, lesson.worldId);
+      if (worldLock === 'premium-required') {
+        const choice = await paywallModal(CONFIG.premiumPriceRM);
+        if (choice === 'checkout') await startPremiumCheckout(user, store.getUid());
+      }
       await maybeRestoreMapPiece(user, lesson.worldId);
       logActivity(user, {
         lessonId: lesson.id, title: lesson.title, worldId: lesson.worldId,

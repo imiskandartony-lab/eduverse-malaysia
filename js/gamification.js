@@ -6,7 +6,7 @@ import { CONFIG } from './config.js';
 import { store, ensureDailyMissions } from './store.js';
 import { toast, rewardModal, confetti } from './ui.js';
 import { sfx } from './sounds.js';
-import { WORLDS, LESSONS, MAP_STORY, MAP_FINALE, SEASONAL_EVENTS } from './data/curriculum.js';
+import { WORLDS, LESSONS, MAP_STORY, MAP_FINALE, SEASONAL_EVENTS, FREE_WORLD_IDS } from './data/curriculum.js';
 import { equippedPetEffect } from './avatar.js';
 
 export const levelFor = xp => Math.floor(xp / CONFIG.xpPerLevel) + 1;
@@ -270,11 +270,15 @@ export async function maybeUnlockNextWorld(user, worldId) {
     const idx = WORLDS.findIndex(w => w.id === worldId);
     const next = WORLDS[idx + 1];
     if (next && !user.unlockedWorlds.includes(next.id)) {
+      // Free trial covers one starter world per subject; going further
+      // requires the lifetime premium unlock (see js/payments.js).
+      if (!user.premium && !FREE_WORLD_IDS.includes(next.id)) return 'premium-required';
       user.unlockedWorlds.push(next.id);
       await rewardModal(next.emoji, 'New World Unlocked!', `${next.name} is now open for adventure!`);
       await store.saveUser(user);
     }
   }
+  return null;
 }
 
 // Story mode: finishing every lesson in a world restores one torn map

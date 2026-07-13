@@ -17,6 +17,10 @@ export const WORLDS = [
   { id: 'music-studio',     name: 'Studio Melodi',      emoji: '🎵', subject: 'Music', color: 'var(--magic)', desc: 'Unsur muzik & alat tradisional' },
 ];
 
+// Free trial: one starter world per core subject, always unlocked.
+// Everything beyond these requires premium (see gamification.js maybeUnlockNextWorld).
+export const FREE_WORLD_IDS = ['english-kingdom', 'maths-volcano', 'bm-village'];
+
 export const LESSONS = [
   {
     id: 'ek-1', worldId: 'english-kingdom', title: 'Simple Present Tense', year: 5,

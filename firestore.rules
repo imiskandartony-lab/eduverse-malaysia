@@ -23,8 +23,13 @@ service cloud.firestore {
       allow read: if isSelf(uid) || isParentOf(uid) || isTeacher() || isAdmin();
       allow create: if isSelf(uid)
         && request.resource.data.role in ['student', 'parent', 'teacher']
-        && request.resource.data.xp == 0 && request.resource.data.coins <= 100;
-      allow update: if (isSelf(uid) && request.resource.data.role == resource.data.role)
+        && request.resource.data.xp == 0 && request.resource.data.coins <= 100
+        && request.resource.data.premium == false;
+      // Premium is granted server-side only (payments webhook via Admin SDK,
+      // which bypasses these rules) — a signed-in user can never flip it
+      // themselves, even through a merge write.
+      allow update: if (isSelf(uid) && request.resource.data.role == resource.data.role
+          && request.resource.data.premium == resource.data.premium)
         || isAdmin();
       allow delete: if isAdmin();
     }

@@ -3,7 +3,7 @@
 // Both expose the same async API so views never care which backend runs.
 
 import { CONFIG } from './config.js';
-import { DAILY_MISSION_POOL, DAILY_CHALLENGE_POOL } from './data/curriculum.js';
+import { DAILY_MISSION_POOL, DAILY_CHALLENGE_POOL, FREE_WORLD_IDS } from './data/curriculum.js';
 
 // Loaded lazily, only inside the native app shell — the hosted web build
 // never touches these (Capacitor.isNativePlatform() is false there).
@@ -40,7 +40,8 @@ export function defaultProfile(name = 'Adventurer', role = 'student') {
     avatarBase: '🧒', equipped: {}, owned: [],
     shields: 0, comebackDate: null,
     familyCode: role === 'student' ? makeFamilyCode() : null,
-    completedLessons: [], unlockedWorlds: ['english-kingdom', 'maths-volcano', 'bm-village'],
+    premium: false,
+    completedLessons: [], unlockedWorlds: [...FREE_WORLD_IDS],
     achievements: [], mapPieces: [], mapComplete: false,
     missions: [], missionsDate: null,
     challenge: null, challengeDate: null, shards: 0, arenaBest: {}, duelWins: 0, photoURL: null,
@@ -57,6 +58,9 @@ class LocalStore {
   _save() { localStorage.setItem(LS_KEY, JSON.stringify(this.state)); }
   async getUser() { return this.state.user; }
   async saveUser(user) { this.state.user = user; this._save(); return user; }
+  // No real auth locally — premium checkout needs Firebase, so this is a
+  // stable per-browser stand-in only (good enough for local-mode testing).
+  getUid() { return 'local-demo-user'; }
   async signIn(name, role) {
     if (!this.state.user || this.state.user.role !== role) this.state.user = defaultProfile(name, role);
     this.state.user.name = name;
@@ -156,6 +160,7 @@ class FirebaseStore {
     return user;
   }
   email() { return this.authInst.currentUser?.email || null; }
+  getUid() { return this.authInst.currentUser?.uid || null; }
   async signIn(name, role) {
     // Already signed into Google on this device? Reuse the session —
     // no popup, no repeated login prompts.

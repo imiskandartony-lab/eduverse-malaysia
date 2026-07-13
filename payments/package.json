@@ -1,0 +1,10 @@
+{
+  "name": "eduverse-payments",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Serverless bridge between EduVerse Malaysia's web app and ToyyibPay — never expose the ToyyibPay secret key or Firebase service account to the browser.",
+  "dependencies": {
+    "firebase-admin": "^12.1.0"
+  }
+}
