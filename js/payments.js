@@ -11,18 +11,19 @@ import { track } from './analytics.js';
 // browser to the hosted payment page. The payments backend's webhook marks
 // users/{uid}.premium = true in Firestore once payment is confirmed; the
 // app picks that up next time it reads the user doc (see store.js).
-export async function startPremiumCheckout(user, uid) {
+export async function startPremiumCheckout(user, uid, plan = 'individual') {
   if (!CONFIG.paymentsApiUrl) {
     toast('Payments aren\'t set up yet — check back soon!');
     return;
   }
-  track('begin_checkout', { role: user.role, value: CONFIG.premiumPriceRM, currency: 'MYR' });
+  const price = plan === 'family' ? CONFIG.familyBundlePriceRM : CONFIG.premiumPriceRM;
+  track('begin_checkout', { role: user.role, plan, value: price, currency: 'MYR' });
   try {
     const res = await fetch(`${CONFIG.paymentsApiUrl}/api/create-bill`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        uid, name: user.name || 'Adventurer',
+        uid, plan, name: user.name || 'Adventurer',
         // The ?premium_check=1 marker tells the app (on reload after
         // ToyyibPay redirects back) to poll for the premium flag and show
         // the celebration modal — see maybeCelebratePremium() below.

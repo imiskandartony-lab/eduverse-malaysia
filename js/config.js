@@ -3,7 +3,7 @@
 
 // Bump on every content/feature release so parents/teachers can see what's
 // current on the landing page footer. Follows semver: major.minor.patch.
-export const APP_VERSION = '1.6.0';
+export const APP_VERSION = '1.6.1';
 
 export const CONFIG = {
   // Set to 'firebase' after filling in firebaseConfig below.
@@ -44,5 +44,9 @@ export const CONFIG = {
   // ToyyibPay SANDBOX (dev.toyyibpay.com, set via payments/ env vars) — swap
   // TOYYIBPAY_BASE_URL/keys in Vercel to go live with real payments.
   premiumPriceRM: 9.90,
+  // Parent-only upsell: unlocks premium for the parent's own account plus
+  // every child currently linked to it (see js/views.js parent() and
+  // payments/api/webhook.js).
+  familyBundlePriceRM: 19.90,
   paymentsApiUrl: 'https://payments-gilt.vercel.app',
 };

@@ -30,21 +30,26 @@ export function rewardModal(emoji, title, text) {
 }
 
 // Premium paywall — shown when a free-trial user tries to unlock a world
-// beyond their starter set. Resolves 'checkout' | 'cancel'.
-export function paywallModal(priceRM) {
+// beyond their starter set (or, with the `opts` overrides, the parent
+// dashboard's family-bundle upsell). Resolves 'checkout' | 'cancel'.
+export function paywallModal(priceRM, opts = {}) {
+  const {
+    emoji = '💎',
+    heading = 'Unlock the Full Adventure!',
+    body = `You've explored the free starter worlds — great job! Unlock all 13 worlds,
+          every subject and mini-game, forever, for one small payment.`,
+    priceSuffix = '/ lifetime',
+  } = opts;
   return new Promise(resolve => {
     const root = document.getElementById('modal-root');
     const wrap = document.createElement('div');
     wrap.className = 'modal-backdrop';
     wrap.innerHTML = `
       <div class="modal" role="dialog" aria-modal="true" aria-label="Unlock Premium">
-        <div class="reward-burst">💎</div>
-        <h2>Unlock the Full Adventure!</h2>
-        <p style="margin:.6rem 0 1.2rem">
-          You've explored the free starter worlds — great job! Unlock all 13 worlds,
-          every subject and mini-game, forever, for one small payment.
-        </p>
-        <p style="font-size:1.6rem;font-weight:800;margin-bottom:.3rem">RM${priceRM.toFixed(2)} <span style="font-size:.85rem;font-weight:600;color:var(--ink-soft)">/ lifetime</span></p>
+        <div class="reward-burst">${emoji}</div>
+        <h2>${heading}</h2>
+        <p style="margin:.6rem 0 1.2rem">${body}</p>
+        <p style="font-size:1.6rem;font-weight:800;margin-bottom:.3rem">RM${priceRM.toFixed(2)} <span style="font-size:.85rem;font-weight:600;color:var(--ink-soft)">${priceSuffix}</span></p>
         <p style="font-size:.78rem;color:var(--ink-soft);margin-bottom:1rem">🛡️ Not right for your child? Full refund within 7 days, no questions asked.</p>
         <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
           <button class="btn btn-gold" data-choice="checkout">Unlock Now 🚀</button>

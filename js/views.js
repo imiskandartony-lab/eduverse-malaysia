@@ -67,6 +67,19 @@ export async function requirePremiumGate() {
   return false;
 }
 
+// Parent-only upsell (not a gate — offered alongside, not instead of, the
+// individual plan). One payment unlocks the parent's own account plus every
+// child currently linked to it — see payments/api/webhook.js for the fan-out.
+async function offerFamilyBundle() {
+  track('paywall_shown', { role: user?.role, plan: 'family' });
+  const choice = await paywallModal(CONFIG.familyBundlePriceRM, {
+    emoji: '👨‍👩‍👧‍👦',
+    heading: 'Unlock for the Whole Family!',
+    body: 'One payment unlocks every world and feature for your account, plus every child currently linked to you — perfect if more than one student plays at home.',
+  });
+  if (choice === 'checkout') await startPremiumCheckout(user, store.getUid(), 'family');
+}
+
 
 function hud() {
   return `
@@ -1675,7 +1688,13 @@ export async function parent(el, _m, selectedIdx = 0) {
         <button class="btn btn-green" type="submit">Link 🔗</button>
       </form>
       <p id="link-msg" style="color:var(--lava);font-weight:700;margin-top:.8rem"></p>
-    </div>`;
+    </div>
+    ${!user.premium ? `
+    <div class="card" style="text-align:center;border-color:var(--gold)">
+      <h3 class="display">🎁 Have more than one child?</h3>
+      <p style="color:var(--ink-soft);margin:.4rem 0 .8rem">Unlock your account plus every child you link — up to 3 kids, one payment.</p>
+      <button class="btn btn-gold btn-sm" id="family-bundle-btn">Family Bundle — RM${CONFIG.familyBundlePriceRM.toFixed(2)}</button>
+    </div>` : ''}`;
     el.querySelector('#logout').addEventListener('click', doLogout);
     el.querySelector('#link-form').addEventListener('submit', async e => {
       e.preventDefault();
@@ -1686,6 +1705,7 @@ export async function parent(el, _m, selectedIdx = 0) {
         parent(el);
       } catch (err) { el.querySelector('#link-msg').textContent = err.message; }
     });
+    el.querySelector('#family-bundle-btn')?.addEventListener('click', offerFamilyBundle);
     return;
   }
 
@@ -1707,6 +1727,12 @@ export async function parent(el, _m, selectedIdx = 0) {
       <span id="add-child-msg" style="color:var(--lava);font-weight:700;flex-basis:100%"></span>
     </form>` : ''}
   </div>
+  ${!user.premium ? `
+  <div class="card" style="text-align:center;border-color:var(--gold)">
+    <h3 class="display">🎁 Family Bundle</h3>
+    <p style="color:var(--ink-soft);margin:.4rem 0 .8rem">Unlock every world for your account and every child linked to you — up to 3 kids, one payment.</p>
+    <button class="btn btn-gold btn-sm" id="family-bundle-btn">Unlock — RM${CONFIG.familyBundlePriceRM.toFixed(2)}</button>
+  </div>` : ''}
   <div class="stat-grid">
     <div class="stat"><div class="s-num">${child.completedLessons.length}</div><div class="s-label">Lessons completed</div></div>
     <div class="stat"><div class="s-num">${child.stats.correct}</div><div class="s-label">Correct answers</div></div>
@@ -1759,6 +1785,7 @@ export async function parent(el, _m, selectedIdx = 0) {
   });
   el.querySelectorAll('[data-child]').forEach(b =>
     b.addEventListener('click', () => parent(el, null, Number(b.dataset.child))));
+  el.querySelector('#family-bundle-btn')?.addEventListener('click', offerFamilyBundle);
   // Inline form instead of window.prompt(), which installed PWAs and some
   // mobile browsers silently block ("nothing happens" on tap).
   el.querySelector('#add-child')?.addEventListener('click', () => {
