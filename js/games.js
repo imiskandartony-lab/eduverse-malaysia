@@ -582,7 +582,7 @@ export function gameForLesson(lesson, quiz) {
   const kind = kinds[Math.floor(Math.random() * kinds.length)];
   if (kind === 'word') return (mount, onDone) => wordBuilder(mount, { question: q0.q, word: w }, onDone);
   if (kind === 'speak') {
-    const bmWorlds = ['bm-village', 'tatabahasa-temple', 'karangan-kingdom'];
+    const bmWorlds = ['bm-village', 'tatabahasa-temple', 'karangan-kingdom', 'science-lab', 'rbt-workshop', 'geo-world', 'music-studio'];
     const lang = bmWorlds.includes(lesson.worldId) ? 'ms-MY' : 'en-US';
     return (mount, onDone) => speakChallenge(mount, { question: q0.q, word: w, lang }, onDone);
   }

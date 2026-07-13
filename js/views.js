@@ -3,7 +3,7 @@
 import { WORLDS, LESSONS, QUIZZES, BOSSES, MAP_STORY, MAP_FINALE } from './data/curriculum.js';
 import { CATALOG, CATEGORIES, findPart, renderAvatar, migrateWardrobe, DEFAULT_EQUIP, fileToAvatarDataURL, equippedPetEffect } from './avatar.js';
 import { store, ensureDailyMissions, touchStreak } from './store.js';
-import { CONFIG } from './config.js';
+import { CONFIG, APP_VERSION } from './config.js';
 import {
   grant, missionProgress, claimMission, recordAnswer, weakestTopics,
   recommendLesson, worldProgress, maybeUnlockNextWorld, levelFor, xpIntoLevel,
@@ -94,7 +94,7 @@ export function landing(el) {
     <div class="title-sub">MALAYSIA</div>
     <p class="tagline">Where learning becomes an adventure — KSSR Year 5 &amp; 6</p>
 
-    <p class="path-eyebrow">🗺️ 9 worlds waiting for you</p>
+    <p class="path-eyebrow">🗺️ ${WORLDS.length} worlds waiting for you</p>
     <div class="world-ticker-wrap">
       <div class="world-ticker" id="world-ticker">
         ${[...WORLDS, ...WORLDS].map(w => `
@@ -138,6 +138,7 @@ export function landing(el) {
     <p style="margin-top:1.5rem;color:var(--ink-soft);font-size:.85rem">
       ${CONFIG.backend === 'firebase' ? 'Signs in with Google via Firebase.' : 'Demo mode — progress saved on this device. Connect Firebase in js/config.js for accounts.'}
     </p>
+    <p style="margin-top:.4rem;color:var(--ink-soft);font-size:.7rem;opacity:.7">Version ${esc(APP_VERSION)}</p>
   </div>`;
 
   // World ticker: tap a badge to peek at what it teaches.

@@ -11,6 +11,10 @@ export const WORLDS = [
   { id: 'bm-village',       name: 'Kampung Bahasa',     emoji: '🛖', subject: 'Bahasa Melayu', color: 'var(--jungle)', desc: 'Kosa kata & pemahaman' },
   { id: 'tatabahasa-temple',name: 'Dewan Tatabahasa',    emoji: '🏛️', subject: 'Bahasa Melayu', color: 'var(--sunset)', desc: 'Imbuhan, kata & ayat' },
   { id: 'karangan-kingdom', name: 'Kerajaan Karangan',  emoji: '👑', subject: 'Bahasa Melayu', color: 'var(--gold)', desc: 'Penulisan kreatif' },
+  { id: 'science-lab',      name: 'Makmal Penemuan',    emoji: '🔬', subject: 'Science', color: 'var(--jungle)', desc: 'Eksperimen & fenomena sains' },
+  { id: 'rbt-workshop',     name: 'Bengkel Rekacipta',  emoji: '🔧', subject: 'Reka Bentuk dan Teknologi', color: 'var(--sunset)', desc: 'Reka bentuk & elektronik asas' },
+  { id: 'geo-world',        name: 'Peta Dunia',         emoji: '🗺️', subject: 'Geografi', color: 'var(--ocean)', desc: 'Peta, Malaysia & rantau ASEAN' },
+  { id: 'music-studio',     name: 'Studio Melodi',      emoji: '🎵', subject: 'Music', color: 'var(--magic)', desc: 'Unsur muzik & alat tradisional' },
 ];
 
 export const LESSONS = [
@@ -446,6 +450,102 @@ export const LESSONS = [
     ],
     practice: { q: 'Bahagian manakah cerita menunjukkan PUNCAK masalah watak?', options: ['Permulaan', 'Konflik', 'Klimaks', 'Peleraian'], answer: 2, hint: 'Ia bermaksud "titik tertinggi" dalam bahasa Inggeris — climax.' },
   },
+  {
+    id: 'sl-1', worldId: 'science-lab', title: 'Interaksi Manusia dengan Alam Sekitar', year: 5,
+    kssr: 'KSSR Sains T5 — Interaksi Antara Manusia Dengan Alam Sekitar',
+    xp: 60, coins: 25, difficulty: 2, prerequisite: null,
+    intro: 'Selamat datang ke Makmal Penemuan! Sesuatu telah mengganggu keseimbangan alam sekitar berhampiran makmal — bantu Dr. Nova menyiasat sebelum ekosistem musnah!',
+    steps: [
+      '<b>Ekosistem</b> ialah hidupan dan bukan hidupan yang saling bergantung dalam satu kawasan: hutan, sungai, paya bakau.',
+      'Aktiviti manusia boleh menjejaskan alam sekitar: <b>penebangan hutan</b> (habitat musnah), <b>pencemaran sungai</b> (hidupan air mati), <b>pembakaran terbuka</b> (udara tercemar).',
+      'Kita boleh menjaga alam sekitar dengan <b>kitar semula</b>, menanam pokok, dan mengurangkan penggunaan plastik sekali guna.',
+    ],
+    practice: { q: 'Apakah kesan penebangan hutan secara berleluasa?', options: ['Udara menjadi lebih bersih', 'Habitat hidupan liar musnah', 'Sungai menjadi lebih jernih', 'Tiada kesan langsung'], answer: 1, hint: 'Fikirkan di mana haiwan hutan tinggal.' },
+  },
+  {
+    id: 'sl-2', worldId: 'science-lab', title: 'Litar Elektrik Mudah', year: 6,
+    kssr: 'KSSR Sains T6 — Elektrik: Litar Elektrik Mudah',
+    xp: 70, coins: 30, difficulty: 3, prerequisite: 'sl-1',
+    intro: 'Lampu makmal tiba-tiba terpadam! Dr. Nova memerlukan seorang jurutera kecil yang faham LITAR ELEKTRIK untuk menyalakannya semula.',
+    steps: [
+      '<b>Litar lengkap</b> membolehkan arus elektrik mengalir dari bateri, melalui wayar dan komponen, dan kembali ke bateri.',
+      '<b>Litar bersiri</b>: semua komponen disambung dalam satu laluan sahaja — jika satu mentol rosak, semua mentol padam.',
+      '<b>Litar selari</b>: setiap komponen mempunyai laluannya sendiri — jika satu mentol rosak, mentol lain tetap menyala.',
+    ],
+    practice: { q: 'Dalam litar bersiri, apa berlaku jika satu mentol terputus?', options: ['Semua mentol lain tetap menyala', 'Semua mentol padam', 'Bateri menjadi lebih kuat', 'Tiada perubahan'], answer: 1, hint: 'Litar bersiri hanya ada SATU laluan.' },
+  },
+  {
+    id: 'rw-1', worldId: 'rbt-workshop', title: 'Proses Reka Bentuk', year: 5,
+    kssr: 'KSSR RBT T5 — Reka Bentuk dan Teknologi: Proses Reka Bentuk',
+    xp: 60, coins: 25, difficulty: 2, prerequisite: null,
+    intro: 'Selamat datang ke Bengkel Rekacipta! Tukang Rekacipta ada satu masalah untuk diselesaikan — tetapi rekaan yang baik memerlukan PROSES yang betul, bukan cuma tekaan!',
+    steps: [
+      '<b>Proses reka bentuk</b> bermula dengan mengenal pasti <b>masalah</b>, kemudian <b>menjana idea</b> (lakaran pelbagai penyelesaian).',
+      'Pilih idea terbaik dan <b>bina prototaip</b> (model contoh) — ia tidak perlu sempurna pada percubaan pertama!',
+      '<b>Uji dan perbaiki</b> prototaip berulang kali. Reka bentuk yang hebat selalunya melalui banyak PENAMBAHBAIKAN, bukan sekali jadi.',
+    ],
+    practice: { q: 'Apakah langkah PERTAMA dalam proses reka bentuk?', options: ['Membina produk akhir', 'Mengenal pasti masalah', 'Menjual produk', 'Membungkus produk'], answer: 1, hint: 'Sebelum mereka bentuk sesuatu, kita perlu tahu APA masalahnya.' },
+  },
+  {
+    id: 'rw-2', worldId: 'rbt-workshop', title: 'Litar Elektronik Asas', year: 6,
+    kssr: 'KSSR RBT T6 — Elektronik: Litar Elektronik Asas',
+    xp: 70, coins: 30, difficulty: 3, prerequisite: 'rw-1',
+    intro: 'Mesin bengkel telah rosak! Hanya jurutera yang memahami KOMPONEN ELEKTRONIK asas dapat membaikinya semula.',
+    steps: [
+      '<b>Perintang (resistor)</b> mengurangkan aliran arus elektrik dalam litar, melindungi komponen lain daripada rosak.',
+      '<b>LED (diod pemancar cahaya)</b> menyala apabila arus mengalir melaluinya dalam ARAH yang betul sahaja.',
+      '<b>Suis</b> membuka atau menutup litar — suis TERBUKA menghentikan aliran arus, suis TERTUTUP membenarkan arus mengalir.',
+    ],
+    practice: { q: 'Apakah fungsi utama sebuah perintang dalam litar?', options: ['Menghasilkan cahaya', 'Mengurangkan aliran arus', 'Menyimpan air', 'Menghasilkan bunyi'], answer: 1, hint: 'Ia mengawal supaya arus tidak terlalu KUAT.' },
+  },
+  {
+    id: 'gw-1', worldId: 'geo-world', title: 'Kemahiran Peta', year: 5,
+    kssr: 'KSSR Geografi T5 — Kemahiran Geografi: Peta dan Simbol',
+    xp: 60, coins: 25, difficulty: 2, prerequisite: null,
+    intro: 'Selamat datang ke Peta Dunia! Kapten Kompas kehilangan arah — bantu dia membaca peta dengan betul untuk menemui jalan pulang.',
+    steps: [
+      '<b>Peta</b> menggunakan <b>simbol</b> untuk mewakili ciri sebenar: 🏫 sekolah, 🏥 hospital, 🌉 jambatan. <b>Petunjuk (legend)</b> menerangkan maksud setiap simbol.',
+      '<b>Skala peta</b> menunjukkan hubungan antara jarak di peta dengan jarak sebenar: skala 1:100 000 bermaksud 1 cm di peta = 100 000 cm (1 km) sebenar.',
+      '<b>Arah mata angin</b>: Utara, Selatan, Timur, Barat — dan arah pertengahan: Timur Laut, Barat Daya, dan sebagainya.',
+    ],
+    practice: { q: 'Apakah fungsi petunjuk (legend) pada sebuah peta?', options: ['Menunjukkan warna peta', 'Menerangkan maksud simbol', 'Menunjukkan tarikh peta dibuat', 'Menunjukkan nama pembuat peta'], answer: 1, hint: 'Ia membantu kita FAHAM apa setiap simbol mewakili.' },
+  },
+  {
+    id: 'gw-2', worldId: 'geo-world', title: 'Malaysia dan Rantau Asia Tenggara', year: 6,
+    kssr: 'KSSR Geografi T6 — Malaysia dan Asia Tenggara',
+    xp: 70, coins: 30, difficulty: 3, prerequisite: 'gw-1',
+    intro: 'Kapten Kompas mahu belayar mengelilingi ASEAN! Kenali Malaysia dan jiran-jirannya di rantau Asia Tenggara untuk membantu perjalanannya.',
+    steps: [
+      'Malaysia terdiri daripada <b>Semenanjung Malaysia</b> dan <b>Malaysia Timur</b> (Sabah & Sarawak di Pulau Borneo), dipisahkan oleh Laut China Selatan.',
+      '<b>ASEAN</b> (Persatuan Negara-Negara Asia Tenggara) merangkumi 10 negara: Malaysia, Indonesia, Thailand, Filipina, Singapura, Brunei, Vietnam, Laos, Myanmar dan Kemboja.',
+      'Setiap negara ASEAN mempunyai ciri unik: Singapura — pusat perdagangan; Thailand — pelancongan; Indonesia — negara kepulauan terbesar di dunia.',
+    ],
+    practice: { q: 'Sabah dan Sarawak terletak di manakah?', options: ['Semenanjung Malaysia', 'Pulau Borneo (Malaysia Timur)', 'Pulau Sumatera', 'Filipina'], answer: 1, hint: 'Ia dikenali sebagai Malaysia TIMUR.' },
+  },
+  {
+    id: 'ms-1', worldId: 'music-studio', title: 'Unsur-Unsur Muzik', year: 5,
+    kssr: 'KSSR Pendidikan Muzik T5 — Unsur Muzik: Rentak, Dinamik dan Timbre',
+    xp: 60, coins: 25, difficulty: 2, prerequisite: null,
+    intro: 'Selamat datang ke Studio Melodi! Konduktor Nada memerlukan seorang murid yang faham UNSUR MUZIK untuk menyempurnakan persembahan malam ini.',
+    steps: [
+      '<b>Rentak (tempo)</b> ialah kelajuan sesebuah lagu: <b>laju</b> (cergas, gembira) atau <b>perlahan</b> (tenang, sayu).',
+      '<b>Dinamik</b> ialah kelantangan muzik: <b>kuat (forte)</b> atau <b>lembut (piano)</b> — muzik boleh beransur menjadi kuat atau lembut.',
+      '<b>Timbre</b> ialah warna ton sesuatu bunyi — sebab kita boleh bezakan bunyi gitar daripada bunyi seruling walaupun memainkan nada yang sama.',
+    ],
+    practice: { q: 'Apakah maksud "dinamik" dalam muzik?', options: ['Kelajuan lagu', 'Kelantangan bunyi', 'Nama alat muzik', 'Jenis not muzik'], answer: 1, hint: 'Fikirkan bunyi KUAT berbanding LEMBUT.' },
+  },
+  {
+    id: 'ms-2', worldId: 'music-studio', title: 'Alat Muzik Tradisional Malaysia', year: 6,
+    kssr: 'KSSR Pendidikan Muzik T6 — Alat Muzik Tradisional Malaysia',
+    xp: 70, coins: 30, difficulty: 3, prerequisite: 'ms-1',
+    intro: 'Konduktor Nada membuka almari lama studio — penuh dengan ALAT MUZIK TRADISIONAL Malaysia yang telah lama tidak dimainkan. Kenali setiap satu untuk membangkitkan semula muziknya!',
+    steps: [
+      '<b>Gamelan</b> — satu set alat muzik bertalun dari loyang, dimainkan secara berkumpulan, popular di Johor dan Terengganu.',
+      '<b>Kompang</b> — alat muzik pukul (perkusi) berbentuk bulat diperbuat daripada kulit kambing, sering dimainkan semasa majlis perkahwinan.',
+      '<b>Sape</b> — alat muzik bertali seakan gitar dari Sarawak, dimainkan oleh masyarakat Orang Ulu. <b>Angklung</b> pula diperbuat daripada buluh, digoncang untuk menghasilkan bunyi.',
+    ],
+    practice: { q: 'Alat muzik manakah diperbuat daripada buluh dan dimainkan dengan cara digoncang?', options: ['Kompang', 'Gamelan', 'Angklung', 'Sape'], answer: 2, hint: 'Namanya bermula dengan huruf "A".' },
+  },
 ];
 
 export const QUIZZES = {
@@ -659,6 +759,54 @@ export const QUIZZES = {
     { q: 'Bahagian di mana masalah watak selesai disebut…', options: ['klimaks', 'peleraian', 'permulaan', 'konflik'], answer: 1, explain: 'Peleraian ialah bahagian masalah diselesaikan.', hint: 'Fikirkan "lerai" bermaksud selesai/lepas.', difficulty: 2 },
     { q: 'Nilai murni yang dipelajari pembaca daripada sesebuah cerita disebut…', options: ['plot', 'latar', 'pengajaran', 'watak'], answer: 2, explain: 'Pengajaran ialah nilai atau iktibar yang boleh dipetik daripada cerita.', hint: 'Ini adalah "moral of the story".', difficulty: 3 },
   ],
+  'sl-1': [
+    { q: 'Apakah maksud "ekosistem"?', options: ['Hanya haiwan dalam satu kawasan', 'Hidupan dan bukan hidupan yang saling bergantung', 'Sejenis peralatan makmal', 'Cuaca sesebuah kawasan'], answer: 1, explain: 'Ekosistem merangkumi hidupan dan bukan hidupan yang berinteraksi.', hint: 'Ia bukan hanya tentang haiwan sahaja.', difficulty: 1 },
+    { q: 'Apakah kesan pencemaran sungai terhadap hidupan air?', options: ['Hidupan air bertambah sihat', 'Hidupan air boleh mati', 'Air menjadi lebih jernih', 'Tiada kesan'], answer: 1, explain: 'Pencemaran boleh meracuni dan membunuh hidupan air.', hint: 'Fikirkan air yang kotor — bolehkah ikan hidup?', difficulty: 1 },
+    { q: 'Manakah antara berikut membantu MENJAGA alam sekitar?', options: ['Membakar sampah secara terbuka', 'Menebang hutan tanpa kawalan', 'Mengitar semula bahan buangan', 'Membuang sisa ke dalam sungai'], answer: 2, explain: 'Kitar semula mengurangkan sisa dan melindungi alam sekitar.', hint: 'Cari pilihan yang BAIK untuk alam sekitar.', difficulty: 2 },
+    { q: 'Sebuah kilang membuang sisa terus ke sungai berhampiran. Apakah kesan JANGKA PANJANG paling mungkin?', options: ['Sungai menjadi lebih bersih', 'Populasi ikan berkurangan dan air tidak selamat', 'Tiada kesan kepada penduduk sekitar', 'Sungai menjadi sumber air minuman terbaik'], answer: 1, explain: 'Sisa kilang yang tidak dirawat mencemarkan air dan membahayakan hidupan akuatik serta penduduk.', hint: 'Fikirkan kesan pencemaran berterusan terhadap ekosistem sungai.', difficulty: 3 },
+  ],
+  'sl-2': [
+    { q: 'Apakah yang diperlukan untuk litar elektrik berfungsi?', options: ['Litar terbuka', 'Litar lengkap/tertutup', 'Bateri sahaja tanpa wayar', 'Suis sahaja'], answer: 1, explain: 'Arus hanya mengalir dalam litar yang LENGKAP.', hint: 'Fikirkan laluan yang tiada putus.', difficulty: 1 },
+    { q: 'Dalam litar SELARI, jika satu mentol rosak…', options: ['Semua mentol padam', 'Mentol lain tetap menyala', 'Bateri akan meletup', 'Litar menjadi terbuka sepenuhnya'], answer: 1, explain: 'Setiap komponen dalam litar selari mempunyai laluannya sendiri.', hint: 'Litar selari mempunyai LEBIH DARIPADA SATU laluan.', difficulty: 2 },
+    { q: 'Apakah fungsi suis dalam sesebuah litar?', options: ['Menghasilkan cahaya', 'Membuka dan menutup litar', 'Menyimpan tenaga elektrik', 'Menukar warna mentol'], answer: 1, explain: 'Suis mengawal sama ada arus dapat mengalir atau tidak.', hint: 'Fikirkan bila kamu menekan suis lampu di rumah.', difficulty: 1 },
+    { q: 'Sebuah litar bersiri mempunyai 3 mentol. Jika satu mentol ditanggalkan, apakah yang berlaku pada 2 mentol lagi?', options: ['Kekal menyala seperti biasa', 'Turut padam', 'Menyala lebih terang', 'Bertukar warna'], answer: 1, explain: 'Litar bersiri hanya mempunyai SATU laluan sahaja untuk arus.', hint: 'Ingat semula ciri litar bersiri — satu laluan sahaja.', difficulty: 3 },
+  ],
+  'rw-1': [
+    { q: 'Apakah langkah pertama dalam proses reka bentuk?', options: ['Membina prototaip', 'Mengenal pasti masalah', 'Menguji produk', 'Menjual produk'], answer: 1, explain: 'Kita perlu tahu masalahnya dahulu sebelum mereka bentuk penyelesaian.', hint: 'Apa yang perlu diketahui SEBELUM mereka bentuk?', difficulty: 1 },
+    { q: 'Apakah itu "prototaip"?', options: ['Produk siap untuk dijual', 'Model contoh untuk diuji', 'Alat pengukur', 'Bahan mentah sahaja'], answer: 1, explain: 'Prototaip ialah model awal yang diuji dan diperbaiki.', hint: 'Ia bukan produk akhir, tetapi CONTOH untuk diuji.', difficulty: 1 },
+    { q: 'Mengapa reka bentuk perlu diuji dan diperbaiki berulang kali?', options: ['Untuk membazirkan masa', 'Untuk mencapai penyelesaian terbaik', 'Kerana peraturan sekolah', 'Ia tidak perlu diuji'], answer: 1, explain: 'Ujian berulang membantu menambah baik reka bentuk sehingga ia berfungsi dengan baik.', hint: 'Reka bentuk hebat jarang sempurna pada percubaan pertama.', difficulty: 2 },
+    { q: 'Sekumpulan murid mereka bentuk kotak makanan tengah hari yang kalis air. Prototaip pertama mereka bocor. Apakah langkah SETERUSNYA yang paling wajar?', options: ['Berhenti dan tukar kepada projek lain', 'Uji punca kebocoran dan perbaiki reka bentuk', 'Terus jual kotak yang bocor', 'Abaikan masalah itu'], answer: 1, explain: 'Proses reka bentuk memerlukan penambahbaikan berdasarkan hasil ujian.', hint: 'Fikirkan kitaran proses reka bentuk: uji, kenal pasti masalah, perbaiki.', difficulty: 3 },
+  ],
+  'rw-2': [
+    { q: 'Apakah fungsi perintang (resistor) dalam litar?', options: ['Menghasilkan bunyi', 'Mengurangkan aliran arus', 'Menyimpan air', 'Menukar warna litar'], answer: 1, explain: 'Perintang mengehadkan arus supaya komponen lain tidak rosak.', hint: 'Ia melindungi litar daripada arus yang terlalu kuat.', difficulty: 1 },
+    { q: 'Bilakah LED akan menyala?', options: ['Bila arus mengalir dalam arah yang betul', 'Bila litar terbuka', 'Bila tiada bateri', 'Sentiasa menyala tanpa syarat'], answer: 0, explain: 'LED hanya membenarkan arus mengalir dalam SATU arah.', hint: 'LED adalah komponen "sehala".', difficulty: 2 },
+    { q: 'Apakah yang berlaku apabila suis litar dibuka (terbuka)?', options: ['Arus terus mengalir', 'Arus berhenti mengalir', 'Litar menjadi lebih terang', 'Bateri menjadi lebih kuat'], answer: 1, explain: 'Suis terbuka memutuskan laluan litar.', hint: 'Terbuka bermaksud laluan litar TERPUTUS.', difficulty: 1 },
+    { q: 'Sebuah LED dalam litar tidak menyala walaupun bateri baharu digunakan. Apakah kemungkinan puncanya?', options: ['LED disambung dalam arah yang salah', 'Suis sentiasa tertutup', 'Perintang terlalu besar saiznya', 'Wayar terlalu panjang'], answer: 0, explain: 'LED hanya berfungsi jika disambung mengikut arah/polariti yang betul.', hint: 'LED adalah komponen yang sensitif kepada ARAH sambungan.', difficulty: 3 },
+  ],
+  'gw-1': [
+    { q: 'Apakah fungsi simbol pada peta?', options: ['Menghiasi peta', 'Mewakili ciri sebenar di permukaan bumi', 'Menunjukkan warna kegemaran pembuat peta', 'Tiada fungsi khusus'], answer: 1, explain: 'Simbol mewakili ciri seperti sekolah, hospital, jambatan dan lain-lain.', hint: 'Fikirkan ikon 🏫 mewakili apa.', difficulty: 1 },
+    { q: 'Skala peta 1:100 000 bermaksud…', options: ['1 cm di peta = 100 000 cm sebenar', '1 cm di peta = 1 cm sebenar', 'Peta itu bersaiz 100 000 cm', '100 000 orang tinggal di kawasan itu'], answer: 0, explain: 'Skala menunjukkan nisbah jarak peta kepada jarak sebenar.', hint: 'Nombor kedua ialah jarak SEBENAR bagi setiap 1 cm di peta.', difficulty: 2 },
+    { q: 'Arah manakah bertentangan dengan Utara?', options: ['Timur', 'Barat', 'Selatan', 'Barat Daya'], answer: 2, explain: 'Selatan adalah arah bertentangan terus dengan Utara.', hint: 'Fikirkan kedudukan mata angin pada kompas.', difficulty: 1 },
+    { q: 'Sebuah peta mempunyai skala 1:50 000. Jika jarak antara dua bandar di peta ialah 4 cm, berapakah jarak sebenar?', options: ['4 km', '2 km', '200 000 km', '50 km'], answer: 1, explain: '4 cm × 50 000 = 200 000 cm = 2 km.', hint: 'Darab 4 dengan 50 000, kemudian tukar cm kepada km (÷100 000).', difficulty: 3 },
+  ],
+  'gw-2': [
+    { q: 'Berapakah bilangan negara ahli ASEAN?', options: ['8', '9', '10', '12'], answer: 2, explain: 'ASEAN mempunyai 10 negara ahli.', hint: 'Cuba senaraikan semua negara yang disebut dalam pelajaran.', difficulty: 1 },
+    { q: 'Sabah dan Sarawak dikenali sebagai…', options: ['Semenanjung Malaysia', 'Malaysia Timur', 'Malaysia Barat', 'Segenting Kra'], answer: 1, explain: 'Sabah dan Sarawak terletak di Pulau Borneo dan dikenali sebagai Malaysia Timur.', hint: 'Ia berlawanan dengan "Semenanjung".', difficulty: 1 },
+    { q: 'Apakah yang memisahkan Semenanjung Malaysia dan Malaysia Timur?', options: ['Selat Melaka', 'Laut China Selatan', 'Lautan Hindi', 'Teluk Thailand'], answer: 1, explain: 'Laut China Selatan memisahkan kedua-dua bahagian Malaysia.', hint: 'Nama lautnya merujuk kepada sebuah negara jiran.', difficulty: 2 },
+    { q: 'Negara ASEAN manakah yang terkenal sebagai negara kepulauan TERBESAR di dunia?', options: ['Singapura', 'Thailand', 'Indonesia', 'Vietnam'], answer: 2, explain: 'Indonesia mempunyai lebih 17,000 pulau, menjadikannya negara kepulauan terbesar di dunia.', hint: 'Fikirkan negara jiran dengan ribuan pulau.', difficulty: 3 },
+  ],
+  'ms-1': [
+    { q: 'Apakah maksud "tempo" dalam muzik?', options: ['Kelantangan bunyi', 'Kelajuan lagu', 'Warna ton alat muzik', 'Nama not muzik'], answer: 1, explain: 'Tempo merujuk kepada kelajuan sesebuah lagu.', hint: 'Fikirkan lagu yang CEPAT berbanding PERLAHAN.', difficulty: 1 },
+    { q: '"Forte" dalam muzik bermaksud…', options: ['Lembut', 'Kuat', 'Perlahan', 'Cepat'], answer: 1, explain: 'Forte ialah istilah dinamik yang bermaksud KUAT.', hint: 'Ia berlawanan dengan "piano" (lembut).', difficulty: 1 },
+    { q: 'Mengapa gitar dan seruling kedengaran berbeza walaupun memainkan nada yang sama?', options: ['Kerana tempo berbeza', 'Kerana timbre (warna ton) berbeza', 'Kerana dinamik sama', 'Tiada sebab khusus'], answer: 1, explain: 'Timbre ialah ciri unik bunyi setiap alat muzik.', hint: 'Ingat semula definisi "timbre".', difficulty: 2 },
+    { q: 'Sebuah lagu bermula perlahan dan lembut, kemudian beransur menjadi laju dan kuat menjelang penghujungnya. Unsur muzik manakah yang BERUBAH di sini?', options: ['Hanya tempo', 'Hanya dinamik', 'Tempo dan dinamik kedua-duanya', 'Timbre sahaja'], answer: 2, explain: 'Perubahan kelajuan menunjukkan tempo berubah, manakala perubahan kelantangan menunjukkan dinamik turut berubah.', hint: 'Cari perkataan yang menunjukkan KELAJUAN dan KELANTANGAN berubah serentak.', difficulty: 3 },
+  ],
+  'ms-2': [
+    { q: 'Kompang diperbuat daripada bahan apa?', options: ['Buluh', 'Kulit kambing', 'Logam sahaja', 'Plastik'], answer: 1, explain: 'Kompang ialah alat muzik pukul berkulit kambing.', hint: 'Ia sejenis alat perkusi berbentuk bulat.', difficulty: 1 },
+    { q: 'Sape ialah alat muzik yang berasal dari negeri manakah?', options: ['Johor', 'Terengganu', 'Sarawak', 'Kedah'], answer: 2, explain: 'Sape berasal dari masyarakat Orang Ulu di Sarawak.', hint: 'Ia dimainkan oleh masyarakat Orang Ulu.', difficulty: 2 },
+    { q: 'Angklung dimainkan dengan cara…', options: ['Dipetik', 'Ditiup', 'Digoncang', 'Digesek'], answer: 2, explain: 'Angklung diperbuat daripada buluh dan digoncang untuk menghasilkan bunyi.', hint: 'Fikirkan pergerakan tangan untuk menghasilkan bunyi buluh.', difficulty: 1 },
+    { q: 'Manakah PASANGAN alat muzik dan cara ia dimainkan yang BETUL?', options: ['Kompang — digesek', 'Sape — dipetik', 'Angklung — ditiup', 'Gamelan — digoncang'], answer: 1, explain: 'Sape adalah alat bertali yang dipetik, seakan gitar.', hint: 'Fikirkan alat mana yang mempunyai tali seperti gitar.', difficulty: 3 },
+  ],
 };
 
 // World bosses — each battle has a personality, not just a health bar.
@@ -727,26 +875,58 @@ export const BOSSES = {
     hits: ['Dakwatku… kering?!', 'Tidak! Ayatmu terlalu tersusun!'],
     defeat: 'Baiklah… penamu lebih kuat daripada dakwatku. Menulislah, pujangga muda.',
   },
+  'science-lab': {
+    name: 'Profesor Kabus', emoji: '🧪', title: 'Ahli Sains Gila Makmal',
+    intro: 'Muahaha! Akulah Profesor Kabus — semua eksperimen di sini kucampur-adukkan! Buktikan kamu faham sains sebenar!',
+    blocks: ['Salah! Reaksimu meletup — tetapi bukan cara yang betul!', 'Hipotesis kamu tersasar!', 'Cuba lagi, saintis kecil!'],
+    hits: ['Tidak! Teorimu... betul-betul tepat!', 'Kabusku... mula hilang!'],
+    defeat: 'Baiklah... eksperimenmu berjaya. Makmal ini kini milikmu, saintis muda.',
+  },
+  'rbt-workshop': {
+    name: 'Mekanik Karat', emoji: '⚙️', title: 'Robot Rosak Bengkel',
+    intro: 'KREEEK! Akulah Mekanik Karat — semua reka bentuk di bengkel ini telah kubocorkan! Betulkan jika kamu berani!',
+    blocks: ['RALAT! Prototaipmu masih bocor!', 'Skru-skruku tidak berganjak!', 'Cubaan yang lemah, jurutera kecil!'],
+    hits: ['KREEK! Litarku terputus!', 'Tidak! Reka bentukmu... sempurna!'],
+    defeat: 'Sistem... dibaiki. Bengkel ini berfungsi semula. Tahniah, jurutera muda.',
+  },
+  'geo-world': {
+    name: 'Kapten Sesat', emoji: '🧭', title: 'Perompak Peta yang Hilang Arah',
+    intro: 'Arrr! Akulah Kapten Sesat — kucuri setiap peta dan kompas di dunia ini! Tunjukkan kamu tahu arah sebenar!',
+    blocks: ['Arah yang salah, pengembara!', 'Petaku kekal dalam kabus!', 'Cuba baca semula, wira kecil!'],
+    hits: ['Tidak! Kompasku... berfungsi semula!', 'Arrgh! Kamu jumpa arah yang betul!'],
+    defeat: 'Baiklah... kamu memang navigator sejati. Peta dunia ini milikmu, pengembara.',
+  },
+  'music-studio': {
+    name: 'Fantom Fals', emoji: '🎭', title: 'Hantu Nada Sumbang Studio',
+    intro: 'Wuuuu~ Akulah Fantom Fals — setiap melodi di studio ini kujadikan SUMBANG! Nyanyikan nada yang betul untuk mengalahkan aku!',
+    blocks: ['Sumbang! Telingaku sakit... tetapi kamu yang kalah!', 'Rentakmu tidak tepat!', 'Cuba lagi, murid muzik!'],
+    hits: ['Tidak! Nadamu... tepat sekali!', 'Wuuu... suaraku semakin hilang!'],
+    defeat: 'Baiklah... telingamu memang tajam. Studio ini kembali bermelodi, bintang muda.',
+  },
 };
 
-// Story mode: Sang Kancil's map was torn into 9 pieces by the Shadow of
-// Forgetting. Each world you master restores one piece and reveals a beat
-// of the tale — order matches WORLDS above.
+// Story mode: Sang Kancil's map was torn into pieces (one per world) by the
+// Shadow of Forgetting. Each world you master restores one piece and reveals
+// a beat of the tale — order matches WORLDS above.
 export const MAP_STORY = {
   'english-kingdom': { piece: 1, title: 'A Torn Map', text: 'Sang Kancil unrolls an ancient map — but it is ripped to shreds! "The Shadow of Forgetting scattered these pieces across every kingdom," he sighs. "Master English Kingdom, and the first piece returns to us!"' },
-  'grammar-forest': { piece: 2, title: 'Into the Forest', text: 'The map hums as the first piece slides into place, pointing deep into a forest where sentences grow wild and untamed. "One piece down, eight to go," grins Sang Kancil.' },
+  'grammar-forest': { piece: 2, title: 'Into the Forest', text: 'The map hums as the first piece slides into place, pointing deep into a forest where sentences grow wild and untamed. "One piece down, many to go," grins Sang Kancil.' },
   'reading-castle': { piece: 3, title: 'The Sealed Library', text: 'A castle appears on the map, its library sealed by riddles only a careful reader can solve. "Every clue you find brings us closer to the truth," says Sang Kancil.' },
   'maths-volcano': { piece: 4, title: 'The Counting Fire', text: 'Beyond the forest, a volcano rumbles with numbers instead of lava. "Legend says Tok Naga has guarded this piece for a thousand years," Sang Kancil whispers.' },
-  'fraction-island': { piece: 5, title: 'Halfway There', text: 'Five pieces glow on the map — halfway restored! An island of split treasure appears on the horizon, guarded by a pirate who never shares fairly.' },
-  'geometry-city': { piece: 6, title: 'The Crooked City', text: 'A city of tilted towers and bent streets flickers into view. "Someone twisted every angle here," Sang Kancil frowns. "Set it straight, and the sixth piece is ours."' },
+  'fraction-island': { piece: 5, title: 'A Growing Map', text: 'Five pieces glow on the map — more than a third restored! An island of split treasure appears on the horizon, guarded by a pirate who never shares fairly.' },
+  'geometry-city': { piece: 6, title: 'The Crooked City', text: 'A city of tilted towers and bent streets flickers into view. "Someone twisted every angle here," Sang Kancil frowns. "Set it straight, and another piece is ours."' },
   'bm-village': { piece: 7, title: 'The Silent Village', text: 'A quiet kampung appears, its market stalls empty of words — all swallowed by a hungry giant. "Speak clearly, hero, and free the village\'s voice."' },
   'tatabahasa-temple': { piece: 8, title: 'The Ancient Gate', text: 'An old grand hall rises from the mist, its gate carved with imbuhan older than memory. "Only true mastery of the tongue opens this door," says Sang Kancil.' },
-  'karangan-kingdom': { piece: 9, title: 'The Final Ink', text: 'One piece remains! A kingdom drowning in spilled ink awaits — write your way through, and the map will finally be whole.' },
+  'karangan-kingdom': { piece: 9, title: 'Ink and Ambition', text: 'A kingdom drowning in spilled ink awaits — write your way through, and yet another piece joins the map. "We are past the halfway mark, hero!"' },
+  'science-lab': { piece: 10, title: 'The Bubbling Lab', text: 'A laboratory hums with strange fumes and flickering lights. "Someone has muddled every experiment here," Sang Kancil says. "Only clear thinking can restore this piece."' },
+  'rbt-workshop': { piece: 11, title: 'The Rusted Workshop', text: 'Gears creak and sparks fly from a workshop full of half-built inventions. "A true maker\'s mind is needed here," Sang Kancil notes, eyeing the scattered tools.' },
+  'geo-world': { piece: 12, title: 'The Lost Compass', text: 'A weathered globe spins on the map, its compass spinning wildly out of control. "Only one who reads the world well can steady it," says Sang Kancil.' },
+  'music-studio': { piece: 13, title: 'The Final Note', text: 'The very last piece hides inside a studio filled with sour, tangled melodies. "Tune this final piece, hero, and the map will finally be whole!"' },
 };
 export const MAP_FINALE = {
   emoji: '🗺️✨',
   title: 'The Map Restored!',
-  text: 'All nine pieces shimmer and fuse into one radiant map. Sang Kancil beams with pride: "You did not just learn, hero — you rebuilt an entire world of knowledge. This treasure is yours, forever." A legendary Golden Kancil Cloak appears in your wardrobe!',
+  text: 'All thirteen pieces shimmer and fuse into one radiant map. Sang Kancil beams with pride: "You did not just learn, hero — you rebuilt an entire world of knowledge. This treasure is yours, forever." A legendary Golden Kancil Cloak appears in your wardrobe!',
   itemId: 'wings-kancil-legend',
 };
 // Seasonal events — a themed window each year with exclusive wardrobe items

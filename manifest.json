@@ -1,7 +1,7 @@
 {
   "name": "EduVerse Malaysia",
   "short_name": "EduVerse",
-  "description": "Gamified KSSR learning adventure for Year 5 & 6 — BM, English and Mathematics.",
+  "description": "Gamified KSSR learning adventure for Year 5 & 6 — BM, English, Mathematics, Science, RBT, Geografi and Music.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

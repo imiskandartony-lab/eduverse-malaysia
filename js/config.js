@@ -1,6 +1,10 @@
 // EduVerse Malaysia — configuration
 // MVP runs 100% free: localStorage by default, Firebase free tier when configured.
 
+// Bump on every content/feature release so parents/teachers can see what's
+// current on the landing page footer. Follows semver: major.minor.patch.
+export const APP_VERSION = '1.1.0';
+
 export const CONFIG = {
   // Set to 'firebase' after filling in firebaseConfig below.
   backend: 'firebase',
