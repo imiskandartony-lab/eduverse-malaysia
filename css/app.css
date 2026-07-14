@@ -565,6 +565,28 @@ table.report th { font-family: var(--font-display); }
 }
 .roti-slice.roti-picked { fill: var(--jungle); }
 
+/* Peta Pin Drop (Geografi) */
+.peta-svg { display: block; width: 100%; max-width: 460px; margin: .4rem auto; }
+.peta-land { fill: color-mix(in srgb, var(--jungle) 22%, var(--card)); stroke: var(--ink); stroke-width: 2; }
+.peta-pin { fill: var(--ocean); stroke: var(--card); stroke-width: 2; cursor: pointer; transition: fill var(--t-fast); }
+.peta-pin:hover { fill: var(--magic); }
+.peta-pin.pin-right { fill: var(--jungle); }
+.peta-pin.pin-wrong { fill: var(--lava); }
+
+/* Irama Repeat (Music) */
+.irama-pads { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); max-width: 340px; }
+.irama-pad {
+  border: 3px solid var(--border); border-radius: var(--r-card); background: var(--card); color: var(--ink);
+  padding: 1rem .6rem; font-size: 1.8rem; font-family: inherit; font-weight: 800; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: .2rem;
+  transition: transform var(--t-fast) var(--ease-bounce), border-color var(--t-fast), background var(--t-fast);
+}
+.irama-pad span { font-size: .85rem; }
+.irama-pad.pad-lit {
+  border-color: var(--gold); background: color-mix(in srgb, var(--gold) 25%, var(--card));
+  transform: scale(1.06);
+}
+
 /* Quick-answer shortcut: for a confident student who doesn't want to wait
    for the right balloon to float by. */
 .chip-row { display: flex; gap: .5rem; flex-wrap: wrap; }

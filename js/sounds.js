@@ -30,6 +30,8 @@ export const sfx = {
   bossHit() { tone(140, .18, 'sawtooth', 0, .22); tone(90, .25, 'square', .05, .18); },
   spin() { for (let i = 0; i < 8; i++) tone(400 + i * 60, .05, 'square', i * .09, .06); },
   click() { tone(500, .05, 'sine', 0, .08); },
+  // Free-pitch note for musical mini-games (Irama Repeat's instrument pads).
+  note(freq, dur = .25, type = 'sine') { tone(freq, dur, type, 0, .2); },
 };
 
 export const isMuted = () => muted;

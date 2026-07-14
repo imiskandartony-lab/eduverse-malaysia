@@ -821,6 +821,196 @@ export function rotiCanaiSlicer(mount, onDone) {
   render();
 }
 
+// ---------- Tense Time Machine (English): rewrite the verb for the era ----------
+// Self-contained KSSR content — simple past/present/future tense drill.
+const TENSE_BANK = [
+  { subj: 'Ali',        rest: 'nasi lemak for breakfast', present: 'eats',    past: 'ate',     future: 'will eat' },
+  { subj: 'The pupils', rest: 'football after school',    present: 'play',    past: 'played',  future: 'will play' },
+  { subj: 'Mei Ling',   rest: 'a letter to her cousin',   present: 'writes',  past: 'wrote',   future: 'will write' },
+  { subj: 'My father',  rest: 'to work by bus',           present: 'goes',    past: 'went',    future: 'will go' },
+  { subj: 'The cat',    rest: 'under the rambutan tree',  present: 'sleeps',  past: 'slept',   future: 'will sleep' },
+  { subj: 'Siti',       rest: 'a beautiful song',         present: 'sings',   past: 'sang',    future: 'will sing' },
+  { subj: 'We',         rest: 'our grandparents in Ipoh', present: 'visit',   past: 'visited', future: 'will visit' },
+  { subj: 'The farmer', rest: 'paddy in the field',       present: 'plants',  past: 'planted', future: 'will plant' },
+];
+const ERAS = [
+  { key: 'past',    label: 'Yesterday ⏪', hint: 'yesterday' },
+  { key: 'present', label: 'Now ⏺️',      hint: 'every day' },
+  { key: 'future',  label: 'Tomorrow ⏩', hint: 'tomorrow' },
+];
+
+export function tenseTimeMachine(mount, onDone) {
+  const rounds = [...TENSE_BANK].sort(() => Math.random() - 0.5).slice(0, 5)
+    .map(r => ({ ...r, era: ERAS[Math.floor(Math.random() * ERAS.length)] }));
+  let i = 0, score = 0;
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    const opts = ERAS.map(e => ({ v: r[e.key], ok: e.key === r.era.key })).sort(() => Math.random() - 0.5);
+    mount.innerHTML = `
+      <h3 class="display">⏰ Tense Time Machine — ${i + 1}/${rounds.length}</h3>
+      <p style="margin:.4rem 0 .6rem">The time portal lands on: <b>${esc(r.era.label)}</b></p>
+      <p class="lesson-step" style="margin:.6rem 0 1rem">${esc(r.subj)} ___ ${esc(r.rest)} <i>(${esc(r.era.hint)})</i>.</p>
+      <div class="chip-row"></div>`;
+    const row = mount.querySelector('.chip-row');
+    opts.forEach(({ v, ok }) => {
+      const b = document.createElement('button');
+      b.className = 'answer-chip'; b.textContent = v;
+      b.addEventListener('click', ev => {
+        b.classList.add(ok ? 'chip-correct' : 'chip-wrong');
+        if (ok) { score++; sfx.correct(i); floatText(ev.clientX, ev.clientY, '⏰ Correct!'); }
+        else { sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        row.querySelectorAll('button').forEach(x => x.disabled = true);
+        setTimeout(() => { i++; render(); }, 700);
+      });
+      row.appendChild(b);
+    });
+  };
+  render();
+}
+
+// ---------- Peta Pin Drop (Geografi): tap the right state on a stylised map ----------
+// Approximate pin positions on a simplified Malaysia map (not to scale — a
+// kid-friendly schematic, same spirit as textbook activity maps).
+const MAP_PINS = [
+  { id: 'perlis',     name: 'Perlis',          x: 72,  y: 22,  capital: 'Kangar' },
+  { id: 'kedah',      name: 'Kedah',           x: 68,  y: 45,  capital: 'Alor Setar' },
+  { id: 'penang',     name: 'Pulau Pinang',    x: 50,  y: 66,  capital: 'George Town' },
+  { id: 'kelantan',   name: 'Kelantan',        x: 108, y: 42,  capital: 'Kota Bharu' },
+  { id: 'terengganu', name: 'Terengganu',      x: 128, y: 70,  capital: 'Kuala Terengganu' },
+  { id: 'perak',      name: 'Perak',           x: 76,  y: 88,  capital: 'Ipoh' },
+  { id: 'pahang',     name: 'Pahang',          x: 112, y: 112, capital: 'Kuantan' },
+  { id: 'selangor',   name: 'Selangor',        x: 72,  y: 128, capital: 'Shah Alam' },
+  { id: 'n9',         name: 'Negeri Sembilan', x: 88,  y: 152, capital: 'Seremban' },
+  { id: 'melaka',     name: 'Melaka',          x: 84,  y: 172, capital: 'Bandar Melaka' },
+  { id: 'johor',      name: 'Johor',           x: 108, y: 188, capital: 'Johor Bahru' },
+  { id: 'sarawak',    name: 'Sarawak',         x: 262, y: 158, capital: 'Kuching' },
+  { id: 'sabah',      name: 'Sabah',           x: 348, y: 92,  capital: 'Kota Kinabalu' },
+];
+
+export function petaPinDrop(mount, onDone) {
+  const rounds = [...MAP_PINS].sort(() => Math.random() - 0.5).slice(0, 5)
+    // Mix "find the state" and "which state's capital is X" prompts.
+    .map(p => ({ p, byCapital: Math.random() < 0.4 }));
+  let i = 0, score = 0;
+  mount.innerHTML = `
+    <h3 class="display">📍 Peta Pin Drop</h3>
+    <p class="pin-prompt" style="margin:.4rem 0 .6rem;font-weight:800"></p>
+    <svg class="peta-svg" viewBox="0 0 400 220" aria-label="Peta Malaysia (skematik)">
+      <path class="peta-land" d="M60 14 Q100 8 118 36 Q140 52 138 90 Q134 130 118 165 Q108 195 100 202 Q88 206 78 188 Q58 150 56 108 Q50 60 60 14 Z"/>
+      <path class="peta-land" d="M228 190 Q210 172 228 148 Q248 120 286 108 Q316 80 344 70 Q372 66 376 92 Q378 112 352 118 Q322 132 300 152 Q272 178 248 194 Q234 198 228 190 Z"/>
+    </svg>
+    <p class="game-status" style="margin-top:.4rem;font-weight:800"></p>`;
+  const svg = mount.querySelector('.peta-svg');
+  const prompt = mount.querySelector('.pin-prompt');
+  const status = mount.querySelector('.game-status');
+  MAP_PINS.forEach(p => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    g.setAttribute('cx', p.x); g.setAttribute('cy', p.y); g.setAttribute('r', 9);
+    g.setAttribute('class', 'peta-pin'); g.dataset.id = p.id;
+    g.addEventListener('click', ev => pick(p, g, ev));
+    svg.appendChild(g);
+  });
+  const ask = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    prompt.textContent = r.byCapital
+      ? `🏛️ Ibu negerinya ialah ${r.p.capital} — tap negeri itu!`
+      : `📍 Tap pin untuk negeri ${r.p.name}!`;
+    status.textContent = `Soalan ${i + 1}/${rounds.length}`;
+    svg.querySelectorAll('.peta-pin').forEach(c => c.classList.remove('pin-right', 'pin-wrong'));
+  };
+  let locked = false;
+  const pick = (p, el, ev) => {
+    if (locked || i >= rounds.length) return;
+    locked = true;
+    const target = rounds[i].p;
+    if (p.id === target.id) {
+      score++; sfx.correct(i); el.classList.add('pin-right');
+      floatText(ev.clientX, ev.clientY, '📍 Betul!');
+    } else {
+      sfx.wrong(); el.classList.add('pin-wrong');
+      svg.querySelector(`[data-id="${target.id}"]`).classList.add('pin-right');
+      floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
+      status.textContent = `❌ Itu ${p.name}. ${target.name} yang bertanda hijau.`;
+    }
+    setTimeout(() => { i++; locked = false; ask(); }, p.id === target.id ? 700 : 1600);
+  };
+  ask();
+}
+
+// ---------- Irama Repeat (Music): echo the traditional-instrument rhythm ----------
+const INSTRUMENTS = [
+  { name: 'Kompang',  emoji: '🥁', freq: 196, type: 'square' },
+  { name: 'Gong',     emoji: '🔔', freq: 110, type: 'sine' },
+  { name: 'Angklung', emoji: '🎐', freq: 523, type: 'triangle' },
+  { name: 'Seruling', emoji: '🎶', freq: 784, type: 'sine' },
+];
+
+export function iramaRepeat(mount, onDone) {
+  const levels = [3, 4, 5]; // pattern length per level
+  let level = 0, cleared = 0, mistakes = 0;
+  mount.innerHTML = `
+    <h3 class="display">🥁 Irama Repeat</h3>
+    <p style="margin:.4rem 0 .6rem">Dengar irama alat muzik tradisional, kemudian ulang semula!</p>
+    <p class="game-status" style="font-weight:800;margin:.4rem 0"></p>
+    <div class="irama-pads"></div>
+    <button class="btn btn-purple" id="irama-play" style="margin-top:.8rem">▶️ Play the rhythm</button>`;
+  const pads = mount.querySelector('.irama-pads');
+  const status = mount.querySelector('.game-status');
+  const playBtn = mount.querySelector('#irama-play');
+  const padEls = INSTRUMENTS.map((ins, idx) => {
+    const b = document.createElement('button');
+    b.className = 'irama-pad';
+    b.innerHTML = `${ins.emoji}<span>${esc(ins.name)}</span>`;
+    b.addEventListener('click', () => tapPad(idx));
+    pads.appendChild(b);
+    return b;
+  });
+  let pattern = [], inputPos = -1; // -1 = not accepting input
+  const flash = idx => {
+    sfx.note(INSTRUMENTS[idx].freq, .3, INSTRUMENTS[idx].type);
+    padEls[idx].classList.add('pad-lit');
+    setTimeout(() => padEls[idx].classList.remove('pad-lit'), 320);
+  };
+  const playPattern = () => {
+    inputPos = -1; playBtn.disabled = true;
+    status.textContent = `🎵 Level ${level + 1}/${levels.length} — listen...`;
+    pattern.forEach((idx, n) => setTimeout(() => flash(idx), 550 * n));
+    setTimeout(() => {
+      inputPos = 0; playBtn.disabled = false;
+      status.textContent = '👆 Your turn — repeat the rhythm!';
+    }, 550 * pattern.length + 200);
+  };
+  const startLevel = () => {
+    pattern = Array.from({ length: levels[level] }, () => Math.floor(Math.random() * INSTRUMENTS.length));
+    playPattern();
+  };
+  const tapPad = idx => {
+    if (inputPos < 0) { flash(idx); return; } // free play while listening is off
+    flash(idx);
+    if (idx === pattern[inputPos]) {
+      inputPos++;
+      if (inputPos >= pattern.length) {
+        cleared++; level++; inputPos = -1;
+        sfx.correct(level);
+        if (level >= levels.length) {
+          status.textContent = '🏆 Hebat! Perfect rhythm!';
+          setTimeout(() => onDone(Math.max(.3, cleared / levels.length - mistakes * .1)), 700);
+        } else {
+          status.textContent = '✅ Betul! Next level...';
+          setTimeout(startLevel, 900);
+        }
+      }
+    } else {
+      mistakes++; inputPos = -1; sfx.wrong();
+      status.textContent = '❌ Tersilap — tap ▶️ to hear it again.';
+    }
+  };
+  playBtn.addEventListener('click', playPattern);
+  startLevel();
+}
+
 // Subject-specific signature games, keyed by world. When a lesson's world has
 // one, it's picked ~half the time so students still see the generic variety.
 const SUBJECT_GAMES = {
@@ -829,6 +1019,10 @@ const SUBJECT_GAMES = {
   'karangan-kingdom':  imbuhanMachine,
   'maths-volcano':     pasarMalamCashier,
   'fraction-island':   rotiCanaiSlicer,
+  'english-kingdom':   tenseTimeMachine,
+  'grammar-forest':    tenseTimeMachine,
+  'geo-world':         petaPinDrop,
+  'music-studio':      iramaRepeat,
 };
 
 // Pick a game suited to the lesson and return a runner.
