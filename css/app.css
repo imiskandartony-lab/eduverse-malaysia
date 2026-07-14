@@ -587,6 +587,23 @@ table.report th { font-family: var(--font-display); }
   transform: scale(1.06);
 }
 
+/* Virtual Eksperimen (Science) */
+.eks-scene {
+  font-size: 2.6rem; text-align: center; padding: .6rem;
+  border: 2px dashed var(--border); border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--ocean) 8%, var(--card));
+}
+
+/* Circuit Fixer (RBT) */
+.circuit-svg { display: block; width: 100%; max-width: 440px; margin: .2rem auto; }
+.circuit-wire { stroke: var(--ink); stroke-width: 4; }
+.circuit-part { cursor: pointer; }
+.circuit-part circle { fill: var(--card); stroke: var(--border); stroke-width: 3; transition: stroke var(--t-fast), fill var(--t-fast); }
+.circuit-part:hover circle { stroke: var(--ocean); }
+.circuit-part.part-found circle { stroke: var(--jungle); fill: color-mix(in srgb, var(--jungle) 18%, var(--card)); }
+.circuit-part.part-wrong circle { stroke: var(--lava); fill: color-mix(in srgb, var(--lava) 14%, var(--card)); }
+.circuit-label { fill: var(--ink); font-weight: 800; font-family: inherit; }
+
 /* Quick-answer shortcut: for a confident student who doesn't want to wait
    for the right balloon to float by. */
 .chip-row { display: flex; gap: .5rem; flex-wrap: wrap; }

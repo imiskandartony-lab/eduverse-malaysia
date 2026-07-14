@@ -1011,6 +1011,152 @@ export function iramaRepeat(mount, onDone) {
   startLevel();
 }
 
+// ---------- Virtual Eksperimen (Science): predict → test → conclude ----------
+// Mirrors the KSSR Science inquiry method: the student commits to a
+// prediction first, then "runs" the experiment and sees the explanation.
+const EKSPERIMEN_BANK = [
+  {
+    setup: 'Seketul ais diletakkan di bawah cahaya matahari.', emoji: '🧊☀️',
+    soalan: 'Apa akan berlaku kepada ais itu?',
+    pilihan: ['Ais akan cair menjadi air', 'Ais akan membeku lagi', 'Tiada perubahan'],
+    jawapan: 0, hasil: '🧊 ➜ 💧',
+    penjelasan: 'Haba matahari menukarkan pepejal (ais) kepada cecair (air). Ini dipanggil peleburan.',
+  },
+  {
+    setup: 'Magnet didekatkan pada paku besi.', emoji: '🧲🔩',
+    soalan: 'Apa akan berlaku kepada paku itu?',
+    pilihan: ['Paku ditarik ke arah magnet', 'Paku ditolak jauh', 'Paku tidak bergerak'],
+    jawapan: 0, hasil: '🧲—🔩',
+    penjelasan: 'Besi ialah bahan magnetik, jadi magnet menariknya. Bahan seperti plastik dan kayu tidak ditarik.',
+  },
+  {
+    setup: 'Sudu garam dikacau dalam segelas air.', emoji: '🧂🥛',
+    soalan: 'Apa akan berlaku kepada garam itu?',
+    pilihan: ['Garam larut dan hilang dari pandangan', 'Garam terapung di permukaan', 'Air bertukar warna'],
+    jawapan: 0, hasil: '🧂 ➜ 🥛✨',
+    penjelasan: 'Garam larut dalam air — ia masih ada (air jadi masin!) tetapi zarahnya terlalu kecil untuk dilihat.',
+  },
+  {
+    setup: 'Pokok keembung disimpan dalam almari gelap selama seminggu.', emoji: '🪴🚪',
+    soalan: 'Apa akan berlaku kepada pokok itu?',
+    pilihan: ['Daunnya menjadi kuning dan layu', 'Pokok tumbuh lebih tinggi', 'Bunga akan mekar'],
+    jawapan: 0, hasil: '🪴 ➜ 🥀',
+    penjelasan: 'Tumbuhan perlukan cahaya untuk membuat makanan (fotosintesis). Tanpa cahaya, ia layu.',
+  },
+  {
+    setup: 'Belon digosok pada rambut, kemudian didekatkan pada cebisan kertas kecil.', emoji: '🎈📄',
+    soalan: 'Apa akan berlaku kepada kertas itu?',
+    pilihan: ['Kertas melekat pada belon', 'Kertas terbakar', 'Tiada apa-apa berlaku'],
+    jawapan: 0, hasil: '🎈📄✨',
+    penjelasan: 'Gosokan menghasilkan cas elektrostatik pada belon — cas ini menarik objek ringan seperti kertas.',
+  },
+];
+
+export function virtualEksperimen(mount, onDone) {
+  const rounds = [...EKSPERIMEN_BANK].sort(() => Math.random() - 0.5).slice(0, 3);
+  let i = 0, score = 0;
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    const opts = r.pilihan.map((p, idx) => ({ p, ok: idx === r.jawapan })).sort(() => Math.random() - 0.5);
+    mount.innerHTML = `
+      <h3 class="display">⚗️ Virtual Eksperimen — ${i + 1}/${rounds.length}</h3>
+      <div class="eks-scene">${esc(r.emoji)}</div>
+      <p class="lesson-step" style="margin:.6rem 0 .4rem">${esc(r.setup)}</p>
+      <p style="font-weight:800;margin:0 0 .8rem">🔮 Ramalkan: ${esc(r.soalan)}</p>
+      <div class="chip-row"></div>
+      <div class="eks-result" hidden></div>`;
+    const row = mount.querySelector('.chip-row');
+    const resultBox = mount.querySelector('.eks-result');
+    opts.forEach(({ p, ok }) => {
+      const b = document.createElement('button');
+      b.className = 'answer-chip'; b.textContent = p;
+      b.addEventListener('click', ev => {
+        row.querySelectorAll('button').forEach(x => x.disabled = true);
+        b.classList.add(ok ? 'chip-correct' : 'chip-wrong');
+        if (ok) { score++; sfx.correct(i); floatText(ev.clientX, ev.clientY, '🔮 Tepat!'); }
+        else { sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        // Run the experiment: show the outcome + the science behind it.
+        resultBox.hidden = false;
+        resultBox.innerHTML = `
+          <div class="eks-scene">${esc(r.hasil)}</div>
+          <p style="font-weight:800;margin:.4rem 0">${ok ? '✅ Ramalan anda tepat!' : `❌ Keputusan: ${esc(r.pilihan[r.jawapan])}`}</p>
+          <p style="margin:.2rem 0 .8rem">💡 ${esc(r.penjelasan)}</p>
+          <button class="btn btn-green" id="eks-next">Eksperimen seterusnya ➡️</button>`;
+        resultBox.querySelector('#eks-next').addEventListener('click', () => { i++; render(); });
+      });
+      row.appendChild(b);
+    });
+  };
+  render();
+}
+
+// ---------- Circuit Fixer (RBT): diagnose the faulty component ----------
+// A simple series circuit (bateri → suis → mentol → wayar). The bulb won't
+// light; clues rule out all but one component — tap the faulty one.
+const CIRCUIT_ROUNDS = [
+  { rosak: 'wayar',  klu: 'Bateri baharu ✔ · Suis ON ✔ · Mentol diuji OK ✔' },
+  { rosak: 'suis',   klu: 'Bateri baharu ✔ · Mentol diuji OK ✔ · Wayar tersambung elok ✔' },
+  { rosak: 'bateri', klu: 'Suis ON ✔ · Mentol diuji OK ✔ · Wayar tersambung elok ✔' },
+  { rosak: 'mentol', klu: 'Bateri baharu ✔ · Suis ON ✔ · Wayar tersambung elok ✔' },
+];
+const CIRCUIT_PARTS = [
+  { id: 'bateri', name: 'Bateri', emoji: '🔋', x: 190, y: 150 },
+  { id: 'suis',   name: 'Suis',   emoji: '🎚️', x: 60,  y: 80 },
+  { id: 'mentol', name: 'Mentol', emoji: '💡', x: 190, y: 22 },
+  { id: 'wayar',  name: 'Wayar',  emoji: '〰️', x: 320, y: 80 },
+];
+
+export function circuitFixer(mount, onDone) {
+  const rounds = [...CIRCUIT_ROUNDS].sort(() => Math.random() - 0.5).slice(0, 3);
+  let i = 0, score = 0;
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    mount.innerHTML = `
+      <h3 class="display">🔌 Circuit Fixer — ${i + 1}/${rounds.length}</h3>
+      <p style="margin:.4rem 0 .2rem">Mentol tidak menyala! Baca klu, kemudian tap komponen yang <b>rosak</b>.</p>
+      <p style="font-weight:800;margin:.2rem 0 .6rem">🔎 Klu: ${esc(r.klu)}</p>
+      <svg class="circuit-svg" viewBox="0 0 380 180" aria-label="Litar elektrik ringkas">
+        <rect x="60" y="22" width="260" height="128" fill="none" class="circuit-wire"/>
+      </svg>
+      <p class="game-status" style="margin-top:.4rem;font-weight:800"></p>`;
+    const svg = mount.querySelector('.circuit-svg');
+    const status = mount.querySelector('.game-status');
+    let locked = false;
+    CIRCUIT_PARTS.forEach(p => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', 'circuit-part');
+      g.innerHTML = `
+        <circle cx="${p.x}" cy="${p.y}" r="24"/>
+        <text x="${p.x}" y="${p.y + 7}" text-anchor="middle" font-size="20">${p.emoji}</text>
+        <text x="${p.x}" y="${p.y + 42}" text-anchor="middle" font-size="12" class="circuit-label">${p.name}</text>`;
+      g.addEventListener('click', ev => {
+        if (locked) return;
+        locked = true;
+        if (p.id === r.rosak) {
+          score++; sfx.correct(i);
+          g.classList.add('part-found');
+          floatText(ev.clientX, ev.clientY, '🔧 Jumpa!');
+          status.textContent = `✅ Betul! ${p.name} yang rosak — ganti dan mentol menyala! 💡✨`;
+        } else {
+          sfx.wrong();
+          g.classList.add('part-wrong');
+          floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
+          const culprit = CIRCUIT_PARTS.find(c => c.id === r.rosak);
+          status.textContent = `❌ ${p.name} OK (lihat klu!). Yang rosak: ${culprit.name}.`;
+          svg.querySelectorAll('.circuit-part').forEach(el => {
+            if (el.querySelector('.circuit-label').textContent === culprit.name) el.classList.add('part-found');
+          });
+        }
+        setTimeout(() => { i++; render(); }, p.id === r.rosak ? 1100 : 1900);
+      });
+      svg.appendChild(g);
+    });
+  };
+  render();
+}
+
 // Subject-specific signature games, keyed by world. When a lesson's world has
 // one, it's picked ~half the time so students still see the generic variety.
 const SUBJECT_GAMES = {
@@ -1023,6 +1169,8 @@ const SUBJECT_GAMES = {
   'grammar-forest':    tenseTimeMachine,
   'geo-world':         petaPinDrop,
   'music-studio':      iramaRepeat,
+  'science-lab':       virtualEksperimen,
+  'rbt-workshop':      circuitFixer,
 };
 
 // Pick a game suited to the lesson and return a runner.
