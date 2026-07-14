@@ -540,6 +540,31 @@ table.report th { font-family: var(--font-display); }
 .tf-buttons { display: flex; gap: var(--sp-2); }
 .tf-buttons .btn { flex: 1; }
 
+/* Mesin Imbuhan (BM) */
+.imbuhan-dasar {
+  display: inline-block; border: 2px dashed var(--border); border-radius: var(--r-btn);
+  background: var(--card); padding: .45rem .9rem; font-size: 1.05rem;
+}
+
+/* Pasar Malam Cashier (Maths) */
+.cash-tray { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.cash-note {
+  border: 2px solid var(--border); border-radius: var(--r-btn); cursor: pointer;
+  background: color-mix(in srgb, var(--jungle) 12%, var(--card)); color: var(--ink);
+  padding: .8rem 1.1rem; font-weight: 800; font-size: 1.05rem; font-family: inherit;
+  transition: transform var(--t-fast) var(--ease-bounce);
+}
+.cash-note:active { transform: scale(.92); }
+
+/* Roti Canai Slicer (Fractions) */
+.roti-svg { display: block; width: min(260px, 70vw); margin: .4rem auto; }
+.roti-slice {
+  fill: color-mix(in srgb, var(--gold) 45%, var(--card));
+  stroke: var(--ink); stroke-width: 2; cursor: pointer;
+  transition: fill var(--t-fast);
+}
+.roti-slice.roti-picked { fill: var(--jungle); }
+
 /* Quick-answer shortcut: for a confident student who doesn't want to wait
    for the right balloon to float by. */
 .chip-row { display: flex; gap: .5rem; flex-wrap: wrap; }

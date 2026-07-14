@@ -31,6 +31,9 @@ web flow.
 - [ ] Any subject/world-specific game logic — e.g. `js/games.js`'s
       `bmWorlds` list (controls Malay vs English speech recognition in
       Speak It!) — add new world IDs if they're BM-medium subjects
+- [ ] `js/games.js` `SUBJECT_GAMES` map — if the new world's subject has a
+      signature KSSR game (Mesin Imbuhan, Pasar Malam Cashier, Roti Canai
+      Slicer), add the world ID so its lessons get that game ~half the time
 
 ## 3. Parent dashboard (`js/views.js`)
 

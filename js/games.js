@@ -654,8 +654,191 @@ export function speakChallenge(mount, { question, word, lang }, onDone) {
   };
 }
 
+// ---------- Imbuhan Machine (BM): attach the right affix to the kata dasar ----------
+// Self-contained KSSR content — imbuhan is the most-tested BM grammar topic.
+const IMBUHAN_ROUNDS = [
+  { dasar: 'main',  ayat: 'Adik suka ___ bola di padang.',        pilihan: ['bermain', 'memain', 'termain'],     jawapan: 0 },
+  { dasar: 'baca',  ayat: 'Aina ___ buku cerita setiap malam.',   pilihan: ['membaca', 'berbaca', 'pembaca'],    jawapan: 0 },
+  { dasar: 'tulis', ayat: 'Cikgu meminta kami ___ karangan.',     pilihan: ['menulis', 'bertulis', 'tertulis'],  jawapan: 0 },
+  { dasar: 'ajar',  ayat: 'Puan Lim ialah seorang ___.',          pilihan: ['pengajar', 'mengajar', 'belajar'],  jawapan: 0 },
+  { dasar: 'lari',  ayat: 'Kucing itu ___ apabila terkejut.',     pilihan: ['berlari', 'melari', 'terlari'],     jawapan: 0 },
+  { dasar: 'masak', ayat: 'Ibu sedang ___ nasi lemak di dapur.',  pilihan: ['memasak', 'bermasak', 'termasak'],  jawapan: 0 },
+  { dasar: 'tolong',ayat: 'Kami mesti ___ jiran yang susah.',     pilihan: ['menolong', 'bertolong', 'penolong'],jawapan: 0 },
+  { dasar: 'jual',  ayat: 'Pak Samad ___ sayur di pasar tani.',   pilihan: ['menjual', 'berjual', 'terjual'],    jawapan: 0 },
+  { dasar: 'lukis', ayat: 'Hafiz suka ___ pemandangan kampung.',  pilihan: ['melukis', 'berlukis', 'pelukis'],   jawapan: 0 },
+  { dasar: 'tidur', ayat: 'Bayi itu ___ dengan nyenyak.',         pilihan: ['tertidur', 'menidur', 'petidur'],   jawapan: 0 },
+];
+
+export function imbuhanMachine(mount, onDone) {
+  const rounds = [...IMBUHAN_ROUNDS].sort(() => Math.random() - 0.5).slice(0, 5)
+    // Shuffle options per round so the answer isn't always the first tile.
+    .map(r => {
+      const opts = r.pilihan.map((p, i) => ({ p, ok: i === r.jawapan })).sort(() => Math.random() - 0.5);
+      return { ...r, opts };
+    });
+  let i = 0, score = 0;
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    mount.innerHTML = `
+      <h3 class="display">🧩 Mesin Imbuhan — ${i + 1}/${rounds.length}</h3>
+      <p style="margin:.4rem 0 .6rem">Pilih perkataan berimbuhan yang betul!</p>
+      <div class="imbuhan-dasar">Kata dasar: <b>${esc(r.dasar)}</b></div>
+      <p class="lesson-step" style="margin:.6rem 0 1rem">${esc(r.ayat)}</p>
+      <div class="chip-row"></div>`;
+    const row = mount.querySelector('.chip-row');
+    r.opts.forEach(({ p, ok }) => {
+      const b = document.createElement('button');
+      b.className = 'answer-chip'; b.textContent = p;
+      b.addEventListener('click', ev => {
+        b.classList.add(ok ? 'chip-correct' : 'chip-wrong');
+        if (ok) { score++; sfx.correct(i); floatText(ev.clientX, ev.clientY, '🧩 Betul!'); }
+        else { sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        row.querySelectorAll('button').forEach(x => x.disabled = true);
+        setTimeout(() => { i++; render(); }, 700);
+      });
+      row.appendChild(b);
+    });
+  };
+  render();
+}
+
+// ---------- Pasar Malam Cashier (Maths): give the right change with RM notes ----------
+export function pasarMalamCashier(mount, onDone) {
+  const STALL = [
+    { item: 'Satay (10 cucuk)', emoji: '🍢' }, { item: 'Air tebu', emoji: '🥤' },
+    { item: 'Apam balik', emoji: '🥞' }, { item: 'Nasi lemak', emoji: '🍚' },
+    { item: 'Cendol', emoji: '🍧' }, { item: 'Keropok lekor', emoji: '🍤' },
+  ];
+  const NOTES = [50, 20, 10, 5, 1]; // RM denominations the till holds
+  const need = 3;
+  let served = 0, mistakes = 0;
+
+  const newOrder = () => {
+    const price = Math.floor(Math.random() * 37) + 3; // RM3–RM39
+    const pay = price < 19 ? 20 : 50; // always pays with one note, change ≥ RM1
+    return { ...STALL[Math.floor(Math.random() * STALL.length)], price, pay, change: pay - price };
+  };
+
+  const render = () => {
+    if (served >= need) { onDone(Math.max(.3, 1 - mistakes * .15)); return; }
+    const o = newOrder();
+    let given = 0;
+    mount.innerHTML = `
+      <h3 class="display">🛒 Pasar Malam Cashier — ${served + 1}/${need}</h3>
+      <p style="margin:.4rem 0 .6rem">${o.emoji} Customer buys <b>${esc(o.item)}</b> for <b>RM${o.price}</b> and pays <b>RM${o.pay}</b>.</p>
+      <p style="font-weight:800;margin:0 0 .6rem">Tap notes to give the correct change:</p>
+      <div class="cash-tray"></div>
+      <p class="cash-given" style="font-weight:800;margin:.6rem 0">Change given: RM0</p>
+      <button class="btn btn-green" id="cash-done">Give change ✔</button>
+      <p class="game-status" style="margin-top:.6rem;font-weight:800"></p>`;
+    const tray = mount.querySelector('.cash-tray');
+    const givenEl = mount.querySelector('.cash-given');
+    const status = mount.querySelector('.game-status');
+    NOTES.forEach(n => {
+      const b = document.createElement('button');
+      b.className = 'cash-note'; b.textContent = `RM${n}`;
+      b.addEventListener('click', ev => {
+        given += n; sfx.click?.();
+        floatText(ev.clientX, ev.clientY, `+RM${n}`);
+        givenEl.textContent = `Change given: RM${given}`;
+      });
+      tray.appendChild(b);
+    });
+    mount.querySelector('#cash-done').addEventListener('click', ev => {
+      if (given === o.change) {
+        served++; sfx.correct(served); floatText(ev.clientX, ev.clientY, '💰 Betul!');
+        setTimeout(render, 600);
+      } else {
+        mistakes++; sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
+        status.textContent = given > o.change
+          ? `❌ Too much! The customer needs RM${o.change} back. Try again.`
+          : `❌ Not enough! The customer needs RM${o.change} back. Try again.`;
+        given = 0; givenEl.textContent = 'Change given: RM0';
+      }
+    });
+  };
+  render();
+}
+
+// ---------- Roti Canai Slicer (Fractions): serve the ordered fraction of a roti ----------
+export function rotiCanaiSlicer(mount, onDone) {
+  // Each order shows the target as fraction, percent, or decimal — equivalence practice.
+  const ORDERS = [
+    { num: 1, den: 2 }, { num: 1, den: 4 }, { num: 3, den: 4 },
+    { num: 2, den: 5 }, { num: 3, den: 8 }, { num: 5, den: 8 },
+    { num: 2, den: 3 }, { num: 7, den: 10 },
+  ];
+  const need = 3;
+  let served = 0, mistakes = 0;
+
+  const label = o => {
+    const forms = [`${o.num}/${o.den}`];
+    const pct = (o.num / o.den) * 100;
+    // Only offer % and decimal forms when they're clean KSSR-style values.
+    if (Number.isInteger(pct)) forms.push(`${pct}%`, String(o.num / o.den));
+    return forms[Math.floor(Math.random() * forms.length)];
+  };
+
+  const render = () => {
+    if (served >= need) { onDone(Math.max(.3, 1 - mistakes * .15)); return; }
+    const o = ORDERS[Math.floor(Math.random() * ORDERS.length)];
+    const shown = label(o);
+    const picked = new Set();
+    mount.innerHTML = `
+      <h3 class="display">🍕 Roti Canai Slicer — ${served + 1}/${need}</h3>
+      <p style="margin:.4rem 0 .6rem">The roti is cut into <b>${o.den}</b> equal pieces. Serve <b>${esc(shown)}</b> of it — tap the slices!</p>
+      <svg class="roti-svg" viewBox="-105 -105 210 210" aria-label="Roti canai divided into ${o.den} slices"></svg>
+      <p class="game-status" style="font-weight:800;margin:.6rem 0">Served: 0/${o.den}</p>
+      <button class="btn btn-green" id="roti-done">Serve it! 🍽️</button>`;
+    const svg = mount.querySelector('.roti-svg');
+    const status = mount.querySelector('.game-status');
+    for (let i = 0; i < o.den; i++) {
+      const a0 = (i / o.den) * 2 * Math.PI - Math.PI / 2;
+      const a1 = ((i + 1) / o.den) * 2 * Math.PI - Math.PI / 2;
+      const big = (a1 - a0) > Math.PI ? 1 : 0;
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', `M0 0 L${Math.cos(a0) * 100} ${Math.sin(a0) * 100} A100 100 0 ${big} 1 ${Math.cos(a1) * 100} ${Math.sin(a1) * 100} Z`);
+      p.setAttribute('class', 'roti-slice');
+      p.addEventListener('click', () => {
+        picked.has(i) ? picked.delete(i) : picked.add(i);
+        p.classList.toggle('roti-picked', picked.has(i));
+        sfx.click?.();
+        status.textContent = `Served: ${picked.size}/${o.den}`;
+      });
+      svg.appendChild(p);
+    }
+    mount.querySelector('#roti-done').addEventListener('click', ev => {
+      if (picked.size === o.num) {
+        served++; sfx.correct(served); floatText(ev.clientX, ev.clientY, '🍽️ Sedap!');
+        setTimeout(render, 600);
+      } else {
+        mistakes++; sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)');
+        status.textContent = `❌ ${esc(shown)} of ${o.den} slices is ${o.num} slices — try again!`;
+      }
+    });
+  };
+  render();
+}
+
+// Subject-specific signature games, keyed by world. When a lesson's world has
+// one, it's picked ~half the time so students still see the generic variety.
+const SUBJECT_GAMES = {
+  'bm-village':        imbuhanMachine,
+  'tatabahasa-temple': imbuhanMachine,
+  'karangan-kingdom':  imbuhanMachine,
+  'maths-volcano':     pasarMalamCashier,
+  'fraction-island':   rotiCanaiSlicer,
+};
+
 // Pick a game suited to the lesson and return a runner.
 export function gameForLesson(lesson, quiz) {
+  // Subject worlds get their signature KSSR game about half the time,
+  // so the skill-specific practice shows up often without killing variety.
+  const subjectGame = SUBJECT_GAMES[lesson.worldId];
+  if (subjectGame && Math.random() < 0.5) {
+    return (mount, onDone) => subjectGame(mount, onDone);
+  }
   const kinds = ['memory', 'balloon', 'speed', 'catch', 'maze', 'escape', 'ninja', 'sort', 'truefalse'];
   // Word Builder only when the correct answer is one clean word (3-10 letters).
   const q0 = quiz[0];
