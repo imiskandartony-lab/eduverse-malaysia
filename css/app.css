@@ -604,6 +604,30 @@ table.report th { font-family: var(--font-display); }
 .circuit-part.part-wrong circle { stroke: var(--lava); fill: color-mix(in srgb, var(--lava) 14%, var(--card)); }
 .circuit-label { fill: var(--ink); font-weight: 800; font-family: inherit; }
 
+/* Clue Hunter (English reading) */
+.clue-passage { display: flex; flex-wrap: wrap; gap: .5rem; }
+.clue-sentence {
+  border: 3px solid var(--line); background: var(--card); color: var(--ink);
+  border-radius: var(--r-card); padding: .5rem .8rem; font-weight: 600; font-size: .92rem;
+  text-align: left; transition: border-color var(--t-fast), transform var(--t-fast) var(--ease-bounce);
+}
+.clue-sentence:not(:disabled):hover { border-color: var(--ocean); transform: translateY(-2px); }
+.clue-sentence:disabled { cursor: default; opacity: .75; }
+.clue-sentence.clue-found { border-color: var(--jungle); background: color-mix(in srgb, var(--jungle) 16%, var(--card)); opacity: 1; }
+.clue-sentence.clue-wrong { border-color: var(--lava); background: color-mix(in srgb, var(--lava) 12%, var(--card)); opacity: 1; }
+
+/* Ayat Cantum (BM writing) */
+.cantum-frame {
+  border: 2px dashed var(--border); border-radius: var(--r-card); padding: .8rem 1rem;
+  background: color-mix(in srgb, var(--sun) 8%, var(--card)); font-weight: 700; line-height: 1.6;
+}
+.cantum-slot {
+  display: inline-block; padding: .1rem .5rem; border-radius: var(--r-pill);
+  border: 2px solid var(--border); font-weight: 800; color: var(--ink-soft);
+}
+.cantum-slot.cantum-right { border-color: var(--jungle); color: var(--jungle); background: color-mix(in srgb, var(--jungle) 14%, var(--card)); }
+.cantum-slot.cantum-fixed { border-color: var(--lava); color: var(--lava); background: color-mix(in srgb, var(--lava) 12%, var(--card)); }
+
 /* Quick-answer shortcut: for a confident student who doesn't want to wait
    for the right balloon to float by. */
 .chip-row { display: flex; gap: .5rem; flex-wrap: wrap; }

@@ -1157,16 +1157,172 @@ export function circuitFixer(mount, onDone) {
   render();
 }
 
+// ---------- Clue Hunter (English reading): answer, then prove it ----------
+// Two-step comprehension mirroring UASA style: pick the inference answer,
+// then tap the sentence in the passage that is the evidence for it.
+const CLUE_BANK = [
+  {
+    sentences: [
+      'Ali woke up very early on Saturday morning.',
+      'He packed his fishing rod and a box of worms.',
+      'His grandfather was already waiting by the old jetty.',
+      'They spent the whole morning by the river, laughing together.',
+    ],
+    q: 'What was Ali going to do?',
+    options: ['Go fishing with his grandfather', 'Go to school', 'Clean the jetty'],
+    answer: 0, evidence: 1,
+  },
+  {
+    sentences: [
+      'Mei Ling looked out of the classroom window.',
+      'Dark clouds were gathering over the school field.',
+      'She sighed and put her skipping rope back into her bag.',
+      'The teacher switched on the classroom lights.',
+    ],
+    q: 'How did Mei Ling feel about recess?',
+    options: ['Disappointed — it was going to rain', 'Excited to play outside', 'Angry at the teacher'],
+    answer: 0, evidence: 2,
+  },
+  {
+    sentences: [
+      'The pasar malam was crowded on Friday night.',
+      'Ramli counted the coins in his pocket twice.',
+      'The toy car in the stall cost ten ringgit.',
+      'He walked away slowly, looking back at the stall.',
+    ],
+    q: 'Why did Ramli walk away?',
+    options: ['He did not have enough money', 'He disliked the toy car', 'The stall was closed'],
+    answer: 0, evidence: 1,
+  },
+  {
+    sentences: [
+      'Siti practised the piano every evening after dinner.',
+      'Her fingers moved faster and faster each week.',
+      'On the day of the school concert, she played without a single mistake.',
+      'The audience clapped for a long time.',
+    ],
+    q: 'Why did Siti play so well at the concert?',
+    options: ['She practised every evening', 'The piano was new', 'The audience helped her'],
+    answer: 0, evidence: 0,
+  },
+];
+
+export function clueHunter(mount, onDone) {
+  const rounds = [...CLUE_BANK].sort(() => Math.random() - 0.5).slice(0, 2);
+  let i = 0, score = 0; // each round worth 2 points: answer + evidence
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / (rounds.length * 2)); return; }
+    const r = rounds[i];
+    const opts = r.options.map((o, idx) => ({ o, ok: idx === r.answer })).sort(() => Math.random() - 0.5);
+    mount.innerHTML = `
+      <h3 class="display">🕵️ Clue Hunter — ${i + 1}/${rounds.length}</h3>
+      <div class="clue-passage">${r.sentences.map((s, idx) => `<button class="clue-sentence" data-idx="${idx}" disabled>${esc(s)}</button>`).join(' ')}</div>
+      <p style="font-weight:800;margin:.8rem 0 .6rem">❓ ${esc(r.q)}</p>
+      <div class="chip-row"></div>
+      <p class="game-status" style="margin-top:.6rem;font-weight:800"></p>`;
+    const row = mount.querySelector('.chip-row');
+    const status = mount.querySelector('.game-status');
+    const sentenceBtns = [...mount.querySelectorAll('.clue-sentence')];
+    opts.forEach(({ o, ok }) => {
+      const b = document.createElement('button');
+      b.className = 'answer-chip'; b.textContent = o;
+      b.addEventListener('click', ev => {
+        row.querySelectorAll('button').forEach(x => x.disabled = true);
+        b.classList.add(ok ? 'chip-correct' : 'chip-wrong');
+        if (ok) { score++; sfx.correct(); floatText(ev.clientX, ev.clientY, '✓'); }
+        else { sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        // Step 2: hunt for the evidence sentence.
+        status.textContent = '🔍 Now tap the sentence that PROVES the answer!';
+        let picked = false;
+        sentenceBtns.forEach(sb => {
+          sb.disabled = false;
+          sb.addEventListener('click', ev2 => {
+            if (picked) return;
+            picked = true;
+            sentenceBtns.forEach(x => x.disabled = true);
+            const hit = Number(sb.dataset.idx) === r.evidence;
+            if (hit) {
+              score++; sfx.correct(1); sb.classList.add('clue-found');
+              floatText(ev2.clientX, ev2.clientY, '🕵️ Clue found!');
+              status.textContent = '✅ Great detective work!';
+            } else {
+              sfx.wrong(); sb.classList.add('clue-wrong');
+              sentenceBtns[r.evidence].classList.add('clue-found');
+              status.textContent = '❌ The proof was the highlighted sentence.';
+            }
+            setTimeout(() => { i++; render(); }, hit ? 900 : 1800);
+          });
+        });
+      });
+      row.appendChild(b);
+    });
+  };
+  render();
+}
+
+// ---------- Ayat Cantum (BM writing): join sentences with penanda wacana ----------
+const CANTUM_BANK = [
+  { a: 'Ahmad rajin berlatih', b: 'dia menang perlumbaan itu', betul: 'oleh itu',
+    pilihan: ['oleh itu', 'walaupun', 'sambil'] },
+  { a: 'Aina tetap pergi ke sekolah', b: 'hujan turun dengan lebat', betul: 'walaupun',
+    pilihan: ['walaupun', 'kerana', 'oleh itu'] },
+  { a: 'Ibu memasak di dapur', b: 'menyanyi lagu kegemarannya', betul: 'sambil',
+    pilihan: ['sambil', 'tetapi', 'jika'] },
+  { a: 'Kamal tidak hadir ke sekolah', b: 'dia demam panas', betul: 'kerana',
+    pilihan: ['kerana', 'sambil', 'tetapi'] },
+  { a: 'Adik mahu bermain di luar', b: 'ibu tidak membenarkannya', betul: 'tetapi',
+    pilihan: ['tetapi', 'oleh itu', 'sambil'] },
+  { a: 'Kamu akan berjaya', b: 'kamu berusaha bersungguh-sungguh', betul: 'jika',
+    pilihan: ['jika', 'tetapi', 'sambil'] },
+  { a: 'Murid-murid beratur di kantin', b: 'menunggu giliran membeli makanan', betul: 'untuk',
+    pilihan: ['untuk', 'walaupun', 'kerana'] },
+  { a: 'Pak Abu memberus gigi', b: 'dia masuk tidur', betul: 'sebelum',
+    pilihan: ['sebelum', 'kerana', 'jika'] },
+];
+
+export function ayatCantum(mount, onDone) {
+  const rounds = [...CANTUM_BANK].sort(() => Math.random() - 0.5).slice(0, 5);
+  let i = 0, score = 0;
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    const opts = r.pilihan.map(p => ({ p, ok: p === r.betul })).sort(() => Math.random() - 0.5);
+    mount.innerHTML = `
+      <h3 class="display">📜 Ayat Cantum — ${i + 1}/${rounds.length}</h3>
+      <p style="margin:.4rem 0 .8rem">Pilih penanda wacana yang betul untuk mencantumkan dua ayat ini!</p>
+      <div class="cantum-frame">${esc(r.a)} <span class="cantum-slot">______</span> ${esc(r.b)}.</div>
+      <div class="chip-row" style="margin-top:.8rem"></div>`;
+    const row = mount.querySelector('.chip-row');
+    const slot = mount.querySelector('.cantum-slot');
+    opts.forEach(({ p, ok }) => {
+      const b = document.createElement('button');
+      b.className = 'answer-chip'; b.textContent = p;
+      b.addEventListener('click', ev => {
+        row.querySelectorAll('button').forEach(x => x.disabled = true);
+        b.classList.add(ok ? 'chip-correct' : 'chip-wrong');
+        slot.textContent = ok ? p : r.betul;
+        slot.classList.add(ok ? 'cantum-right' : 'cantum-fixed');
+        if (ok) { score++; sfx.correct(i); floatText(ev.clientX, ev.clientY, '📜 Cantik!'); }
+        else { sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        setTimeout(() => { i++; render(); }, ok ? 800 : 1600);
+      });
+      row.appendChild(b);
+    });
+  };
+  render();
+}
+
 // Subject-specific signature games, keyed by world. When a lesson's world has
 // one, it's picked ~half the time so students still see the generic variety.
 const SUBJECT_GAMES = {
   'bm-village':        imbuhanMachine,
   'tatabahasa-temple': imbuhanMachine,
-  'karangan-kingdom':  imbuhanMachine,
+  'karangan-kingdom':  ayatCantum,
   'maths-volcano':     pasarMalamCashier,
   'fraction-island':   rotiCanaiSlicer,
   'english-kingdom':   tenseTimeMachine,
   'grammar-forest':    tenseTimeMachine,
+  'reading-castle':    clueHunter,
   'geo-world':         petaPinDrop,
   'music-studio':      iramaRepeat,
   'science-lab':       virtualEksperimen,
