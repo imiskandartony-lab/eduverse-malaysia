@@ -1820,37 +1820,185 @@ export async function parent(el, _m, selectedIdx = 0) {
 }
 
 // ---------------- Teacher dashboard ----------------
-export function teacher(el) {
-  const students = demoClass();
+const SIGNATURE_GAME_BY_WORLD = {
+  'bm-village': 'Mesin Imbuhan', 'tatabahasa-temple': 'Mesin Imbuhan',
+  'karangan-kingdom': 'Ayat Cantum',
+  'maths-volcano': 'Pasar Malam Cashier',
+  'fraction-island': 'Roti Canai Slicer',
+  'english-kingdom': 'Tense Time Machine', 'grammar-forest': 'Tense Time Machine',
+  'reading-castle': 'Clue Hunter',
+  'geo-world': 'Peta Pin Drop',
+  'music-studio': 'Irama Repeat',
+  'science-lab': 'Virtual Eksperimen',
+  'rbt-workshop': 'Circuit Fixer',
+};
+
+function classSubjectAverages(students) {
+  const sums = {};
+  students.forEach(s => Object.entries(s.subjects || {}).forEach(([subj, acc]) => {
+    (sums[subj] ||= []).push(acc);
+  }));
+  return Object.entries(sums)
+    .map(([subject, accs]) => ({ subject, accuracy: Math.round(accs.reduce((a, b) => a + b, 0) / accs.length) }))
+    .sort((a, b) => a.accuracy - b.accuracy);
+}
+const needsAttention = students => students.filter(s => s.acc < 70 || s.streak === 0).sort((a, b) => a.acc - b.acc);
+const topPerformers = students => [...students].sort((a, b) => b.acc - a.acc || b.streak - a.streak).slice(0, 3);
+
+function getHomework(classId) {
+  try { return JSON.parse(localStorage.getItem(`eduverse-teacher-hw-${classId}`) || '[]'); }
+  catch { return []; }
+}
+function setHomework(classId, list) {
+  localStorage.setItem(`eduverse-teacher-hw-${classId}`, JSON.stringify(list));
+}
+
+function downloadClassReport(cls) {
+  const subjects = classSubjectAverages(cls.students);
+  const attention = needsAttention(cls.students);
+  const lines = [
+    `EduVerse Malaysia — Class Report (${new Date().toLocaleDateString('ms-MY')})`,
+    `Class: ${cls.name}`,
+    `Students: ${cls.students.length}`,
+    `Class average accuracy: ${Math.round(cls.students.reduce((s, x) => s + x.acc, 0) / cls.students.length)}%`,
+    '',
+    'Accuracy by subject:',
+    ...(subjects.length ? subjects.map(s => `  - ${s.subject}: ${s.accuracy}%`) : ['  (no data yet)']),
+    '',
+    'Student performance:',
+    ...cls.students.map(s => `  - ${s.name}: ${s.acc}% accuracy, ${s.lessons} lessons, ${s.streak}-day streak${s.weak !== '—' ? `, weak: ${s.weak}` : ''}`),
+    '',
+    'Needs attention:',
+    ...(attention.length ? attention.map(s => `  - ${s.name} (${s.acc}%, ${s.streak}-day streak) — ${s.weak}`) : ['  (none — great job!)']),
+  ];
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain' }));
+  a.download = `eduverse-${cls.id}-report.txt`;
+  a.click();
+}
+
+export function teacher(el, _m, classIdx = 0) {
+  const classes = demoClasses();
+  const cls = classes[Math.min(classIdx, classes.length - 1)];
+  const students = cls.students;
+  const avgAcc = Math.round(students.reduce((s, x) => s + x.acc, 0) / students.length);
+  const attention = needsAttention(students);
+  const top = topPerformers(students);
+  const subjAvg = classSubjectAverages(students);
+  const hw = getHomework(cls.id);
+
   el.innerHTML = `
-  <div class="hud"><span class="pill">🧑‍🏫 Teacher Dashboard — Kelas 5 Bestari</span><span class="spacer"></span>
+  <div class="hud"><span class="pill">🧑‍🏫 Teacher Dashboard</span><span class="spacer"></span>
     <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
+  <div class="card card-tint">
+    <h2 class="display">${esc(cls.name)}</h2>
+    ${classes.length > 1 ? `<div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">${
+      classes.map((c, i) => `<button class="btn btn-sm ${i === classIdx ? 'btn-gold' : 'btn-ghost'}" data-class="${i}">${esc(c.name)}</button>`).join('')
+    }</div>` : ''}
+  </div>
   <div class="stat-grid">
     <div class="stat"><div class="s-num">${students.length}</div><div class="s-label">Students</div></div>
-    <div class="stat"><div class="s-num">${Math.round(students.reduce((s, x) => s + x.acc, 0) / students.length)}%</div><div class="s-label">Class avg accuracy</div></div>
+    <div class="stat"><div class="s-num" style="color:${accColor(avgAcc)}">${avgAcc}%</div><div class="s-label">Class avg accuracy</div></div>
     <div class="stat"><div class="s-num">${students.reduce((s, x) => s + x.lessons, 0)}</div><div class="s-label">Lessons this week</div></div>
+    <div class="stat"><div class="s-num" style="color:${attention.length ? 'var(--lava)' : 'var(--jungle-deep)'}">${attention.length}</div><div class="s-label">Needs attention</div></div>
+  </div>
+  ${attention.length ? `
+  <div class="card" style="border-color:var(--lava)">
+    <h3 class="display">🚨 Needs attention</h3>
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.6rem">
+      ${attention.map(s => `
+      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.4rem 0;border-bottom:1px solid var(--line)">
+        <b style="flex:1;min-width:8em">${esc(s.name)}</b>
+        <span style="color:var(--lava);font-weight:800">${s.acc}%</span>
+        <span>${s.streak}🔥</span>
+        <span style="color:var(--ink-soft);font-size:.85rem">${esc(s.weak)}</span>
+        <button class="btn btn-ghost btn-sm" data-remind="${esc(s.name)}">🔔 Remind</button>
+      </div>`).join('')}
+    </div>
+  </div>` : `
+  <div class="card" style="border-color:var(--jungle)">
+    <h3 class="display">🎉 All students on track</h3>
+    <p style="color:var(--ink-soft)">Nobody is below 70% accuracy or missing a streak right now.</p>
+  </div>`}
+  <div class="card">
+    <h3 class="display">🏆 Top performers this week</h3>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
+      ${top.map((s, i) => `<span class="pill" style="${i === 0 ? 'border:2px solid var(--gold)' : ''}">${['🥇', '🥈', '🥉'][i]} ${esc(s.name)} — ${s.acc}%</span>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <h3 class="display">📊 Class accuracy by subject</h3>
+    <div class="stat-grid">
+      ${subjAvg.map(s => `
+      <div class="stat">
+        <div class="s-num" style="color:${accColor(s.accuracy)}">${s.accuracy}%</div>
+        <div class="s-label">${SUBJECT_EMOJI[s.subject] || '📘'} ${esc(s.subject)}</div>
+      </div>`).join('')}
+    </div>
   </div>
   <div class="card">
     <h3 class="display">📋 Class performance</h3>
     <div style="overflow-x:auto"><table class="report">
-      <thead><tr><th>Student</th><th>Lessons</th><th>Accuracy</th><th>Streak</th><th>Weak area</th></tr></thead>
+      <thead><tr><th>Student</th><th>Lessons</th><th>Accuracy</th><th>Streak</th><th>Last active</th><th>Weak area</th></tr></thead>
       <tbody>${students.map(s => `
-        <tr><td>${esc(s.name)}</td><td>${s.lessons}</td>
-        <td style="color:${s.acc >= 70 ? 'var(--jungle-deep)' : 'var(--lava)'};font-weight:800">${s.acc}%</td>
-        <td>${s.streak}🔥</td><td>${esc(s.weak)}</td></tr>`).join('')}
+        <tr${s.daysSinceActive >= 3 ? ' style="background:color-mix(in srgb, var(--lava) 6%, transparent)"' : ''}>
+        <td>${esc(s.name)}</td><td>${s.lessons}</td>
+        <td style="color:${accColor(s.acc)};font-weight:800">${s.acc}%</td>
+        <td>${s.streak}🔥</td>
+        <td>${s.daysSinceActive === 0 ? 'Today' : `${s.daysSinceActive}d ago`}</td>
+        <td>${esc(s.weak)}</td></tr>`).join('')}
       </tbody></table></div>
   </div>
   <div class="card">
     <h3 class="display">📚 Assign homework</h3>
-    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem">
-      <select id="hw-lesson">${LESSONS.map(l => `<option value="${l.id}">${esc(l.title)}</option>`).join('')}</select>
+    ${hw.length ? `
+    <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.4rem">Currently assigned:</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem">
+      ${hw.map(id => { const l = LESSONS.find(x => x.id === id); return l ? `<span class="pill">${esc(l.title)} <button data-unassign="${id}" style="background:none;border:none;color:var(--lava);font-weight:800;cursor:pointer;margin-left:.3em">✕</button></span>` : ''; }).join('')}
+    </div>` : ''}
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+      <select id="hw-lesson">${LESSONS.filter(l => !hw.includes(l.id)).map(l => `<option value="${l.id}">${esc(l.title)}</option>`).join('')}</select>
       <button class="btn btn-sm" id="hw-assign">Assign to class</button>
     </div>
-  </div>`;
+  </div>
+  <div class="card">
+    <h3 class="display">🎮 Signature KSSR games</h3>
+    <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.6rem">Every subject now has a signature mini-game reinforcing its own syllabus skill — handy to mention to parents or use as a class warm-up.</p>
+    <div style="display:flex;flex-direction:column;gap:.4rem">
+      ${WORLDS.map(w => `
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.3rem 0;border-bottom:1px solid var(--line)">
+        <span>${worldIcon(w)}</span><span style="flex:1">${esc(w.name)}</span>
+        <span style="color:var(--ink-soft);font-size:.85rem">${esc(SIGNATURE_GAME_BY_WORLD[w.id] || '—')}</span>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="card"><button class="btn btn-green" id="class-report">⬇️ Download class report</button></div>`;
+
   el.querySelector('#logout').addEventListener('click', doLogout);
+  el.querySelectorAll('[data-class]').forEach(b =>
+    b.addEventListener('click', () => teacher(el, null, Number(b.dataset.class))));
+  el.querySelectorAll('[data-remind]').forEach(b => b.addEventListener('click', async () => {
+    if (!(await requirePremiumGate())) return;
+    toast(`🔔 Reminder sent to ${b.dataset.remind}'s parent!`);
+  }));
   el.querySelector('#hw-assign').addEventListener('click', async () => {
     if (!(await requirePremiumGate())) return;
+    const sel = el.querySelector('#hw-lesson');
+    if (!sel.value) return;
+    const list = getHomework(cls.id);
+    if (!list.includes(sel.value)) list.push(sel.value);
+    setHomework(cls.id, list);
     toast('📨 Homework assigned! (Connect Firebase to notify students)');
+    teacher(el, null, classIdx);
+  });
+  el.querySelectorAll('[data-unassign]').forEach(b => b.addEventListener('click', async () => {
+    if (!(await requirePremiumGate())) return;
+    setHomework(cls.id, getHomework(cls.id).filter(id => id !== b.dataset.unassign));
+    teacher(el, null, classIdx);
+  }));
+  el.querySelector('#class-report').addEventListener('click', async () => {
+    if (!(await requirePremiumGate())) return;
+    downloadClassReport(cls);
   });
 }
 
@@ -2068,12 +2216,35 @@ function demoChildData() {
     ],
   };
 }
-const demoClass = () => [
-  { name: 'Aina Sofea', lessons: 5, acc: 88, streak: 6, weak: '—' },
-  { name: 'Wei Jun', lessons: 4, acc: 74, streak: 3, weak: 'Imbuhan meN-' },
-  { name: 'Devi Priya', lessons: 6, acc: 91, streak: 7, weak: '—' },
-  { name: 'Hafiz Iman', lessons: 2, acc: 55, streak: 1, weak: 'Equivalent Fractions' },
-  { name: 'Mei Ling', lessons: 3, acc: 68, streak: 2, weak: 'Simple Present Tense' },
+const demoClasses = () => [
+  {
+    id: 'k5-bestari', name: 'Kelas 5 Bestari', year: 5,
+    students: [
+      { name: 'Aina Sofea', lessons: 5, acc: 88, streak: 6, daysSinceActive: 0, weak: '—',
+        subjects: { 'Bahasa Melayu': 90, Mathematics: 85, English: 88 } },
+      { name: 'Wei Jun', lessons: 4, acc: 74, streak: 3, daysSinceActive: 1, weak: 'Imbuhan meN-',
+        subjects: { 'Bahasa Melayu': 62, Mathematics: 80, English: 78 } },
+      { name: 'Devi Priya', lessons: 6, acc: 91, streak: 7, daysSinceActive: 0, weak: '—',
+        subjects: { Mathematics: 93, Science: 89, Geografi: 91 } },
+      { name: 'Hafiz Iman', lessons: 2, acc: 55, streak: 0, daysSinceActive: 4, weak: 'Equivalent Fractions',
+        subjects: { Mathematics: 48, English: 62 } },
+      { name: 'Mei Ling', lessons: 3, acc: 68, streak: 2, daysSinceActive: 2, weak: 'Simple Present Tense',
+        subjects: { English: 60, Music: 75 } },
+    ],
+  },
+  {
+    id: 'k6-cemerlang', name: 'Kelas 6 Cemerlang', year: 6,
+    students: [
+      { name: 'Farid Azlan', lessons: 7, acc: 92, streak: 9, daysSinceActive: 0, weak: '—',
+        subjects: { Mathematics: 95, Science: 90, 'Reka Bentuk dan Teknologi': 88 } },
+      { name: 'Nur Alia', lessons: 3, acc: 63, streak: 1, daysSinceActive: 3, weak: 'Ayat Majmuk',
+        subjects: { 'Bahasa Melayu': 58, English: 70 } },
+      { name: 'Kavin Raj', lessons: 5, acc: 79, streak: 4, daysSinceActive: 1, weak: 'Future Tense & If-Clauses',
+        subjects: { English: 72, Geografi: 84 } },
+      { name: 'Syafiqah Zain', lessons: 1, acc: 40, streak: 0, daysSinceActive: 6, weak: 'Litar Elektrik Mudah',
+        subjects: { Science: 40 } },
+    ],
+  },
 ];
 function downloadReport(child) {
   const subjects = subjectBreakdown(child);
