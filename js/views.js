@@ -1595,7 +1595,9 @@ export async function leaderboard(el) {
 // ---------------- Settings (accessibility) ----------------
 export function settings(el) {
   const root = document.documentElement;
-  el.innerHTML = `${hud()}
+  el.innerHTML = `${user.role === 'student' ? hud() : `
+  <div class="hud"><span class="pill">⚙️ Settings</span><span class="spacer"></span>
+    <button class="btn btn-ghost btn-sm" data-route="#/${user.role}">← Back</button></div>`}
   <h2 class="display" style="margin:1rem 0">⚙️ Settings</h2>
   ${user.role === 'student' ? `
   <div class="card">
@@ -1702,6 +1704,7 @@ export async function parent(el, _m, selectedIdx = 0) {
   if (!children.length) {
     el.innerHTML = `
     <div class="hud"><span class="pill">👨‍👩‍👧 Parent Dashboard</span><span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" data-route="#/settings">⚙️</button>
       <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
     <div class="card card-tint" style="text-align:center">
       <div style="font-size:3rem">🔗</div>
@@ -1737,6 +1740,7 @@ export async function parent(el, _m, selectedIdx = 0) {
   const child = children[Math.min(selectedIdx, children.length - 1)];
   el.innerHTML = `
   <div class="hud"><span class="pill">👨‍👩‍👧 Parent Dashboard</span><span class="spacer"></span>
+    <button class="btn btn-ghost btn-sm" data-route="#/settings">⚙️</button>
     <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
   <div class="card card-tint">
     <h2 class="display">📊 ${esc(child.name)}'s Progress</h2>
@@ -1899,6 +1903,7 @@ export function teacher(el, _m, classIdx = 0) {
 
   el.innerHTML = `
   <div class="hud"><span class="pill">🧑‍🏫 Teacher Dashboard</span><span class="spacer"></span>
+    <button class="btn btn-ghost btn-sm" data-route="#/settings">⚙️</button>
     <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
   <div class="card card-tint">
     <h2 class="display">${esc(cls.name)}</h2>
@@ -2035,6 +2040,7 @@ export function admin(el) {
     const testMode = getTestMode();
     el.innerHTML = `
     <div class="hud"><span class="pill">🛠️ Admin Panel</span><span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" data-route="#/settings">⚙️</button>
       <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
     <div class="stat-grid">
       <div class="stat"><div class="s-num">${LESSONS.length}</div><div class="s-label">Lessons</div></div>
