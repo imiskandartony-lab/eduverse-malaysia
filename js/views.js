@@ -1648,6 +1648,15 @@ export function settings(el) {
     <div class="display" style="font-size:2rem;letter-spacing:.35em;font-weight:800;color:var(--magic-deep)">${esc(user.familyCode)}</div>
     ${CONFIG.backend !== 'firebase' ? '<p style="font-size:.8rem;color:var(--ink-soft);margin-top:.4rem">(Works once the app is connected to Firebase.)</p>' : ''}
   </div>` : ''}
+  ${isAdminUser() && user.role !== 'admin' ? `
+  <div class="card" style="border-color:var(--magic)">
+    <h3 class="display">🛠️ Admin Access</h3>
+    <p style="color:var(--ink-soft);font-size:.85rem;margin:.3rem 0 .8rem">
+      Your account (${esc(store.email?.() || '')}) has admin rights, even though you're currently signed in with the ${esc(user.role)} view.
+      Jump into the Admin Panel any time — no need to log out and pick a different role card.
+    </p>
+    <button class="btn btn-sm" id="goto-admin">🛠️ Open Admin Panel</button>
+  </div>` : ''}
   <div class="card">
     <button class="btn btn-ghost" id="logout">Log out</button>
   </div>`;
@@ -1680,6 +1689,7 @@ export function settings(el) {
       await disableStreakReminders(user);
     }
   });
+  el.querySelector('#goto-admin')?.addEventListener('click', () => go('#/admin'));
   el.querySelector('#logout').addEventListener('click', doLogout);
 }
 
