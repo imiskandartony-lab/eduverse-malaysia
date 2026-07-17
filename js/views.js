@@ -2016,9 +2016,13 @@ function iconRow(section, key, name, current, isOverridden) {
   </div>`;
 }
 
+function getTestMode() { return localStorage.getItem('eduverse-admin-testmode') === '1'; }
+function setTestMode(on) { localStorage.setItem('eduverse-admin-testmode', on ? '1' : '0'); }
+
 export function admin(el) {
   const render = () => {
     const ov = getOverrides();
+    const testMode = getTestMode();
     el.innerHTML = `
     <div class="hud"><span class="pill">🛠️ Admin Panel</span><span class="spacer"></span>
       <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
@@ -2027,6 +2031,56 @@ export function admin(el) {
       <div class="stat"><div class="s-num">${Object.values(QUIZZES).flat().length}</div><div class="s-label">Quiz questions</div></div>
       <div class="stat"><div class="s-num">${WORLDS.length}</div><div class="s-label">Worlds</div></div>
       <div class="stat"><div class="s-num">${CATALOG.length}</div><div class="s-label">Wardrobe items</div></div>
+    </div>
+
+    <div class="card" style="border-color:var(--magic)">
+      <h3 class="display">🧪 Test Center</h3>
+      <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.6rem">
+        Your admin account already bypasses every role guard and premium paywall in the app.
+        Flip this on to reveal one-tap shortcuts into every dashboard, every premium feature,
+        and every lesson — exactly as a real student, parent, or teacher would experience it.
+      </p>
+      <label style="font-weight:800"><input type="checkbox" id="test-mode-toggle" ${testMode ? 'checked' : ''}/> Enable Test Mode</label>
+      ${testMode ? `
+      <div style="margin-top:1rem">
+        <p style="font-weight:800;margin-bottom:.4rem">View as:</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+          <button class="btn btn-sm" data-goto="#/dashboard">🧑‍🎓 Student Dashboard</button>
+          <button class="btn btn-sm" data-goto="#/worlds">🗺️ Adventure Map</button>
+          <button class="btn btn-sm" data-goto="#/parent">👨‍👩‍👧 Parent Dashboard</button>
+          <button class="btn btn-sm" data-goto="#/teacher">🧑‍🏫 Teacher Dashboard</button>
+        </div>
+        <p style="font-weight:800;margin-bottom:.4rem">Premium-only student features:</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+          <button class="btn btn-ghost btn-sm" data-goto="#/missions">📜 Missions</button>
+          <button class="btn btn-ghost btn-sm" data-goto="#/arena">🏟️ Arena</button>
+          <button class="btn btn-ghost btn-sm" data-goto="#/duel">⚔️ Duel</button>
+          <button class="btn btn-ghost btn-sm" data-goto="#/trophies">🏆 Trophy Room</button>
+          <button class="btn btn-ghost btn-sm" data-goto="#/examboss">🐉 Exam Boss</button>
+          <button class="btn btn-ghost btn-sm" data-goto="#/spin">🎡 Spin</button>
+          <button class="btn btn-ghost btn-sm" data-goto="#/avatar">🎨 Hero Studio</button>
+          <button class="btn btn-ghost btn-sm" data-goto="#/leaderboard">📊 Leaderboard</button>
+        </div>
+        <p style="font-weight:800;margin-bottom:.4rem">Preview UI moments:</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" id="test-paywall">💳 Paywall</button>
+          <button class="btn btn-ghost btn-sm" id="test-reward">🎉 Reward modal</button>
+          <button class="btn btn-ghost btn-sm" id="test-locked">🔒 Locked-world modal</button>
+          <button class="btn btn-ghost btn-sm" id="test-confetti">🎊 Confetti</button>
+        </div>
+      </div>` : ''}
+    </div>
+
+    <div class="card">
+      <h3 class="display">⚙️ Live configuration</h3>
+      <div class="stat-grid">
+        <div class="stat"><div class="s-num" style="font-size:1.3rem">${APP_VERSION}</div><div class="s-label">App version</div></div>
+        <div class="stat"><div class="s-num" style="font-size:1.3rem">${CONFIG.backend}</div><div class="s-label">Backend</div></div>
+        <div class="stat"><div class="s-num">RM${CONFIG.premiumPriceRM.toFixed(2)}</div><div class="s-label">Premium price</div></div>
+        <div class="stat"><div class="s-num">RM${CONFIG.familyBundlePriceRM.toFixed(2)}</div><div class="s-label">Family Bundle price</div></div>
+        <div class="stat"><div class="s-num" style="color:${CONFIG.firebaseConfig.measurementId ? 'var(--jungle-deep)' : 'var(--lava)'}">${CONFIG.firebaseConfig.measurementId ? 'On' : 'Off'}</div><div class="s-label">Analytics</div></div>
+        <div class="stat"><div class="s-num" style="color:${CONFIG.vapidPublicKey ? 'var(--jungle-deep)' : 'var(--lava)'}">${CONFIG.vapidPublicKey ? 'On' : 'Off'}</div><div class="s-label">Push notifications</div></div>
+      </div>
     </div>
 
     <div class="card">
@@ -2079,16 +2133,23 @@ export function admin(el) {
     <div class="card">
       <h3 class="display">📚 Curriculum content</h3>
       <div style="overflow-x:auto"><table class="report">
-        <thead><tr><th>Lesson</th><th>World</th><th>Year</th><th>KSSR mapping</th><th>Quiz Qs</th></tr></thead>
+        <thead><tr><th>Lesson</th><th>World</th><th>Year</th><th>KSSR mapping</th><th>Quiz Qs</th><th></th></tr></thead>
         <tbody>${LESSONS.map(l => `
           <tr><td>${esc(l.title)}</td><td>${esc(WORLDS.find(w => w.id === l.worldId).name)}</td>
-          <td>${l.year}</td><td style="font-size:.8rem">${esc(l.kssr)}</td><td>${(QUIZZES[l.id] || []).length}</td></tr>`).join('')}
+          <td>${l.year}</td><td style="font-size:.8rem">${esc(l.kssr)}</td><td>${(QUIZZES[l.id] || []).length}</td>
+          <td><button class="btn btn-ghost btn-sm" data-goto="#/lesson/${l.id}">▶ Preview</button></td></tr>`).join('')}
         </tbody></table></div>
       <p style="color:var(--ink-soft);margin-top:.8rem;font-size:.85rem">
         Content lives in <code>js/data/curriculum.js</code> (or Firestore <code>lessons</code>/<code>quizzes</code> collections when Firebase is connected).</p>
     </div>`;
 
     el.querySelector('#logout').addEventListener('click', doLogout);
+    el.querySelector('#test-mode-toggle').addEventListener('change', e => { setTestMode(e.target.checked); render(); });
+    el.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => go(b.dataset.goto)));
+    el.querySelector('#test-paywall')?.addEventListener('click', () => paywallModal(CONFIG.premiumPriceRM));
+    el.querySelector('#test-reward')?.addEventListener('click', () => rewardModal('🎉', 'Sample reward!', 'This is what a reward modal looks like — handy for sanity-checking copy or styling.'));
+    el.querySelector('#test-locked')?.addEventListener('click', () => lockedWorldInfoModal({ worldName: WORLDS[3].name, worldEmoji: WORLDS[3].emoji, prevName: WORLDS[0].name, done: 2, total: 4 }));
+    el.querySelector('#test-confetti')?.addEventListener('click', () => confetti());
 
     el.querySelectorAll('[data-save]').forEach(b => b.addEventListener('click', async () => {
       const [section, key] = b.dataset.save.split(':');
