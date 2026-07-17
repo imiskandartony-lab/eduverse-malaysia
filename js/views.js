@@ -1874,7 +1874,7 @@ function downloadClassReport(cls) {
     `EduVerse Malaysia — Class Report (${new Date().toLocaleDateString('ms-MY')})`,
     `Class: ${cls.name}`,
     `Students: ${cls.students.length}`,
-    `Class average accuracy: ${Math.round(cls.students.reduce((s, x) => s + x.acc, 0) / cls.students.length)}%`,
+    `Class average accuracy: ${cls.students.length ? Math.round(cls.students.reduce((s, x) => s + x.acc, 0) / cls.students.length) : 0}%`,
     '',
     'Accuracy by subject:',
     ...(subjects.length ? subjects.map(s => `  - ${s.subject}: ${s.accuracy}%`) : ['  (no data yet)']),
@@ -1892,10 +1892,10 @@ function downloadClassReport(cls) {
 }
 
 export function teacher(el, _m, classIdx = 0) {
-  const classes = demoClasses();
+  const classes = getAllClasses();
   const cls = classes[Math.min(classIdx, classes.length - 1)];
   const students = cls.students;
-  const avgAcc = Math.round(students.reduce((s, x) => s + x.acc, 0) / students.length);
+  const avgAcc = students.length ? Math.round(students.reduce((s, x) => s + x.acc, 0) / students.length) : 0;
   const attention = needsAttention(students);
   const top = topPerformers(students);
   const subjAvg = classSubjectAverages(students);
@@ -1910,6 +1910,16 @@ export function teacher(el, _m, classIdx = 0) {
     ${classes.length > 1 ? `<div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">${
       classes.map((c, i) => `<button class="btn btn-sm ${i === classIdx ? 'btn-gold' : 'btn-ghost'}" data-class="${i}">${esc(c.name)}</button>`).join('')
     }</div>` : ''}
+    <button class="btn btn-ghost btn-sm" id="new-class-toggle" style="margin-top:.6rem">➕ New class</button>
+    <form id="new-class-form" hidden style="gap:.5rem;margin-top:.6rem;flex-wrap:wrap">
+      <input id="new-class-name" placeholder="Class name (e.g. Kelas 5 Amanah)" autocomplete="off"
+        style="flex:1;min-width:180px;border:3px solid var(--line);border-radius:var(--r-pill);padding:.55rem 1rem;font-family:inherit;font-weight:700;background:var(--card);color:var(--ink)" />
+      <select id="new-class-year" style="border:3px solid var(--line);border-radius:var(--r-pill);padding:.55rem 1rem;background:var(--card);color:var(--ink)">
+        <option value="5">Year 5</option>
+        <option value="6">Year 6</option>
+      </select>
+      <button class="btn btn-green btn-sm" type="submit">Create</button>
+    </form>
   </div>
   <div class="stat-grid">
     <div class="stat"><div class="s-num">${students.length}</div><div class="s-label">Students</div></div>
@@ -1953,16 +1963,22 @@ export function teacher(el, _m, classIdx = 0) {
   </div>
   <div class="card">
     <h3 class="display">📋 Class performance</h3>
-    <div style="overflow-x:auto"><table class="report">
-      <thead><tr><th>Student</th><th>Lessons</th><th>Accuracy</th><th>Streak</th><th>Last active</th><th>Weak area</th></tr></thead>
+    ${students.length ? `<div style="overflow-x:auto"><table class="report">
+      <thead><tr><th>Student</th><th>Lessons</th><th>Accuracy</th><th>Streak</th><th>Last active</th><th>Weak area</th><th></th></tr></thead>
       <tbody>${students.map(s => `
         <tr${s.daysSinceActive >= 3 ? ' style="background:color-mix(in srgb, var(--lava) 6%, transparent)"' : ''}>
         <td>${esc(s.name)}</td><td>${s.lessons}</td>
         <td style="color:${accColor(s.acc)};font-weight:800">${s.acc}%</td>
         <td>${s.streak}🔥</td>
         <td>${s.daysSinceActive === 0 ? 'Today' : `${s.daysSinceActive}d ago`}</td>
-        <td>${esc(s.weak)}</td></tr>`).join('')}
-      </tbody></table></div>
+        <td>${esc(s.weak)}</td>
+        <td><button class="btn btn-ghost btn-sm" data-remove-student="${esc(s.id)}" title="Remove student">✕</button></td></tr>`).join('')}
+      </tbody></table></div>` : `<p style="color:var(--ink-soft)">No students yet — add your first one below.</p>`}
+    <form id="add-student-form" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem">
+      <input id="add-student-name" placeholder="Student name" autocomplete="off"
+        style="flex:1;min-width:180px;border:3px solid var(--line);border-radius:var(--r-pill);padding:.55rem 1rem;font-family:inherit;font-weight:700;background:var(--card);color:var(--ink)" />
+      <button class="btn btn-sm" type="submit">➕ Add student</button>
+    </form>
   </div>
   <div class="card">
     <h3 class="display">📚 Assign homework</h3>
@@ -1992,6 +2008,37 @@ export function teacher(el, _m, classIdx = 0) {
   el.querySelector('#logout').addEventListener('click', doLogout);
   el.querySelectorAll('[data-class]').forEach(b =>
     b.addEventListener('click', () => teacher(el, null, Number(b.dataset.class))));
+  el.querySelector('#new-class-toggle').addEventListener('click', () => {
+    const form = el.querySelector('#new-class-form');
+    form.hidden = !form.hidden;
+    form.style.display = form.hidden ? '' : 'flex';
+    if (!form.hidden) el.querySelector('#new-class-name').focus();
+  });
+  el.querySelector('#new-class-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!(await requirePremiumGate())) return;
+    const name = el.querySelector('#new-class-name').value.trim();
+    if (!name) return;
+    const year = Number(el.querySelector('#new-class-year').value);
+    await addClass(name, year);
+    toast(`🏫 ${name} created!`);
+    teacher(el, null, getAllClasses().length - 1);
+  });
+  el.querySelector('#add-student-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!(await requirePremiumGate())) return;
+    const input = el.querySelector('#add-student-name');
+    const name = input.value.trim();
+    if (!name) return;
+    await addStudent(cls.id, name);
+    toast(`🧑‍🎓 ${name} added to ${cls.name}!`);
+    teacher(el, null, classIdx);
+  });
+  el.querySelectorAll('[data-remove-student]').forEach(b => b.addEventListener('click', async () => {
+    if (!(await requirePremiumGate())) return;
+    removeStudent(cls.id, b.dataset.removeStudent);
+    teacher(el, null, classIdx);
+  }));
   el.querySelectorAll('[data-remind]').forEach(b => b.addEventListener('click', async () => {
     if (!(await requirePremiumGate())) return;
     toast(`🔔 Reminder sent to ${b.dataset.remind}'s parent!`);
@@ -2297,32 +2344,91 @@ const demoClasses = () => [
   {
     id: 'k5-bestari', name: 'Kelas 5 Bestari', year: 5,
     students: [
-      { name: 'Aina Sofea', lessons: 5, acc: 88, streak: 6, daysSinceActive: 0, weak: '—',
+      { id: 'd-aina-sofea', name: 'Aina Sofea', lessons: 5, acc: 88, streak: 6, daysSinceActive: 0, weak: '—',
         subjects: { 'Bahasa Melayu': 90, Mathematics: 85, English: 88 } },
-      { name: 'Wei Jun', lessons: 4, acc: 74, streak: 3, daysSinceActive: 1, weak: 'Imbuhan meN-',
+      { id: 'd-wei-jun', name: 'Wei Jun', lessons: 4, acc: 74, streak: 3, daysSinceActive: 1, weak: 'Imbuhan meN-',
         subjects: { 'Bahasa Melayu': 62, Mathematics: 80, English: 78 } },
-      { name: 'Devi Priya', lessons: 6, acc: 91, streak: 7, daysSinceActive: 0, weak: '—',
+      { id: 'd-devi-priya', name: 'Devi Priya', lessons: 6, acc: 91, streak: 7, daysSinceActive: 0, weak: '—',
         subjects: { Mathematics: 93, Science: 89, Geografi: 91 } },
-      { name: 'Hafiz Iman', lessons: 2, acc: 55, streak: 0, daysSinceActive: 4, weak: 'Equivalent Fractions',
+      { id: 'd-hafiz-iman', name: 'Hafiz Iman', lessons: 2, acc: 55, streak: 0, daysSinceActive: 4, weak: 'Equivalent Fractions',
         subjects: { Mathematics: 48, English: 62 } },
-      { name: 'Mei Ling', lessons: 3, acc: 68, streak: 2, daysSinceActive: 2, weak: 'Simple Present Tense',
+      { id: 'd-mei-ling', name: 'Mei Ling', lessons: 3, acc: 68, streak: 2, daysSinceActive: 2, weak: 'Simple Present Tense',
         subjects: { English: 60, Music: 75 } },
     ],
   },
   {
     id: 'k6-cemerlang', name: 'Kelas 6 Cemerlang', year: 6,
     students: [
-      { name: 'Farid Azlan', lessons: 7, acc: 92, streak: 9, daysSinceActive: 0, weak: '—',
+      { id: 'd-farid-azlan', name: 'Farid Azlan', lessons: 7, acc: 92, streak: 9, daysSinceActive: 0, weak: '—',
         subjects: { Mathematics: 95, Science: 90, 'Reka Bentuk dan Teknologi': 88 } },
-      { name: 'Nur Alia', lessons: 3, acc: 63, streak: 1, daysSinceActive: 3, weak: 'Ayat Majmuk',
+      { id: 'd-nur-alia', name: 'Nur Alia', lessons: 3, acc: 63, streak: 1, daysSinceActive: 3, weak: 'Ayat Majmuk',
         subjects: { 'Bahasa Melayu': 58, English: 70 } },
-      { name: 'Kavin Raj', lessons: 5, acc: 79, streak: 4, daysSinceActive: 1, weak: 'Future Tense & If-Clauses',
+      { id: 'd-kavin-raj', name: 'Kavin Raj', lessons: 5, acc: 79, streak: 4, daysSinceActive: 1, weak: 'Future Tense & If-Clauses',
         subjects: { English: 72, Geografi: 84 } },
-      { name: 'Syafiqah Zain', lessons: 1, acc: 40, streak: 0, daysSinceActive: 6, weak: 'Litar Elektrik Mudah',
+      { id: 'd-syafiqah-zain', name: 'Syafiqah Zain', lessons: 1, acc: 40, streak: 0, daysSinceActive: 6, weak: 'Litar Elektrik Mudah',
         subjects: { Science: 40 } },
     ],
   },
 ];
+
+// ---------------- Teacher class/student persistence (local device only) ----------------
+// No Firestore collection exists for teacher classes/students yet, so this is stored
+// locally on the teacher's device — same pattern as the homework-assignment localStorage
+// key above. Demo classes/students always stay as illustrative defaults; teacher-created
+// classes and students are layered on top, and demo students can be individually removed
+// without mutating the read-only demoClasses() fixture.
+const TEACHER_DATA_KEY = 'eduverse-teacher-classes-v1';
+
+function getTeacherData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(TEACHER_DATA_KEY) || '{}');
+    return { customClasses: d.customClasses || [], addedStudents: d.addedStudents || {}, removedStudents: d.removedStudents || {} };
+  } catch { return { customClasses: [], addedStudents: {}, removedStudents: {} }; }
+}
+function setTeacherData(data) {
+  localStorage.setItem(TEACHER_DATA_KEY, JSON.stringify(data));
+}
+const slugify = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'class';
+
+function getAllClasses() {
+  const data = getTeacherData();
+  const withExtras = classes => classes.map(c => ({
+    ...c,
+    students: [
+      ...c.students.filter(s => !(data.removedStudents[c.id] || []).includes(s.id)),
+      ...(data.addedStudents[c.id] || []),
+    ],
+  }));
+  return [...withExtras(demoClasses()), ...withExtras(data.customClasses)];
+}
+
+async function addClass(name, year) {
+  const data = getTeacherData();
+  const id = `c-${slugify(name)}-${Date.now().toString(36)}`;
+  data.customClasses.push({ id, name, year, students: [] });
+  setTeacherData(data);
+  return id;
+}
+
+async function addStudent(classId, name) {
+  const data = getTeacherData();
+  const student = {
+    id: `s-${slugify(name)}-${Date.now().toString(36)}`,
+    name, lessons: 0, acc: 0, streak: 0, daysSinceActive: 0, weak: '—', subjects: {},
+  };
+  (data.addedStudents[classId] ||= []).push(student);
+  setTeacherData(data);
+}
+
+function removeStudent(classId, studentId) {
+  const data = getTeacherData();
+  if (data.addedStudents[classId]?.some(s => s.id === studentId)) {
+    data.addedStudents[classId] = data.addedStudents[classId].filter(s => s.id !== studentId);
+  } else {
+    (data.removedStudents[classId] ||= []).push(studentId);
+  }
+  setTeacherData(data);
+}
 function downloadReport(child) {
   const subjects = subjectBreakdown(child);
   const log = (child.activityLog || []).slice(0, 10);
