@@ -32,8 +32,14 @@ web flow.
       `bmWorlds` list (controls Malay vs English speech recognition in
       Speak It!) — add new world IDs if they're BM-medium subjects
 - [ ] `js/games.js` `SUBJECT_GAMES` map — if the new world's subject has a
-      signature KSSR game (Mesin Imbuhan, Pasar Malam Cashier, Roti Canai
-      Slicer), add the world ID so its lessons get that game ~half the time
+      signature KSSR game, add the world ID so its lessons get that game
+      ~half the time. Current signature games (v1.11.0): Mesin Imbuhan
+      (bm-village, tatabahasa-temple), Ayat Cantum (karangan-kingdom),
+      Pasar Malam Cashier (maths-volcano), Roti Canai Slicer
+      (fraction-island), Tense Time Machine (english-kingdom,
+      grammar-forest), Clue Hunter (reading-castle), Peta Pin Drop
+      (geo-world), Irama Repeat (music-studio), Virtual Eksperimen
+      (science-lab), Circuit Fixer (rbt-workshop)
 
 ## 3. Parent dashboard (`js/views.js`)
 
