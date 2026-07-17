@@ -84,6 +84,16 @@ class LocalStore {
     return u && u.role === 'student' ? [u] : [];
   }
   async linkChild() { throw new Error('Linking needs Firebase — demo mode monitors this device only.'); }
+  async createClass() { throw new Error('Classes need Firebase — demo mode monitors this device only.'); }
+  async getMyClasses() { return []; }
+  async getUsersByIds() { return []; }
+  async joinClassByCode() { throw new Error('Joining a class needs Firebase — demo mode monitors this device only.'); }
+  async removeStudentFromClass() {}
+  async getMyJoinedClasses() { return []; }
+  async assignHomework() { throw new Error('Assigning homework needs Firebase — demo mode monitors this device only.'); }
+  async getAssignmentsForClass() { return []; }
+  async unassignHomework() {}
+  async getAssignmentsForJoinedClasses() { return []; }
   email() { return null; }
   async createDuel() { throw new Error('Online Duel needs Firebase — try the "Same tablet" mode instead.'); }
   async joinDuel() { throw new Error('Online Duel needs Firebase — try the "Same tablet" mode instead.'); }
@@ -252,6 +262,76 @@ class FirebaseStore {
     const snap = await this.fs.getDocs(q);
     const me = this.authInst.currentUser?.uid;
     return snap.docs.map(d => ({ name: d.data().name, xp: d.data().xp, me: d.id === me }));
+  }
+
+  // ---------- Teacher classes: real roster, class code lets a real student join ----------
+  async createClass(name, year) {
+    const uid = this.authInst.currentUser.uid;
+    const classRef = this.fs.doc(this.fs.collection(this.db, 'teachers', uid, 'classes'));
+    const code = makeShortCode();
+    const data = { name, year, code, studentUids: [], createdAt: Date.now() };
+    await this.fs.setDoc(classRef, data);
+    await this.fs.setDoc(this.fs.doc(this.db, 'classCodes', code), { teacherUid: uid, classId: classRef.id });
+    return { id: classRef.id, ...data };
+  }
+  async getMyClasses() {
+    const uid = this.authInst.currentUser?.uid;
+    if (!uid) return [];
+    const snap = await this.fs.getDocs(this.fs.collection(this.db, 'teachers', uid, 'classes'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+  async getUsersByIds(uids) {
+    const out = [];
+    for (const uid of uids || []) {
+      const s = await this.fs.getDoc(this.fs.doc(this.db, 'users', uid));
+      if (s.exists()) out.push({ id: uid, ...s.data() });
+    }
+    return out;
+  }
+  async joinClassByCode(code) {
+    const snap = await this.fs.getDoc(this.fs.doc(this.db, 'classCodes', code.trim().toUpperCase()));
+    if (!snap.exists()) throw new Error('Class code not found — check the 6 letters with your teacher.');
+    const { teacherUid, classId } = snap.data();
+    const classRef = this.fs.doc(this.db, 'teachers', teacherUid, 'classes', classId);
+    await this.fs.updateDoc(classRef, { studentUids: this.fs.arrayUnion(this.authInst.currentUser.uid) });
+    return { teacherUid, classId };
+  }
+  async removeStudentFromClass(classId, studentUid) {
+    const uid = this.authInst.currentUser.uid;
+    const classRef = this.fs.doc(this.db, 'teachers', uid, 'classes', classId);
+    await this.fs.updateDoc(classRef, { studentUids: this.fs.arrayRemove(studentUid) });
+  }
+  // Every class this signed-in student has joined, found across every teacher's
+  // subcollection at once (no back-reference needed on the student's own profile —
+  // the class doc's studentUids array is the single source of truth).
+  async getMyJoinedClasses() {
+    const uid = this.authInst.currentUser?.uid;
+    if (!uid) return [];
+    const q = this.fs.query(this.fs.collectionGroup(this.db, 'classes'), this.fs.where('studentUids', 'array-contains', uid));
+    const snap = await this.fs.getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, teacherUid: d.ref.parent.parent.id, ...d.data() }));
+  }
+  async assignHomework(classId, lessonId) {
+    const uid = this.authInst.currentUser.uid;
+    const ref = this.fs.doc(this.fs.collection(this.db, 'assignments'));
+    await this.fs.setDoc(ref, { classId, teacherUid: uid, lessonId, createdAt: Date.now() });
+    return ref.id;
+  }
+  async getAssignmentsForClass(classId) {
+    const q = this.fs.query(this.fs.collection(this.db, 'assignments'), this.fs.where('classId', '==', classId));
+    const snap = await this.fs.getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+  async unassignHomework(assignmentId) {
+    await this.fs.deleteDoc(this.fs.doc(this.db, 'assignments', assignmentId));
+  }
+  async getAssignmentsForJoinedClasses(classIds) {
+    if (!classIds.length) return [];
+    // Firestore 'in' queries cap at 10 values — plenty for how many classes
+    // one student realistically joins.
+    const q = this.fs.query(this.fs.collection(this.db, 'assignments'), this.fs.where('classId', 'in', classIds.slice(0, 10)));
+    const snap = await this.fs.getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   }
 
   // ---------- Online Friend Duel: two devices, one shared room doc ----------

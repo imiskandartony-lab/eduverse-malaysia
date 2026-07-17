@@ -271,14 +271,43 @@ export function landing(el) {
 }
 
 // ---------------- Student dashboard ----------------
-export function dashboard(el) {
+async function getAssignedLessonsForStudent() {
+  if (CONFIG.backend !== 'firebase' || user.role !== 'student') return [];
+  try {
+    const joined = await store.getMyJoinedClasses();
+    if (!joined.length) return [];
+    const assignments = await store.getAssignmentsForJoinedClasses(joined.map(c => c.id));
+    const seen = new Set();
+    return assignments
+      .map(a => LESSONS.find(l => l.id === a.lessonId))
+      .filter(l => l && !user.completedLessons.includes(l.id) && !seen.has(l.id) && seen.add(l.id));
+  } catch { return []; }
+}
+
+export async function dashboard(el) {
   ensureDailyMissions(user);
   const rec = recommendLesson(user);
   const missionsDone = user.missions.filter(m => m.done).length;
   const world = WORLDS.find(w => w.id === (rec?.lesson.worldId)) || WORLDS[0];
   const seasonal = activeSeasonalEvent();
+  const assigned = await getAssignedLessonsForStudent();
   el.innerHTML = `
   ${hud()}
+  ${assigned.length ? `
+  <div class="card" style="border-color:var(--magic);margin-top:1rem">
+    <h3 class="display">📚 Assigned by your teacher</h3>
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.6rem">
+      ${assigned.map(l => {
+        const w = WORLDS.find(x => x.id === l.worldId);
+        return `<button class="card" style="width:100%;text-align:left;cursor:pointer;padding:.6rem .8rem" data-goto-lesson="${l.id}">
+          <div style="display:flex;align-items:center;gap:.8rem">
+            <span style="font-size:1.6rem">${w ? worldIcon(w) : '📘'}</span>
+            <div><strong>${esc(l.title)}</strong><div style="color:var(--ink-soft);font-size:.8rem">${esc(w?.name || '')}</div></div>
+          </div>
+        </button>`;
+      }).join('')}
+    </div>
+  </div>` : ''}
   ${seasonal ? `
   <button class="card card-tint" style="width:100%;text-align:left;border:3px solid var(--gold);cursor:pointer;margin-top:1rem" id="seasonal-banner">
     <div style="display:flex;align-items:center;gap:1rem">
@@ -367,6 +396,7 @@ export function dashboard(el) {
     </div>
   </div>`;
   renderMissions(el.querySelector('#mission-list'));
+  el.querySelectorAll('[data-goto-lesson]').forEach(b => b.addEventListener('click', () => go(`#/lesson/${b.dataset.gotoLesson}`)));
   el.querySelector('#continue-btn')?.addEventListener('click', () => go(`#/lesson/${rec.lesson.id}`));
   el.querySelector('#arena-btn').addEventListener('click', () => go('#/arena'));
   el.querySelector('#duel-btn').addEventListener('click', () => go('#/duel'));
@@ -1593,8 +1623,10 @@ export async function leaderboard(el) {
 }
 
 // ---------------- Settings (accessibility) ----------------
-export function settings(el) {
+export async function settings(el) {
   const root = document.documentElement;
+  const isRealStudent = user.role === 'student' && CONFIG.backend === 'firebase';
+  const joinedClasses = isRealStudent ? await store.getMyJoinedClasses() : [];
   el.innerHTML = `${user.role === 'student' ? hud() : `
   <div class="hud"><span class="pill">⚙️ Settings</span><span class="spacer"></span>
     <button class="btn btn-ghost btn-sm" data-route="#/${user.role}">← Back</button></div>`}
@@ -1650,6 +1682,23 @@ export function settings(el) {
     <div class="display" style="font-size:2rem;letter-spacing:.35em;font-weight:800;color:var(--magic-deep)">${esc(user.familyCode)}</div>
     ${CONFIG.backend !== 'firebase' ? '<p style="font-size:.8rem;color:var(--ink-soft);margin-top:.4rem">(Works once the app is connected to Firebase.)</p>' : ''}
   </div>` : ''}
+  ${user.role === 'student' ? `
+  <div class="card">
+    <h3 class="display">🏫 Join a class</h3>
+    <p style="color:var(--ink-soft);font-size:.85rem;margin:.3rem 0 .8rem">Ask your teacher for their 6-letter class code — homework they assign will show up on your dashboard.</p>
+    ${!isRealStudent ? `<p style="font-size:.8rem;color:var(--ink-soft)">(Works once the app is connected to Firebase.)</p>` : `
+    ${joinedClasses.length ? `
+    <p style="font-weight:800;margin-bottom:.4rem">Your classes:</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem">
+      ${joinedClasses.map(c => `<span class="pill">🏫 ${esc(c.name)}</span>`).join('')}
+    </div>` : ''}
+    <form id="join-class-form" style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+      <input id="join-class-code" maxlength="6" placeholder="e.g. K7XM2P" autocapitalize="characters" autocomplete="off"
+        style="border:3px solid var(--line);border-radius:var(--r-pill);padding:.55rem 1rem;font-family:var(--font-display);font-weight:800;letter-spacing:.2em;text-transform:uppercase;width:11ch;text-align:center;background:var(--card);color:var(--ink)" />
+      <button class="btn btn-green btn-sm" type="submit">Join 🔗</button>
+    </form>
+    <p id="join-class-msg" style="color:var(--lava);font-weight:700;margin-top:.6rem"></p>`}
+  </div>` : ''}
   ${isAdminUser() && user.role !== 'admin' ? `
   <div class="card" style="border-color:var(--magic)">
     <h3 class="display">🛠️ Admin Access</h3>
@@ -1692,6 +1741,16 @@ export function settings(el) {
     }
   });
   el.querySelector('#goto-admin')?.addEventListener('click', () => go('#/admin'));
+  el.querySelector('#join-class-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const code = el.querySelector('#join-class-code').value.trim();
+    if (!code) return;
+    try {
+      await store.joinClassByCode(code);
+      toast('Joined! 🎉');
+      settings(el);
+    } catch (err) { el.querySelector('#join-class-msg').textContent = err.message; }
+  });
   el.querySelector('#logout').addEventListener('click', doLogout);
 }
 
@@ -1891,15 +1950,77 @@ function downloadClassReport(cls) {
   a.click();
 }
 
-export function teacher(el, _m, classIdx = 0) {
-  const classes = getAllClasses();
+const IS_REAL_TEACHER = () => CONFIG.backend === 'firebase';
+
+function realStudentToRow(u) {
+  const subjects = {};
+  subjectBreakdown(u).forEach(s => { subjects[s.subject] = s.accuracy; });
+  const lastLog = (u.activityLog || [])[0];
+  const daysSinceActive = lastLog ? Math.floor((Date.now() - new Date(lastLog.at).getTime()) / 864e5) : 99;
+  return {
+    id: u.id, name: u.name, lessons: (u.completedLessons || []).length,
+    acc: accuracy(u), streak: u.streak || 0, daysSinceActive,
+    weak: weakestTopics(u, 1)[0] || '—', subjects,
+  };
+}
+
+async function loadRealClasses() {
+  const raw = await store.getMyClasses();
+  return Promise.all(raw.map(async c => ({
+    ...c,
+    students: (await store.getUsersByIds(c.studentUids || [])).map(realStudentToRow),
+  })));
+}
+
+export async function teacher(el, _m, classIdx = 0) {
+  const isReal = IS_REAL_TEACHER();
+  const classes = isReal ? await loadRealClasses() : getAllClasses();
+
+  if (isReal && !classes.length) {
+    el.innerHTML = `
+    <div class="hud"><span class="pill">🧑‍🏫 Teacher Dashboard</span><span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" data-route="#/settings">⚙️</button>
+      <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
+    <div class="card card-tint" style="text-align:center">
+      <div style="font-size:3rem">🏫</div>
+      <h2 class="display">Create your first class</h2>
+      <p style="color:var(--ink-soft);margin:.6rem 0 1rem">Give it a name and a year — you'll get a 6-letter class code your students can use to join from their own Settings page.</p>
+      <form id="new-class-form" style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+        <input id="new-class-name" placeholder="Class name (e.g. Kelas 5 Amanah)" autocomplete="off"
+          style="flex:1;min-width:180px;max-width:280px;border:3px solid var(--line);border-radius:var(--r-pill);padding:.6rem 1rem;font-family:inherit;font-weight:700;background:var(--card);color:var(--ink)" />
+        <select id="new-class-year" style="border:3px solid var(--line);border-radius:var(--r-pill);padding:.6rem 1rem;background:var(--card);color:var(--ink)">
+          <option value="5">Year 5</option>
+          <option value="6">Year 6</option>
+        </select>
+        <button class="btn btn-green" type="submit">Create class</button>
+      </form>
+    </div>`;
+    el.querySelector('#logout').addEventListener('click', doLogout);
+    el.querySelector('#new-class-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!(await requirePremiumGate())) return;
+      const name = el.querySelector('#new-class-name').value.trim();
+      if (!name) return;
+      const year = Number(el.querySelector('#new-class-year').value);
+      await store.createClass(name, year);
+      toast(`🏫 ${name} created!`);
+      teacher(el, null, 0);
+    });
+    return;
+  }
+
   const cls = classes[Math.min(classIdx, classes.length - 1)];
   const students = cls.students;
   const avgAcc = students.length ? Math.round(students.reduce((s, x) => s + x.acc, 0) / students.length) : 0;
   const attention = needsAttention(students);
   const top = topPerformers(students);
   const subjAvg = classSubjectAverages(students);
-  const hw = getHomework(cls.id);
+  // Normalize both backends to the same {assignmentId, lessonId} shape so the
+  // template below doesn't need to branch — local mode has no separate
+  // assignment doc id, so the lesson id doubles as both.
+  const assignedList = isReal
+    ? (await store.getAssignmentsForClass(cls.id)).map(a => ({ assignmentId: a.id, lessonId: a.lessonId }))
+    : getHomework(cls.id).map(id => ({ assignmentId: id, lessonId: id }));
 
   el.innerHTML = `
   <div class="hud"><span class="pill">🧑‍🏫 Teacher Dashboard</span><span class="spacer"></span>
@@ -1907,6 +2028,7 @@ export function teacher(el, _m, classIdx = 0) {
     <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
   <div class="card card-tint">
     <h2 class="display">${esc(cls.name)}</h2>
+    ${isReal ? `<p style="color:var(--ink-soft);font-size:.85rem;margin-top:.4rem">Class code: <b class="display" style="letter-spacing:.2em;color:var(--magic-deep)">${esc(cls.code)}</b> — students enter this on their own Settings page to join.</p>` : ''}
     ${classes.length > 1 ? `<div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">${
       classes.map((c, i) => `<button class="btn btn-sm ${i === classIdx ? 'btn-gold' : 'btn-ghost'}" data-class="${i}">${esc(c.name)}</button>`).join('')
     }</div>` : ''}
@@ -1973,22 +2095,24 @@ export function teacher(el, _m, classIdx = 0) {
         <td>${s.daysSinceActive === 0 ? 'Today' : `${s.daysSinceActive}d ago`}</td>
         <td>${esc(s.weak)}</td>
         <td><button class="btn btn-ghost btn-sm" data-remove-student="${esc(s.id)}" title="Remove student">✕</button></td></tr>`).join('')}
-      </tbody></table></div>` : `<p style="color:var(--ink-soft)">No students yet — add your first one below.</p>`}
+      </tbody></table></div>` : `<p style="color:var(--ink-soft)">No students yet — ${isReal ? `share the class code above so they can join.` : 'add your first one below.'}</p>`}
+    ${isReal ? '' : `
     <form id="add-student-form" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem">
       <input id="add-student-name" placeholder="Student name" autocomplete="off"
         style="flex:1;min-width:180px;border:3px solid var(--line);border-radius:var(--r-pill);padding:.55rem 1rem;font-family:inherit;font-weight:700;background:var(--card);color:var(--ink)" />
       <button class="btn btn-sm" type="submit">➕ Add student</button>
-    </form>
+    </form>`}
   </div>
   <div class="card">
     <h3 class="display">📚 Assign homework</h3>
-    ${hw.length ? `
+    ${!isReal ? `<p style="color:var(--ink-soft);font-size:.8rem;margin-bottom:.6rem">Demo mode: saved on this device only — connect Firebase to actually deliver homework to students.</p>` : ''}
+    ${assignedList.length ? `
     <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.4rem">Currently assigned:</p>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem">
-      ${hw.map(id => { const l = LESSONS.find(x => x.id === id); return l ? `<span class="pill">${esc(l.title)} <button data-unassign="${id}" style="background:none;border:none;color:var(--lava);font-weight:800;cursor:pointer;margin-left:.3em">✕</button></span>` : ''; }).join('')}
+      ${assignedList.map(a => { const l = LESSONS.find(x => x.id === a.lessonId); return l ? `<span class="pill">${esc(l.title)} <button data-unassign="${esc(a.assignmentId)}" style="background:none;border:none;color:var(--lava);font-weight:800;cursor:pointer;margin-left:.3em">✕</button></span>` : ''; }).join('')}
     </div>` : ''}
     <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-      <select id="hw-lesson">${LESSONS.filter(l => !hw.includes(l.id)).map(l => `<option value="${l.id}">${esc(l.title)}</option>`).join('')}</select>
+      <select id="hw-lesson">${LESSONS.filter(l => !assignedList.some(a => a.lessonId === l.id)).map(l => `<option value="${l.id}">${esc(l.title)}</option>`).join('')}</select>
       <button class="btn btn-sm" id="hw-assign">Assign to class</button>
     </div>
   </div>
@@ -2020,11 +2144,13 @@ export function teacher(el, _m, classIdx = 0) {
     const name = el.querySelector('#new-class-name').value.trim();
     if (!name) return;
     const year = Number(el.querySelector('#new-class-year').value);
-    await addClass(name, year);
+    if (isReal) await store.createClass(name, year);
+    else await addClass(name, year);
     toast(`🏫 ${name} created!`);
-    teacher(el, null, getAllClasses().length - 1);
+    const total = isReal ? (await store.getMyClasses()).length : getAllClasses().length;
+    teacher(el, null, total - 1);
   });
-  el.querySelector('#add-student-form').addEventListener('submit', async e => {
+  el.querySelector('#add-student-form')?.addEventListener('submit', async e => {
     e.preventDefault();
     if (!(await requirePremiumGate())) return;
     const input = el.querySelector('#add-student-name');
@@ -2036,7 +2162,8 @@ export function teacher(el, _m, classIdx = 0) {
   });
   el.querySelectorAll('[data-remove-student]').forEach(b => b.addEventListener('click', async () => {
     if (!(await requirePremiumGate())) return;
-    removeStudent(cls.id, b.dataset.removeStudent);
+    if (isReal) await store.removeStudentFromClass(cls.id, b.dataset.removeStudent);
+    else removeStudent(cls.id, b.dataset.removeStudent);
     teacher(el, null, classIdx);
   }));
   el.querySelectorAll('[data-remind]').forEach(b => b.addEventListener('click', async () => {
@@ -2047,15 +2174,21 @@ export function teacher(el, _m, classIdx = 0) {
     if (!(await requirePremiumGate())) return;
     const sel = el.querySelector('#hw-lesson');
     if (!sel.value) return;
-    const list = getHomework(cls.id);
-    if (!list.includes(sel.value)) list.push(sel.value);
-    setHomework(cls.id, list);
-    toast('📨 Homework assigned! (Connect Firebase to notify students)');
+    if (isReal) {
+      await store.assignHomework(cls.id, sel.value);
+      toast('📨 Homework assigned — it now shows up on each joined student\'s dashboard!');
+    } else {
+      const list = getHomework(cls.id);
+      if (!list.includes(sel.value)) list.push(sel.value);
+      setHomework(cls.id, list);
+      toast('📨 Homework assigned! (Connect Firebase to notify students)');
+    }
     teacher(el, null, classIdx);
   });
   el.querySelectorAll('[data-unassign]').forEach(b => b.addEventListener('click', async () => {
     if (!(await requirePremiumGate())) return;
-    setHomework(cls.id, getHomework(cls.id).filter(id => id !== b.dataset.unassign));
+    if (isReal) await store.unassignHomework(b.dataset.unassign);
+    else setHomework(cls.id, getHomework(cls.id).filter(id => id !== b.dataset.unassign));
     teacher(el, null, classIdx);
   }));
   el.querySelector('#class-report').addEventListener('click', async () => {
