@@ -9,3 +9,4 @@ android/keystore.properties
 android/keystore/
 ios/App/build/
 ios/App/Pods/
+.firebase/
