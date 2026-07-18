@@ -1626,7 +1626,11 @@ export async function leaderboard(el) {
 export async function settings(el) {
   const root = document.documentElement;
   const isRealStudent = user.role === 'student' && CONFIG.backend === 'firebase';
-  const joinedClasses = isRealStudent ? await store.getMyJoinedClasses() : [];
+  // Never let a Firestore hiccup here (permissions, network, missing index)
+  // take down the whole Settings page — worst case, the joined-classes list
+  // is just empty until the next successful load.
+  let joinedClasses = [];
+  if (isRealStudent) { try { joinedClasses = await store.getMyJoinedClasses(); } catch { /* see above */ } }
   el.innerHTML = `${user.role === 'student' ? hud() : `
   <div class="hud"><span class="pill">⚙️ Settings</span><span class="spacer"></span>
     <button class="btn btn-ghost btn-sm" data-route="#/${user.role}">← Back</button></div>`}

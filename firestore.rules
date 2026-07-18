@@ -54,13 +54,20 @@ service cloud.firestore {
       allow read: if isSelf(uid) || isAdmin();
       allow write: if isAdmin();
       match /classes/{classId} {
-        // The teacher who owns this class has full access. A joined student
-        // (their own uid already sits in studentUids) may also read the class
-        // doc — needed for the collectionGroup query on the student's own
-        // dashboard/settings — and may update it to add exactly their own uid
-        // to studentUids (joining via a class code), nothing else.
-        allow read: if isSelf(uid) || isAdmin()
-          || (signedIn() && request.auth.uid in resource.data.studentUids);
+        // The teacher who owns this class has full access.
+        allow read: if isSelf(uid) || isAdmin();
+        // A joined student (their own uid already sits in studentUids) may
+        // also read the class doc — needed for the collectionGroup query on
+        // the student's own dashboard/settings. Kept as its own statement
+        // (rather than OR'd into the one above) because Firestore validates
+        // collection-group queries per `allow` statement: a plain field
+        // containment check like this one is provably safe for the
+        // `where('studentUids','array-contains', uid)` query regardless of
+        // the other statement's get()-based isAdmin() check, but merged into
+        // one compound OR the whole expression can become unprovable and the
+        // query gets rejected outright with "Missing or insufficient
+        // permissions" instead of just filtering out non-matching docs.
+        allow read: if signedIn() && request.auth.uid in resource.data.studentUids;
         allow create, delete: if isSelf(uid) || isAdmin();
         allow update: if isSelf(uid) || isAdmin() || (
           signedIn()
