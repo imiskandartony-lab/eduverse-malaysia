@@ -1312,29 +1312,272 @@ export function ayatCantum(mount, onDone) {
   render();
 }
 
+// ---------- Peribahasa Padan (Bahasa Melayu): match idiom to meaning ----------
+// Thin wrapper over memoryMatch — same tested mechanic, themed content/header.
+const PERIBAHASA_PAIRS = [
+  ['Aur dengan tebing', 'Tolong-menolong'],
+  ['Katak bawah tempurung', 'Kurang pengetahuan'],
+  ['Berat sama dipikul', 'Susah senang bersama'],
+  ['Melentur buluh', 'Didik anak dari kecil'],
+  ['Pinang dibelah dua', 'Sangat serupa'],
+  ['Alah bisa, tegal biasa', 'Mudah kerana biasa'],
+];
+export function peribahasaPadan(mount, onDone) {
+  const picked = [...PERIBAHASA_PAIRS].sort(() => Math.random() - 0.5).slice(0, 4);
+  memoryMatch(mount, picked, onDone);
+  const h3 = mount.querySelector('h3'); if (h3) h3.textContent = '📜 Peribahasa Padan';
+  const p = mount.querySelector('p'); if (p) p.textContent = 'Padankan peribahasa dengan maksudnya. Kurang tekaan = lebih bintang!';
+}
+
+// ---------- Tool Match-Up (RBT): match each tool to its function ----------
+// Same memoryMatch wrapper pattern as Peribahasa Padan above.
+const TOOL_PAIRS = [
+  ['🪚 Gergaji', 'Memotong kayu'],
+  ['🔨 Tukul', 'Memasukkan paku'],
+  ['🪛 Pemutar skru', 'Pasang/tanggal skru'],
+  ['🔧 Playar', 'Pegang & potong wayar'],
+  ['📏 Pembaris', 'Ukur & lukis garis lurus'],
+];
+export function toolMatchUp(mount, onDone) {
+  const picked = [...TOOL_PAIRS].sort(() => Math.random() - 0.5).slice(0, 4);
+  memoryMatch(mount, picked, onDone);
+  const h3 = mount.querySelector('h3'); if (h3) h3.textContent = '🧰 Tool Match-Up';
+  const p = mount.querySelector('p'); if (p) p.textContent = 'Match each tool to its function. Fewer flips = more stars!';
+}
+
+// ---------- Synonym Swap (English): pick the word that means the same ----------
+const SYNONYM_ROUNDS = [
+  { word: 'happy', correct: 'glad', wrong: ['sad', 'angry'] },
+  { word: 'big', correct: 'huge', wrong: ['tiny', 'short'] },
+  { word: 'fast', correct: 'quick', wrong: ['slow', 'lazy'] },
+  { word: 'brave', correct: 'courageous', wrong: ['fearful', 'shy'] },
+  { word: 'smart', correct: 'clever', wrong: ['foolish', 'careless'] },
+  { word: 'small', correct: 'tiny', wrong: ['huge', 'wide'] },
+];
+export function synonymSwap(mount, onDone) {
+  const rounds = [...SYNONYM_ROUNDS].sort(() => Math.random() - 0.5).slice(0, 5)
+    .map(r => ({ ...r, opts: [{ t: r.correct, ok: true }, ...r.wrong.map(t => ({ t, ok: false }))].sort(() => Math.random() - 0.5) }));
+  let i = 0, score = 0;
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    mount.innerHTML = `
+      <h3 class="display">🔄 Synonym Swap — ${i + 1}/${rounds.length}</h3>
+      <p style="margin:.4rem 0 1rem">Which word means the <b>same</b> as <b>"${esc(r.word)}"</b>?</p>
+      <div class="chip-row"></div>`;
+    const row = mount.querySelector('.chip-row');
+    r.opts.forEach(({ t, ok }) => {
+      const b = document.createElement('button');
+      b.className = 'answer-chip'; b.textContent = t;
+      b.addEventListener('click', ev => {
+        b.classList.add(ok ? 'chip-correct' : 'chip-wrong');
+        if (ok) { score++; sfx.correct(i); floatText(ev.clientX, ev.clientY, '✓ Betul!'); }
+        else { sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        row.querySelectorAll('button').forEach(x => x.disabled = true);
+        setTimeout(() => { i++; render(); }, 700);
+      });
+      row.appendChild(b);
+    });
+  };
+  render();
+}
+
+// ---------- Fraction Face-Off (Mathematics): tap the bigger value ----------
+const FACEOFF_ROUNDS = [
+  { a: '1/2', av: 0.5, b: '3/4', bv: 0.75 },
+  { a: '2/5', av: 0.4, b: '1/4', bv: 0.25 },
+  { a: '50%', av: 0.5, b: '0.5', bv: 0.5 },
+  { a: '3/8', av: 0.375, b: '1/3', bv: 0.333 },
+  { a: '0.6', av: 0.6, b: '2/3', bv: 0.667 },
+  { a: '3/4', av: 0.75, b: '80%', bv: 0.8 },
+];
+export function fractionFaceOff(mount, onDone) {
+  const rounds = [...FACEOFF_ROUNDS].sort(() => Math.random() - 0.5).slice(0, 5);
+  let i = 0, score = 0;
+  const render = () => {
+    if (i >= rounds.length) { onDone(score / rounds.length); return; }
+    const r = rounds[i];
+    const answer = Math.abs(r.av - r.bv) < 0.005 ? 'equal' : (r.av > r.bv ? 'a' : 'b');
+    mount.innerHTML = `
+      <h3 class="display">⚖️ Fraction Face-Off — ${i + 1}/${rounds.length}</h3>
+      <p style="margin:.4rem 0 1rem">Which is bigger?</p>
+      <div class="chip-row">
+        <button class="answer-chip" data-pick="a">${esc(r.a)}</button>
+        <button class="answer-chip" data-pick="b">${esc(r.b)}</button>
+        <button class="answer-chip" data-pick="equal">They're equal</button>
+      </div>`;
+    mount.querySelectorAll('[data-pick]').forEach(b => {
+      b.addEventListener('click', ev => {
+        const ok = b.dataset.pick === answer;
+        b.classList.add(ok ? 'chip-correct' : 'chip-wrong');
+        if (ok) { score++; sfx.correct(i); floatText(ev.clientX, ev.clientY, '✓ Betul!'); }
+        else { sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); }
+        mount.querySelectorAll('[data-pick]').forEach(x => x.disabled = true);
+        setTimeout(() => { i++; render(); }, 700);
+      });
+    });
+  };
+  render();
+}
+
+// ---------- Food Chain Builder (Science): tap organisms into the right order ----------
+const FOOD_CHAINS = [
+  { q: 'Susun rantai makanan padang rumput ini (pengeluar → pengguna tertinggi):', chain: ['Rumput', 'Belalang', 'Katak', 'Ular'] },
+  { q: 'Susun rantai makanan lautan ini:', chain: ['Fitoplankton', 'Ikan kecil', 'Ikan besar', 'Burung camar'] },
+  { q: 'Susun rantai makanan hutan ini:', chain: ['Daun', 'Ulat', 'Burung', 'Helang'] },
+];
+export function foodChainBuilder(mount, onDone) {
+  const rounds = [...FOOD_CHAINS].sort(() => Math.random() - 0.5);
+  let i = 0, totalMistakes = 0;
+  const playRound = () => {
+    if (i >= rounds.length) { onDone(Math.max(.3, 1 - totalMistakes * .1)); return; }
+    const r = rounds[i];
+    const bank = r.chain.map((w, idx) => ({ w, idx })).sort(() => Math.random() - 0.5);
+    let built = [];
+    const render = () => {
+      mount.innerHTML = `
+        <h3 class="display">🔗 Food Chain Builder — ${i + 1}/${rounds.length}</h3>
+        <p style="margin:.4rem 0 1rem">${esc(r.q)}</p>
+        <div class="word-slots sentence-slots">${
+          r.chain.map((_, idx) => `<span class="word-slot sentence-slot">${built[idx] ? esc(built[idx]) : ''}</span>`).join('<span style="align-self:center">→</span>')
+        }</div>
+        <div class="letter-tray"></div>`;
+      const tray = mount.querySelector('.letter-tray');
+      bank.forEach(item => {
+        if (item.used) return;
+        const b = document.createElement('button');
+        b.className = 'letter-tile sentence-tile'; b.textContent = item.w;
+        b.addEventListener('click', ev => {
+          if (item.w === r.chain[built.length]) {
+            built.push(item.w); item.used = true; sfx.correct(built.length);
+            floatText(ev.clientX, ev.clientY, '✓');
+            // Render the completed slot before moving on — returning early here
+            // (like the last word never appearing) left the final chain link
+            // invisible for the ~500ms before the round silently advanced.
+            render();
+            if (built.length === r.chain.length) setTimeout(() => { i++; playRound(); }, 700);
+            return;
+          }
+          totalMistakes++; sfx.wrong(); b.classList.add('tile-wrong');
+          setTimeout(() => b.classList.remove('tile-wrong'), 350);
+        });
+        tray.appendChild(b);
+      });
+    };
+    render();
+  };
+  playRound();
+}
+
+// ---------- Shared 3-bin category sort — used by Weather Symbol Sort and
+// Instrument Family Sort below. Same tap-chip-then-tap-bin interaction as the
+// generic 2-bin sortBins(), generalized to an arbitrary bin list. ----------
+function renderCategorySort(mount, { title, prompt, bins, items }, onDone) {
+  const pool = [...items].sort(() => Math.random() - 0.5);
+  let sorted = 0, mistakes = 0;
+  mount.innerHTML = `
+    <h3 class="display">${esc(title)}</h3>
+    <p style="margin:.4rem 0 1rem">${esc(prompt)} — tap a chip, then tap its bin.</p>
+    <div class="sort-tray"></div>
+    <div class="sort-bins" style="grid-template-columns:repeat(${bins.length},1fr)">
+      ${bins.map((b, i) => `<div class="sort-bin sort-bin-${i + 1}" data-bin="${esc(b.key)}">${esc(b.label)}</div>`).join('')}
+    </div>
+    <p class="game-status" style="margin-top:.6rem;font-weight:800"></p>`;
+  const tray = mount.querySelector('.sort-tray');
+  const status = mount.querySelector('.game-status');
+  let selected = null;
+  pool.forEach((item, idx) => {
+    const chip = document.createElement('button');
+    chip.className = 'sort-chip'; chip.textContent = item.t; chip.dataset.idx = idx;
+    tray.appendChild(chip);
+  });
+  tray.addEventListener('click', ev => {
+    const chip = ev.target.closest('.sort-chip');
+    if (!chip || chip.disabled) return;
+    tray.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected'); selected = chip;
+  });
+  mount.querySelectorAll('.sort-bin').forEach(binEl => {
+    binEl.addEventListener('click', ev => {
+      if (!selected || selected.disabled) return;
+      const chip = selected;
+      const item = pool[Number(chip.dataset.idx)];
+      chip.disabled = true;
+      const hit = binEl.dataset.bin === item.bin;
+      if (hit) { sorted++; sfx.correct(sorted); floatText(ev.clientX, ev.clientY, '✓'); chip.classList.add('correct'); }
+      else { mistakes++; sfx.wrong(); floatText(ev.clientX, ev.clientY, '✗', 'var(--lava)'); chip.classList.add('wrong'); }
+      status.textContent = `${sorted + mistakes}/${pool.length} sorted`;
+      chip.remove(); selected = null;
+      if (sorted + mistakes >= pool.length) setTimeout(() => onDone(Math.max(.2, sorted / pool.length)), 400);
+    });
+  });
+}
+
+// ---------- Weather Symbol Sort (Geografi) ----------
+export function weatherSymbolSort(mount, onDone) {
+  renderCategorySort(mount, {
+    title: '🌦️ Weather Symbol Sort',
+    prompt: 'Sort each weather symbol into its climate bin',
+    bins: [
+      { key: 'panas', label: '☀️ Panas' },
+      { key: 'hujan', label: '🌧️ Hujan' },
+      { key: 'sejuk', label: '❄️ Sejuk' },
+    ],
+    items: [
+      { t: '☀️ Cerah', bin: 'panas' }, { t: '🏜️ Kemarau', bin: 'panas' },
+      { t: '🌧️ Hujan lebat', bin: 'hujan' }, { t: '⛈️ Ribut petir', bin: 'hujan' },
+      { t: '❄️ Salji', bin: 'sejuk' }, { t: '🥶 Beku', bin: 'sejuk' },
+    ],
+  }, onDone);
+}
+
+// ---------- Instrument Family Sort (Music) ----------
+export function instrumentFamilySort(mount, onDone) {
+  renderCategorySort(mount, {
+    title: '🎻 Instrument Family Sort',
+    prompt: 'Sort each alat muzik into its family',
+    bins: [
+      { key: 'perkusi', label: '🥁 Perkusi' },
+      { key: 'bertali', label: '🎻 Bertali' },
+      { key: 'tiupan', label: '🎶 Tiupan' },
+    ],
+    items: [
+      { t: '🥁 Kompang', bin: 'perkusi' }, { t: '🔔 Gong', bin: 'perkusi' },
+      { t: '🎻 Biola', bin: 'bertali' }, { t: '🪕 Sape', bin: 'bertali' },
+      { t: '🎶 Seruling', bin: 'tiupan' }, { t: '📯 Serunai', bin: 'tiupan' },
+    ],
+  }, onDone);
+}
+
 // Subject-specific signature games, keyed by world. When a lesson's world has
 // one, it's picked ~half the time so students still see the generic variety.
+// Worlds with two games pick between them at random each time (see
+// gameForLesson below) for extra variety within the same signature slot.
 const SUBJECT_GAMES = {
-  'bm-village':        imbuhanMachine,
-  'tatabahasa-temple': imbuhanMachine,
-  'karangan-kingdom':  ayatCantum,
+  'bm-village':        [imbuhanMachine, peribahasaPadan],
+  'tatabahasa-temple': [imbuhanMachine, peribahasaPadan],
+  'karangan-kingdom':  [ayatCantum, peribahasaPadan],
   'maths-volcano':     pasarMalamCashier,
-  'fraction-island':   rotiCanaiSlicer,
-  'english-kingdom':   tenseTimeMachine,
-  'grammar-forest':    tenseTimeMachine,
+  'fraction-island':   [rotiCanaiSlicer, fractionFaceOff],
+  'english-kingdom':   [tenseTimeMachine, synonymSwap],
+  'grammar-forest':    [tenseTimeMachine, synonymSwap],
   'reading-castle':    clueHunter,
-  'geo-world':         petaPinDrop,
-  'music-studio':      iramaRepeat,
-  'science-lab':       virtualEksperimen,
-  'rbt-workshop':      circuitFixer,
+  'geo-world':         [petaPinDrop, weatherSymbolSort],
+  'music-studio':      [iramaRepeat, instrumentFamilySort],
+  'science-lab':       [virtualEksperimen, foodChainBuilder],
+  'rbt-workshop':      [circuitFixer, toolMatchUp],
 };
 
 // Pick a game suited to the lesson and return a runner.
 export function gameForLesson(lesson, quiz) {
   // Subject worlds get their signature KSSR game about half the time,
   // so the skill-specific practice shows up often without killing variety.
-  const subjectGame = SUBJECT_GAMES[lesson.worldId];
-  if (subjectGame && Math.random() < 0.5) {
+  // A world with more than one signature game picks between them at random.
+  const subjectGames = SUBJECT_GAMES[lesson.worldId];
+  if (subjectGames && Math.random() < 0.5) {
+    const subjectGame = Array.isArray(subjectGames)
+      ? subjectGames[Math.floor(Math.random() * subjectGames.length)]
+      : subjectGames;
     return (mount, onDone) => subjectGame(mount, onDone);
   }
   const kinds = ['memory', 'balloon', 'speed', 'catch', 'maze', 'escape', 'ninja', 'sort', 'truefalse'];

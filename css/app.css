@@ -541,6 +541,11 @@ table.report th { font-family: var(--font-display); }
 .sort-bin:hover { transform: translateY(-2px); }
 .sort-bin-correct { color: var(--jungle); border-color: var(--jungle); }
 .sort-bin-wrong { color: var(--lava); border-color: var(--lava); }
+/* Neutral bin colors for multi-category sorts (Weather Symbol Sort,
+   Instrument Family Sort) where bins aren't a right/wrong pair. */
+.sort-bin-1 { color: var(--ocean); border-color: var(--ocean); }
+.sort-bin-2 { color: var(--gold); border-color: var(--gold); }
+.sort-bin-3 { color: var(--magic); border-color: var(--magic); }
 .tf-buttons { display: flex; gap: var(--sp-2); }
 .tf-buttons .btn { flex: 1; }
 

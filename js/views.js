@@ -1898,16 +1898,16 @@ export async function parent(el, _m, selectedIdx = 0) {
 
 // ---------------- Teacher dashboard ----------------
 const SIGNATURE_GAME_BY_WORLD = {
-  'bm-village': 'Mesin Imbuhan', 'tatabahasa-temple': 'Mesin Imbuhan',
-  'karangan-kingdom': 'Ayat Cantum',
+  'bm-village': 'Mesin Imbuhan · Peribahasa Padan', 'tatabahasa-temple': 'Mesin Imbuhan · Peribahasa Padan',
+  'karangan-kingdom': 'Ayat Cantum · Peribahasa Padan',
   'maths-volcano': 'Pasar Malam Cashier',
-  'fraction-island': 'Roti Canai Slicer',
-  'english-kingdom': 'Tense Time Machine', 'grammar-forest': 'Tense Time Machine',
+  'fraction-island': 'Roti Canai Slicer · Fraction Face-Off',
+  'english-kingdom': 'Tense Time Machine · Synonym Swap', 'grammar-forest': 'Tense Time Machine · Synonym Swap',
   'reading-castle': 'Clue Hunter',
-  'geo-world': 'Peta Pin Drop',
-  'music-studio': 'Irama Repeat',
-  'science-lab': 'Virtual Eksperimen',
-  'rbt-workshop': 'Circuit Fixer',
+  'geo-world': 'Peta Pin Drop · Weather Symbol Sort',
+  'music-studio': 'Irama Repeat · Instrument Family Sort',
+  'science-lab': 'Virtual Eksperimen · Food Chain Builder',
+  'rbt-workshop': 'Circuit Fixer · Tool Match-Up',
 };
 
 function classSubjectAverages(students) {
