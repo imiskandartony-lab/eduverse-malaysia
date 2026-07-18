@@ -89,6 +89,7 @@ class LocalStore {
   async getUsersByIds() { return []; }
   async joinClassByCode() { throw new Error('Joining a class needs Firebase — demo mode monitors this device only.'); }
   async removeStudentFromClass() {}
+  async archiveClass() {}
   async getMyJoinedClasses() { return []; }
   async assignHomework() { throw new Error('Assigning homework needs Firebase — demo mode monitors this device only.'); }
   async getAssignmentsForClass() { return []; }
@@ -300,6 +301,18 @@ class FirebaseStore {
     const uid = this.authInst.currentUser.uid;
     const classRef = this.fs.doc(this.db, 'teachers', uid, 'classes', classId);
     await this.fs.updateDoc(classRef, { studentUids: this.fs.arrayRemove(studentUid) });
+  }
+  // Archiving replaces deletion: history (roster, accuracy, assignments) stays
+  // intact for year-end reference, but the class code stops accepting new
+  // joins. We drop the classCodes/{code} pointer on archive (join lookups then
+  // 404) and republish it on unarchive, reusing the same code either way.
+  async archiveClass(classId, code, archived) {
+    const uid = this.authInst.currentUser.uid;
+    const classRef = this.fs.doc(this.db, 'teachers', uid, 'classes', classId);
+    await this.fs.updateDoc(classRef, { archived });
+    const codeRef = this.fs.doc(this.db, 'classCodes', code);
+    if (archived) await this.fs.deleteDoc(codeRef);
+    else await this.fs.setDoc(codeRef, { teacherUid: uid, classId });
   }
   // Every class this signed-in student has joined, found across every teacher's
   // subcollection at once (no back-reference needed on the student's own profile —

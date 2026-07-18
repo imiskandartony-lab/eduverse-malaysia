@@ -1974,7 +1974,13 @@ async function loadRealClasses() {
 
 export async function teacher(el, _m, classIdx = 0) {
   const isReal = IS_REAL_TEACHER();
-  const classes = isReal ? await loadRealClasses() : getAllClasses();
+  const allClasses = isReal ? await loadRealClasses() : getAllClasses();
+  // Active classes always sort first so a default classIdx (0) lands on an
+  // active class, with archived ones appended after — see the "new class"
+  // submit handlers below, which rely on this same ordering to jump to a
+  // freshly-created (always active) class.
+  const classes = [...allClasses.filter(c => !c.archived), ...allClasses.filter(c => c.archived)];
+  const activeCount = classes.length - allClasses.filter(c => c.archived).length;
 
   if (isReal && !classes.length) {
     el.innerHTML = `
@@ -2027,11 +2033,22 @@ export async function teacher(el, _m, classIdx = 0) {
     <button class="btn btn-ghost btn-sm" data-route="#/settings">⚙️</button>
     <button class="btn btn-ghost btn-sm" id="logout">Log out</button></div>
   <div class="card card-tint">
-    <h2 class="display">${esc(cls.name)}</h2>
-    ${isReal ? `<p style="color:var(--ink-soft);font-size:.85rem;margin-top:.4rem">Class code: <b class="display" style="letter-spacing:.2em;color:var(--magic-deep)">${esc(cls.code)}</b> — students enter this on their own Settings page to join.</p>` : ''}
-    ${classes.length > 1 ? `<div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">${
-      classes.map((c, i) => `<button class="btn btn-sm ${i === classIdx ? 'btn-gold' : 'btn-ghost'}" data-class="${i}">${esc(c.name)}</button>`).join('')
+    <div style="display:flex;align-items:start;gap:.6rem;flex-wrap:wrap;justify-content:space-between">
+      <h2 class="display">${esc(cls.name)} ${cls.archived ? '<span class="pill" style="font-size:.7rem;vertical-align:middle">🎓 Archived</span>' : ''}</h2>
+      <button class="btn btn-ghost btn-sm" id="archive-toggle">${cls.archived ? '↩️ Unarchive' : '🎓 Archive class'}</button>
+    </div>
+    ${cls.archived ? `<p style="color:var(--ink-soft);font-size:.85rem;margin-top:.4rem">Kept for reference only — the class code no longer accepts new joins. Unarchive to reactivate it.</p>`
+      : isReal ? `<p style="color:var(--ink-soft);font-size:.85rem;margin-top:.4rem">Class code: <b class="display" style="letter-spacing:.2em;color:var(--magic-deep)">${esc(cls.code)}</b> — students enter this on their own Settings page to join.</p>` : ''}
+    ${activeCount > 1 ? `<div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">${
+      classes.slice(0, activeCount).map((c, i) => `<button class="btn btn-sm ${i === classIdx ? 'btn-gold' : 'btn-ghost'}" data-class="${i}">${esc(c.name)}</button>`).join('')
     }</div>` : ''}
+    ${classes.length > activeCount ? `
+    <details style="margin-top:.6rem">
+      <summary style="cursor:pointer;color:var(--ink-soft);font-size:.85rem">🎓 Archived classes (${classes.length - activeCount})</summary>
+      <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">${
+        classes.slice(activeCount).map((c, i) => `<button class="btn btn-sm ${activeCount + i === classIdx ? 'btn-gold' : 'btn-ghost'}" data-class="${activeCount + i}">${esc(c.name)}</button>`).join('')
+      }</div>
+    </details>` : ''}
     <button class="btn btn-ghost btn-sm" id="new-class-toggle" style="margin-top:.6rem">➕ New class</button>
     <form id="new-class-form" hidden style="gap:.5rem;margin-top:.6rem;flex-wrap:wrap">
       <input id="new-class-name" placeholder="Class name (e.g. Kelas 5 Amanah)" autocomplete="off"
@@ -2094,9 +2111,9 @@ export async function teacher(el, _m, classIdx = 0) {
         <td>${s.streak}🔥</td>
         <td>${s.daysSinceActive === 0 ? 'Today' : `${s.daysSinceActive}d ago`}</td>
         <td>${esc(s.weak)}</td>
-        <td><button class="btn btn-ghost btn-sm" data-remove-student="${esc(s.id)}" title="Remove student">✕</button></td></tr>`).join('')}
+        <td>${cls.archived ? '' : `<button class="btn btn-ghost btn-sm" data-remove-student="${esc(s.id)}" title="Remove student">✕</button>`}</td></tr>`).join('')}
       </tbody></table></div>` : `<p style="color:var(--ink-soft)">No students yet — ${isReal ? `share the class code above so they can join.` : 'add your first one below.'}</p>`}
-    ${isReal ? '' : `
+    ${isReal || cls.archived ? '' : `
     <form id="add-student-form" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem">
       <input id="add-student-name" placeholder="Student name" autocomplete="off"
         style="flex:1;min-width:180px;border:3px solid var(--line);border-radius:var(--r-pill);padding:.55rem 1rem;font-family:inherit;font-weight:700;background:var(--card);color:var(--ink)" />
@@ -2105,16 +2122,17 @@ export async function teacher(el, _m, classIdx = 0) {
   </div>
   <div class="card">
     <h3 class="display">📚 Assign homework</h3>
-    ${!isReal ? `<p style="color:var(--ink-soft);font-size:.8rem;margin-bottom:.6rem">Demo mode: saved on this device only — connect Firebase to actually deliver homework to students.</p>` : ''}
+    ${cls.archived ? `<p style="color:var(--ink-soft);font-size:.8rem;margin-bottom:.6rem">This class is archived — unarchive it to change homework assignments.</p>` : !isReal ? `<p style="color:var(--ink-soft);font-size:.8rem;margin-bottom:.6rem">Demo mode: saved on this device only — connect Firebase to actually deliver homework to students.</p>` : ''}
     ${assignedList.length ? `
     <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:.4rem">Currently assigned:</p>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem">
-      ${assignedList.map(a => { const l = LESSONS.find(x => x.id === a.lessonId); return l ? `<span class="pill">${esc(l.title)} <button data-unassign="${esc(a.assignmentId)}" style="background:none;border:none;color:var(--lava);font-weight:800;cursor:pointer;margin-left:.3em">✕</button></span>` : ''; }).join('')}
+      ${assignedList.map(a => { const l = LESSONS.find(x => x.id === a.lessonId); return l ? `<span class="pill">${esc(l.title)} ${cls.archived ? '' : `<button data-unassign="${esc(a.assignmentId)}" style="background:none;border:none;color:var(--lava);font-weight:800;cursor:pointer;margin-left:.3em">✕</button>`}</span>` : ''; }).join('')}
     </div>` : ''}
+    ${cls.archived ? '' : `
     <div style="display:flex;gap:.6rem;flex-wrap:wrap">
       <select id="hw-lesson">${LESSONS.filter(l => !assignedList.some(a => a.lessonId === l.id)).map(l => `<option value="${l.id}">${esc(l.title)}</option>`).join('')}</select>
       <button class="btn btn-sm" id="hw-assign">Assign to class</button>
-    </div>
+    </div>`}
   </div>
   <div class="card">
     <h3 class="display">🎮 Signature KSSR games</h3>
@@ -2147,8 +2165,21 @@ export async function teacher(el, _m, classIdx = 0) {
     if (isReal) await store.createClass(name, year);
     else await addClass(name, year);
     toast(`🏫 ${name} created!`);
-    const total = isReal ? (await store.getMyClasses()).length : getAllClasses().length;
-    teacher(el, null, total - 1);
+    const activeTotal = isReal
+      ? (await store.getMyClasses()).filter(c => !c.archived).length
+      : getAllClasses().filter(c => !c.archived).length;
+    teacher(el, null, activeTotal - 1);
+  });
+  el.querySelector('#archive-toggle').addEventListener('click', async () => {
+    if (!(await requirePremiumGate())) return;
+    const nextArchived = !cls.archived;
+    if (isReal) await store.archiveClass(cls.id, cls.code, nextArchived);
+    else archiveClassLocal(cls.id, nextArchived);
+    toast(nextArchived ? `🎓 ${cls.name} archived — its class code is now inactive.` : `↩️ ${cls.name} unarchived and active again.`);
+    const refreshed = isReal ? await loadRealClasses() : getAllClasses();
+    const reordered = [...refreshed.filter(c => !c.archived), ...refreshed.filter(c => c.archived)];
+    const newIdx = reordered.findIndex(c => c.id === cls.id);
+    teacher(el, null, Math.max(0, newIdx));
   });
   el.querySelector('#add-student-form')?.addEventListener('submit', async e => {
     e.preventDefault();
@@ -2170,7 +2201,7 @@ export async function teacher(el, _m, classIdx = 0) {
     if (!(await requirePremiumGate())) return;
     toast(`🔔 Reminder sent to ${b.dataset.remind}'s parent!`);
   }));
-  el.querySelector('#hw-assign').addEventListener('click', async () => {
+  el.querySelector('#hw-assign')?.addEventListener('click', async () => {
     if (!(await requirePremiumGate())) return;
     const sel = el.querySelector('#hw-lesson');
     if (!sel.value) return;
@@ -2515,8 +2546,11 @@ const TEACHER_DATA_KEY = 'eduverse-teacher-classes-v1';
 function getTeacherData() {
   try {
     const d = JSON.parse(localStorage.getItem(TEACHER_DATA_KEY) || '{}');
-    return { customClasses: d.customClasses || [], addedStudents: d.addedStudents || {}, removedStudents: d.removedStudents || {} };
-  } catch { return { customClasses: [], addedStudents: {}, removedStudents: {} }; }
+    return {
+      customClasses: d.customClasses || [], addedStudents: d.addedStudents || {},
+      removedStudents: d.removedStudents || {}, archivedClasses: d.archivedClasses || {},
+    };
+  } catch { return { customClasses: [], addedStudents: {}, removedStudents: {}, archivedClasses: {} }; }
 }
 function setTeacherData(data) {
   localStorage.setItem(TEACHER_DATA_KEY, JSON.stringify(data));
@@ -2527,12 +2561,19 @@ function getAllClasses() {
   const data = getTeacherData();
   const withExtras = classes => classes.map(c => ({
     ...c,
+    archived: !!data.archivedClasses[c.id],
     students: [
       ...c.students.filter(s => !(data.removedStudents[c.id] || []).includes(s.id)),
       ...(data.addedStudents[c.id] || []),
     ],
   }));
   return [...withExtras(demoClasses()), ...withExtras(data.customClasses)];
+}
+
+function archiveClassLocal(classId, archived) {
+  const data = getTeacherData();
+  data.archivedClasses[classId] = archived;
+  setTeacherData(data);
 }
 
 async function addClass(name, year) {

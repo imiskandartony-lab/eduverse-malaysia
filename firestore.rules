@@ -77,7 +77,10 @@ service cloud.firestore {
       allow get: if signedIn();
       allow list: if false;
       allow create: if isTeacher() && request.resource.data.teacherUid == request.auth.uid;
-      allow update, delete: if isAdmin();
+      // A teacher can delete/republish their own class's code pointer (used to
+      // archive/unarchive a class without touching the code students already have).
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (isTeacher() && resource.data.teacherUid == request.auth.uid);
     }
 
     // Curriculum content: readable by all signed-in users, writable by admin only.
